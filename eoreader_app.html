@@ -964,15 +964,32 @@ class Component extends DCLogic {
         h('div',{key:2,style:{font:'400 12.5px/1.5 system-ui',color:t.t2,marginTop:'12px'}}, 'Held as-is. No text extractor for this medium is wired in this preview — the file and its bytes are kept; connect the matching ingest organ to read it.')])]);
 
     const a=d.analysis;
+    const activeSceneEntities=()=>{
+      const list=(a&&a.list?a.list:[]);
+      if(!list.length) return [];
+      const paras=(a&&a.paras?a.paras:[]);
+      const toc=a&&a.toc?a.toc:[];
+      let lo=0, hi=paras.length;
+      if(toc.filter(e=>!e.implicit).length>=3){
+        const ci=Math.max(0,Math.min(this.state.chap,toc.length-1));
+        const en=toc[ci]; lo=en.implicit?en.pi:en.pi+1; hi=(ci+1<toc.length)?toc[ci+1].pi:paras.length;
+      }
+      const scene=(' '+paras.slice(lo,hi).join(' ')+' ').toLowerCase();
+      const esc=s=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+      return list.map(e=>{ const re=new RegExp('(^|\\b)'+esc(e.name.toLowerCase())+'(\\b|$)','g'); const n=(scene.match(re)||[]).length; return {...e,active:n}; })
+        .filter(e=>e.active>0).sort((x,y)=>y.active-x.active||y.count-x.count).slice(0,5);
+    };
     const nativePlusOverlay=()=>{
-      const ents=(a&&a.list?a.list:[]).slice(0,4), chips=[];
-      if(this.state.layers.en) ents.forEach(e=>chips.push(h('button',{key:'e'+e.id,onClick:()=>this.pick(e.id),style:{pointerEvents:'auto',display:'inline-flex',alignItems:'center',gap:'5px',background:'rgba(255,255,255,.82)',border:'1px solid '+e.color,borderRadius:'999px',padding:'6px 9px',font:'700 10.5px system-ui',color:'#1a1a1a',boxShadow:'0 4px 14px rgba(0,0,0,.12)',cursor:'pointer',backdropFilter:'blur(7px)'}},[h('span',{key:'d',style:{width:'7px',height:'7px',borderRadius:'3px',background:e.color,flex:'none'}}), e.name])));
-      if(this.state.layers.hi && (a.hi||[]).length) chips.push(h('span',{key:'hi',style:{display:'inline-flex',alignItems:'center',background:'rgba(232,176,74,.38)',border:'1px solid rgba(176,132,47,.45)',borderRadius:'999px',padding:'6px 9px',font:'700 10.5px system-ui',color:'#3b3328',boxShadow:'0 4px 14px rgba(0,0,0,.10)',backdropFilter:'blur(7px)'}}, 'Highlights · '+(a.hi||[]).length));
-      if(this.state.layers.nw && (a.tension||[]).length) chips.push(h('span',{key:'ten',style:{display:'inline-flex',alignItems:'center',background:'rgba(208,71,46,.16)',border:'1px solid rgba(208,71,46,.35)',borderRadius:'999px',padding:'6px 9px',font:'800 10.5px system-ui',color:'#9b2f1f',boxShadow:'0 4px 14px rgba(0,0,0,.10)',backdropFilter:'blur(7px)'}}, 'Check · '+(a.tension||[]).length));
-      return h('div',{key:'eo',style:{position:'absolute',left:'12px',right:'12px',top:'12px',zIndex:2,pointerEvents:'none',display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:'10px'}},[
-        h('div',{key:'chips',style:{display:'flex',gap:'6px',flexWrap:'wrap',maxWidth:'calc(100% - 92px)'}}, chips),
-        h('div',{key:'badge',style:{background:'rgba(17,17,17,.72)',color:'#fff',borderRadius:'999px',padding:'7px 10px',font:'800 10px system-ui',letterSpacing:'.05em',boxShadow:'0 8px 20px rgba(0,0,0,.20)',backdropFilter:'blur(7px)',whiteSpace:'nowrap'}},'NATIVE +')
-      ]);
+      const ents=this.state.layers.en?activeSceneEntities():[];
+      const details=[];
+      if(this.state.layers.hi && (a.hi||[]).length) details.push('quotes');
+      if(this.state.layers.nw && (a.tension||[]).length) details.push('claims');
+      return h('div',{key:'eo',style:{position:'sticky',left:0,right:0,bottom:0,zIndex:2,pointerEvents:'none',marginTop:'auto',padding:'0 12px 10px'}},
+        h('div',{style:{pointerEvents:'auto',display:'flex',alignItems:'center',gap:'9px',minHeight:'42px',background:this.state.dark?'rgba(15,20,34,.78)':'rgba(255,255,255,.76)',border:'1px solid '+(this.state.dark?'rgba(255,255,255,.10)':'rgba(30,28,25,.10)'),borderRadius:'18px',padding:'8px 10px',boxShadow:'0 -6px 22px rgba(0,0,0,.08)',backdropFilter:'blur(14px)',fontFamily:'system-ui'}},[
+          h('div',{key:'label',style:{flex:'none',font:"800 8.5px 'IBM Plex Mono',monospace",letterSpacing:'.08em',textTransform:'uppercase',color:t.mut,whiteSpace:'nowrap'}},'Active here'),
+          h('div',{key:'ents',style:{flex:1,minWidth:0,display:'flex',alignItems:'center',gap:'7px',overflowX:'auto'}}, ents.length?ents.map(e=>h('button',{key:e.id,onClick:()=>this.pick(e.id),title:e.role,style:{flex:'none',display:'inline-flex',alignItems:'center',gap:'6px',border:0,background:'transparent',padding:'3px 0',font:'650 12px system-ui',color:t.t2,cursor:'pointer',whiteSpace:'nowrap'}},[h('span',{key:'d',style:{width:'7px',height:'7px',borderRadius:'50%',background:e.color,boxShadow:'0 0 0 3px '+(this.state.dark?'rgba(255,255,255,.06)':'rgba(0,0,0,.04)'),flex:'none'}}),h('span',{key:'n'},e.name)])):h('span',{style:{font:'600 12px system-ui',color:t.faint,whiteSpace:'nowrap'}},'No named entities in this passage')),
+          h('div',{key:'mode',style:{flex:'none',font:"800 8.5px 'IBM Plex Mono',monospace",letterSpacing:'.08em',color:t.accent,whiteSpace:'nowrap'}}, details.length?'X-RAY · '+details.join(' · '):'X-RAY')
+        ]));
     };
     const nativeWrap=(children,bg)=>h('div',{style:{padding:'0',display:'flex',flexDirection:'column',minHeight:'100%',position:'relative',background:bg||'transparent'}}, view==='annotated'?[...children,nativePlusOverlay()]:children);
     if((view==='native'||view==='annotated') && d.medium==='PDF' && d.pdfUrl){
