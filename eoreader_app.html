@@ -708,7 +708,7 @@ class Component extends DCLogic {
       let body=txt, title=ls.url;
       const j=this.parseJina(txt);
       if(j){ body=this.cleanMarkdown(j.body); title=j.title||ls.url; }
-      else if(/^\s*</.test(txt)){ try{ body=new DOMParser().parseFromString(txt,'text/html').body.innerText; }catch(_){} }
+      else if(/^\s*</.test(txt)){ try{ body=this.dechrome(txt).text; }catch(_){} }
       let paras=body.split(/\n{2,}/).map(s=>s.trim()).filter(Boolean);
       if(paras.length<2) paras=body.split(/\n/).map(s=>s.trim()).filter(Boolean);
       const ctx=this.linkContext(ls.text);
@@ -801,7 +801,7 @@ class Component extends DCLogic {
       let clean=txt, t=title||u, rawHtml=null, linkMap={};
       const j=this.parseJina(txt);
       if(j){ clean=this.cleanMarkdown(j.body); t=title||j.title||u; linkMap=this.extractLinksFromMd(j.body); }
-      else if(/^\s*</.test(txt)){ rawHtml=txt; try{ const doc=new DOMParser().parseFromString(txt,'text/html'); clean=doc.body.innerText; linkMap=this.extractLinksFromDom(doc); }catch(_){} }
+      else if(/^\s*</.test(txt)){ rawHtml=txt; try{ const d=this.dechrome(txt); clean=d.text; linkMap=d.linkMap; }catch(_){} }
       this.setDoc({name:u,url:u,title:t,medium:'Webpage',mode:'text',size:'',rawHtml,analysis:this.analyzeText(clean,linkMap)});
     }).catch(err=>this.setDoc({name:u,url:u,title:title||u,medium:'Webpage',mode:'binary',size:'',mime:'could not fetch: '+err.message+' — try routing through your proxy (edit routing in Search & open)'}));
   }
@@ -860,7 +860,7 @@ class Component extends DCLogic {
     if(aud.includes(ext)||(f.type||'').startsWith('audio')){ this.setDoc({name,title:name,medium:'Audio',mode:'media',mtype:'audio',url:URL.createObjectURL(f),size}); return; }
     if(vid.includes(ext)||(f.type||'').startsWith('video')){ this.setDoc({name,title:name,medium:'Video',mode:'media',mtype:'video',url:URL.createObjectURL(f),size}); return; }
     if(ext==='pdf'||(f.type||'')==='application/pdf'){ this.ingestPdf(f,name,size); return; }
-    if(ext==='html'||ext==='htm'){ const r=new FileReader(); r.onload=()=>{ let txt='', linkMap={}; try{ const doc=new DOMParser().parseFromString(r.result||'','text/html'); txt=doc.body.innerText; linkMap=this.extractLinksFromDom(doc); }catch(_){txt=r.result||'';} this.setDoc({name,title:name,medium:'Webpage',mode:'text',size,rawHtml:r.result||'',analysis:this.analyzeText(txt,linkMap)}); }; r.readAsText(f); return; }
+    if(ext==='html'||ext==='htm'){ const r=new FileReader(); r.onload=()=>{ let txt='', linkMap={}; try{ const d=this.dechrome(r.result||''); txt=d.text; linkMap=d.linkMap; }catch(_){txt=r.result||'';} this.setDoc({name,title:name,medium:'Webpage',mode:'text',size,rawHtml:r.result||'',analysis:this.analyzeText(txt,linkMap)}); }; r.readAsText(f); return; }
     if(textLike.includes(ext)||(f.type||'').startsWith('text')){ const r=new FileReader(); r.onload=()=>{ const raw=r.result||''; const csv=(ext==='csv'||ext==='tsv')?this.parseCsvRows(raw):null; this.setDoc({name,title:name,medium,mode:'text',size,rawText:raw,csv,analysis:this.analyzeText(raw)}); }; r.readAsText(f); return; }
     const r=new FileReader();
     r.onload=()=>{ const buf=new Uint8Array(r.result), n=Math.min(buf.length,4000); let a=0; for(let i=0;i<n;i++){ const b=buf[i]; if((b>=32&&b<127)||b===9||b===10||b===13)a++; }
@@ -899,6 +899,57 @@ class Component extends DCLogic {
   extractLinksFromDom(doc){
     const map={}; try{ doc.querySelectorAll('a[href]').forEach(a=>{ const txt=(a.textContent||'').trim(); const href=a.href; if(txt && txt.length>=2 && txt.length<=120 && /^https?:\/\//.test(href)) map[txt]=href; }); }catch(_){}
     return map;
+  }
+  // ── semantic dechrome ──
+  // Raw page HTML mixes prose with structural chrome — skip links, nav menus,
+  // subscribe/social rails, footers — that plain innerText can't tell apart
+  // from the article. Strip it by what it *is* (tag, ARIA role, id/class
+  // naming convention) rather than by site-specific selectors, then — when no
+  // single <article>/<main> stands out — score remaining containers the way
+  // Readability does: prose length minus link density, so nav-like link farms
+  // lose to paragraph-heavy prose even without a semantic wrapper.
+  stripChromeNodes(root){
+    const KILL_TAGS=['script','style','noscript','template','iframe','svg','form','button','select','textarea','nav','header','footer','aside'];
+    KILL_TAGS.forEach(tag=>{ try{ root.querySelectorAll(tag).forEach(el=>el.remove()); }catch(_){} });
+    const KILL_ROLES=['navigation','banner','contentinfo','complementary','search','dialog','alertdialog','menu','menubar','tablist','toolbar','tooltip'];
+    KILL_ROLES.forEach(role=>{ try{ root.querySelectorAll('[role="'+role+'"]').forEach(el=>el.remove()); }catch(_){} });
+    try{ root.querySelectorAll('[aria-hidden="true"],[hidden]').forEach(el=>el.remove()); }catch(_){}
+    try{ root.querySelectorAll('a[href^="#"]').forEach(a=>{ if(/^\s*skip to\b/i.test(a.textContent||'')) a.remove(); }); }catch(_){}
+    const CHROME=/(?:^|[-_ ])(nav|navbar|navigation|menu(?:bar)?|sidebar|footer|masthead|topbar|toolbar|breadcrumbs?|paginat(?:ion|or)|pager|skip-?links?|cookie|consent|gdpr|banner|promo|advert(?:isement)?|\bad[-_]|subscri\w*|newsletter|social|share|sharing|related|recommend(?:ed)?|comments?|disqus|popup|modal|overlay|widget|byline-tools|utility-nav|global-nav|site-header|site-footer)(?:$|[-_ ])/i;
+    const CONTENT=/(?:^|[-_ ])(article|articlebody|entry|hentry|post|story|content|main|page|storytext)(?:$|[-_ ])/i;
+    try{
+      root.querySelectorAll('[id],[class]').forEach(el=>{
+        const cls=typeof el.className==='string'?el.className:(el.getAttribute('class')||'');
+        const sig=(el.id||'')+' '+cls;
+        if(CHROME.test(sig) && !CONTENT.test(sig)) el.remove();
+      });
+    }catch(_){}
+  }
+  pickMainRoot(doc){
+    const body=doc.body; if(!body) return null;
+    this.stripChromeNodes(body);
+    const explicit=body.querySelector('article, [role="main"], main');
+    if(explicit && (explicit.textContent||'').trim().split(/\s+/).filter(Boolean).length>=40) return explicit;
+    let best=null,bestScore=-1;
+    try{
+      body.querySelectorAll('div,section,article,main').forEach(el=>{
+        const text=(el.textContent||'').trim();
+        if(text.length<200) return;
+        const linkText=Array.from(el.querySelectorAll('a')).reduce((n,a)=>n+(a.textContent||'').length,0);
+        const density=linkText/Math.max(text.length,1);
+        if(density>0.5) return;
+        const ps=el.querySelectorAll('p').length;
+        const score=text.length*(1-density)+ps*40;
+        if(score>bestScore){ bestScore=score; best=el; }
+      });
+    }catch(_){}
+    return best||body;
+  }
+  dechrome(html){
+    const doc=new DOMParser().parseFromString(html||'','text/html');
+    let root=null; try{ root=this.pickMainRoot(doc); }catch(_){}
+    root=root||doc.body;
+    return {text:(root&&root.innerText)||'', linkMap:this.extractLinksFromDom(root||doc)};
   }
   spans(p,prep,kb){
     if(!prep) return [p];
