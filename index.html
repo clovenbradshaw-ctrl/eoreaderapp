@@ -949,6 +949,7 @@ class Component extends DCLogic {
     };
     this.solarRef=(el)=>this.mountSolar(el);
     this._sid=1;
+    this._prevSel=this.state.sel; this._prevDoc=this.state.doc; this._prevView=this.state.view; this._prevLayers=this.state.layers;
   }
   componentDidMount(){
     const set=()=>this.setState({engineLive:!!this.engineBridge(), engineName:this.engineBridgeName()});
@@ -1262,10 +1263,15 @@ class Component extends DCLogic {
       onPivot:(id)=>{ if(id) this.pick(id); },
     });
   }
-  componentDidUpdate(prevProps, prevState){
-    if(this._solar && prevState.sel!==this.state.sel && this.state.sel) this._solar.focus(this.state.sel);
-    if(this._webFrameDoc && prevState.doc===this.state.doc &&
-       (prevState.view!==this.state.view || prevState.layers!==this.state.layers)){
+  // The dc-runtime's componentDidUpdate only ever forwards prevProps, never prevState (see
+  // support.js), so "what changed since last render" has to be tracked by hand here rather
+  // than read off a second argument that's always undefined.
+  componentDidUpdate(prevProps){
+    const prevSel=this._prevSel, prevDoc=this._prevDoc, prevView=this._prevView, prevLayers=this._prevLayers;
+    this._prevSel=this.state.sel; this._prevDoc=this.state.doc; this._prevView=this.state.view; this._prevLayers=this.state.layers;
+    if(this._solar && prevSel!==this.state.sel && this.state.sel) this._solar.focus(this.state.sel);
+    if(this._webFrameDoc && prevDoc===this.state.doc &&
+       (prevView!==this.state.view || prevLayers!==this.state.layers)){
       this.syncWebMarks();
     }
   }
@@ -1341,6 +1347,20 @@ class Component extends DCLogic {
     });
     this._webFrameActiveIds=[...entIds];
     this.setState({webFrameActiveIds:[...entIds]});
+  }
+  // Reconstructs a bare HTML document from extracted article text, for sources whose original
+  // markup wasn't preserved — gives Native+ real HTML to paint structure onto instead of a
+  // JSX-rendered stand-in.
+  buildSyntheticWebHtml(d){
+    const a=d.analysis||{}, esc=s=>String(s==null?'':s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+    const paras=(a.paras||[]).map(p=>'<p>'+esc(p)+'</p>').join('\n');
+    return '<!doctype html><html><head><meta charset="utf-8">'
+      +'<meta name="viewport" content="width=device-width,initial-scale=1">'
+      +'<style>body{font:16px/1.65 \'Source Serif 4\',Georgia,serif;max-width:640px;margin:0 auto;padding:24px 20px 60px;color:#1e1c19;background:#fff}'
+      +'h1{font:700 26px/1.3 Georgia,serif;margin:0 0 6px}.byline{font:500 13px system-ui;color:#77716a;margin:0 0 22px}p{margin:0 0 18px}</style></head>'
+      +'<body><article><h1>'+esc(d.title||'')+'</h1>'
+      +(d.byline?'<div class="byline">'+esc(d.byline)+'</div>':'')
+      +paras+'</article></body></html>';
   }
 
   bucketOf(m){ const b={Webpage:'Web & news',PDF:'Documents',Document:'Documents',Slides:'Documents',Spreadsheet:'Data & sheets',Data:'Data & sheets',Code:'Code',Image:'Media',Audio:'Media',Video:'Media',Text:'Notes'}; return b[m]||'Other'; }
@@ -1809,7 +1829,7 @@ class Component extends DCLogic {
     const activeSceneEntities=()=>{
       const list=(a&&a.list?a.list:[]);
       if(!list.length) return [];
-      if(d.medium==='Webpage' && d.rawHtml){
+      if(d.medium==='Webpage'){
         const ids=this.state.webFrameActiveIds||[];
         if(!ids.length) return [];
         const byId=new Map(list.map(e=>[e.id,e]));
@@ -1845,6 +1865,14 @@ class Component extends DCLogic {
     }
     if((view==='native'||view==='annotated') && d.medium==='Webpage' && d.rawHtml){
       return nativeWrap([h('iframe',{key:'f',srcDoc:d.rawHtml,sandbox:'allow-same-origin allow-popups',title:d.title,onLoad:e=>this.onWebIframeLoad(e),style:{flex:1,minHeight:'700px',border:'none',width:'100%',background:'#fff'}})], '#fff');
+    }
+    // Native+'s whole premise is painting structure onto the page's own HTML. Most fetch
+    // proxies hand back pre-extracted text rather than the original markup, so when there's
+    // no rawHtml to preserve, reconstruct a plain document from that text and run it through
+    // the same iframe + entity-marking pipeline — real HTML to inject into, not a JSX stand-in.
+    if(view==='annotated' && d.medium==='Webpage' && !d.rawHtml && a && a.paras && a.paras.length){
+      const synHtml=this.buildSyntheticWebHtml(d);
+      return nativeWrap([h('iframe',{key:'f',srcDoc:synHtml,sandbox:'allow-same-origin allow-popups',title:d.title,onLoad:e=>this.onWebIframeLoad(e),style:{flex:1,minHeight:'700px',border:'none',width:'100%',background:'#fff'}})], '#fff');
     }
     if(d.medium==='Spreadsheet' && d.rawText){ const csvEl=this.buildCsvSource(d,t,h,pad); if(csvEl) return csvEl; }
     if((view==='native'||view==='annotated') && (d.medium==='Text'||d.medium==='Code'||d.medium==='Data') && d.rawText){
