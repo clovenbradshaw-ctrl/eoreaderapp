@@ -300,9 +300,11 @@
         </sc-for>
       </sc-if>
       <sc-if value="{{ showFull }}">
+        <div style="font:600 10px system-ui;letter-spacing:.05em;text-transform:uppercase;color:{{ t.mut }};margin:14px 0 6px">Meaning map · paradigms &amp; entities</div>
+        <div ref="{{ solarRef }}" style="height:200px;border-radius:14px;overflow:hidden;background:{{ t.bar }};border:1px solid {{ t.border }}"></div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:14px">
-          <sc-for list="{{ sel.related }}" as="r" hint-placeholder-count="2">
-            <span style="display:flex;align-items:center;gap:6px;background:{{ t.bar }};border:1px solid {{ t.border }};border-radius:20px;padding:5px 10px;font:600 12px system-ui;color:{{ t.t2 }}"><span style="width:8px;height:8px;border-radius:3px;background:{{ r.c }}"></span>{{ r.n }}</span>
+          <sc-for list="{{ relatedChips }}" as="r" hint-placeholder-count="2">
+            <span onClick="{{ r.pick }}" style="display:flex;align-items:center;gap:6px;background:{{ t.bar }};border:1px solid {{ t.border }};border-radius:20px;padding:5px 10px;font:600 12px system-ui;color:{{ t.t2 }};cursor:pointer"><span style="width:8px;height:8px;border-radius:3px;background:{{ r.c }}"></span>{{ r.n }}</span>
           </sc-for>
         </div>
         <button onClick="{{ closeSheet }}" style="margin-top:16px;width:100%;padding:12px;border:none;border-radius:12px;background:{{ t.accent }};color:#fff;font:600 13.5px system-ui;cursor:pointer">↺ Re-center reading on {{ sel.name }}</button>
@@ -533,6 +535,147 @@
 </div>
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:440,&quot;height&quot;:940},&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Light&quot;,&quot;Dark&quot;],&quot;default&quot;:&quot;Light&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Appearance&quot;},&quot;view&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Native&quot;,&quot;Native +&quot;,&quot;Reader&quot;],&quot;default&quot;:&quot;Reader&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Reader&quot;},&quot;candidates&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Reader&quot;}}">
+// EO: a small egocentric orbital view of the entity graph — paradigms (the largest, most
+// salient referents) as planets around the document, plain entities as their moons. A click
+// on any body pivots the camera onto it right there: true motion never changes, only which
+// body sits still at the centre (ported/trimmed from the eoreader4.2 GEO solar-system view).
+function mountEOSolar(root, opts){
+  opts = opts || {};
+  var W = opts.width || 300, H = opts.height || 200;
+  var cx = W / 2, cy = H / 2;
+  var SUN = '__doc__';
+  var textColor = opts.textColor || '#15181e';
+  var mutedColor = opts.mutedColor || '#8A8A95';
+  var edgeColor = opts.edgeColor || '#d9d5c8';
+  var bgColor = opts.bgColor || '#fff';
+  var sunColor = opts.sunColor || mutedColor;
+
+  var nodes = (opts.nodes || []).map(function(n){ return Object.assign({}, n); });
+  var byId = {}; byId[SUN] = { id: SUN, label: opts.sunLabel || 'This document', kind: 'sun' };
+  nodes.forEach(function(n){ byId[n.id] = n; });
+  nodes.forEach(function(n){
+    if (n.kind === 'paradigm' || !n.parent || !byId[n.parent] || n.parent === n.id) n.parent = SUN;
+  });
+  var ids = [SUN].concat(nodes.map(function(n){ return n.id; }));
+
+  var maxSal = 0.0001;
+  nodes.forEach(function(n){ if ((n.salience || 0) > maxSal) maxSal = n.salience; });
+  function sizeOf(id){
+    if (id === SUN) return 20;
+    var n = byId[id];
+    var frac = maxSal > 0 ? Math.max(0, Math.min(1, (n.salience || 0) / maxSal)) : 0.5;
+    return n.kind === 'paradigm' ? (12 + frac * 7) : (5 + frac * 5);
+  }
+
+  var kidsOf = {};
+  nodes.forEach(function(n){ (kidsOf[n.parent] = kidsOf[n.parent] || []).push(n); });
+  var ORBIT = {}; ORBIT[SUN] = { parent: null, r: 0, omega: 0, phase: 0 };
+  Object.keys(kidsOf).forEach(function(pid){
+    var arr = kidsOf[pid], onSun = (pid === SUN);
+    arr.forEach(function(n, k){
+      var ring = k % 3;
+      var r = onSun ? (70 + ring * 34) : (22 + ring * 9);
+      var period = onSun ? (20 + ring * 7 + (k % 5) * 3) : (5 + ring * 1.6 + (k % 4) * 0.8);
+      ORBIT[n.id] = {
+        parent: pid, r: r,
+        phase: (k / Math.max(1, arr.length)) * Math.PI * 2 + ring * 0.8,
+        omega: (Math.PI * 2) / period,
+      };
+    });
+  });
+
+  function truePos(id, t, cache){
+    if (cache[id]) return cache[id];
+    var o = ORBIT[id];
+    if (!o || !o.parent) { cache[id] = { x: 0, y: 0 }; return cache[id]; }
+    cache[id] = { x: 0, y: 0 };
+    var p = truePos(o.parent, t, cache);
+    var ang = o.phase + t * o.omega;
+    var pos = { x: p.x + o.r * Math.cos(ang), y: p.y + o.r * Math.sin(ang) };
+    cache[id] = pos; return pos;
+  }
+
+  var NS = 'http://www.w3.org/2000/svg';
+  function sv(tag, attrs){
+    var e = document.createElementNS(NS, tag);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    return e;
+  }
+
+  var svg = sv('svg', { viewBox: '0 0 ' + W + ' ' + H, width: '100%', height: H, style: 'display:block;touch-action:none' });
+  var universe = sv('g', {});
+  svg.appendChild(universe);
+  var focusRing = sv('circle', { cx: 0, cy: 0, r: 30, fill: 'none', stroke: mutedColor, 'stroke-opacity': 0.4, 'stroke-width': 1, 'stroke-dasharray': '2 3' });
+  universe.appendChild(focusRing);
+
+  var edgeEls = {};
+  nodes.forEach(function(n){
+    var line = sv('line', { stroke: edgeColor, 'stroke-opacity': 0.5, 'stroke-width': 0.75 });
+    universe.appendChild(line);
+    edgeEls[n.id] = line;
+  });
+
+  var bodyEls = {}, labelEls = {};
+  function mkBody(id, r, fill, label, fontSize){
+    var g = sv('g', { style: 'cursor:pointer' });
+    g.appendChild(sv('circle', { r: r, fill: fill, stroke: 'rgba(0,0,0,.22)', 'stroke-width': 1 }));
+    g.addEventListener('click', function(ev){ ev.stopPropagation(); focusOn(id); });
+    universe.appendChild(g);
+    var t = sv('text', {
+      'text-anchor': 'middle', 'font-size': fontSize, fill: textColor,
+      style: 'paint-order:stroke;stroke:' + bgColor + ';stroke-width:3px;stroke-linejoin:round;pointer-events:none;font-family:system-ui'
+    });
+    t.textContent = label;
+    universe.appendChild(t);
+    bodyEls[id] = g; labelEls[id] = t;
+  }
+  mkBody(SUN, sizeOf(SUN), sunColor, byId[SUN].label, 10);
+  nodes.forEach(function(n){ mkBody(n.id, sizeOf(n.id), n.color || mutedColor, n.label, n.kind === 'paradigm' ? 10 : 8.5); });
+
+  var focus = (opts.focusId && byId[opts.focusId]) ? opts.focusId : SUN;
+  var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var t0 = null, raf = null;
+
+  function frame(now){
+    if (!root.isConnected) { raf = null; return; }
+    if (t0 == null) t0 = now;
+    var t = reduceMotion ? 0 : (now - t0) / 1000;
+    var cache = {}, pos = {};
+    ids.forEach(function(id){ pos[id] = truePos(id, t, cache); });
+    var target = pos[focus] || { x: 0, y: 0 };
+    universe.setAttribute('transform', 'translate(' + (cx - target.x).toFixed(1) + ',' + (cy - target.y).toFixed(1) + ')');
+    ids.forEach(function(id){
+      var p = pos[id], n = byId[id], r = sizeOf(id);
+      bodyEls[id].setAttribute('transform', 'translate(' + p.x.toFixed(1) + ',' + p.y.toFixed(1) + ')');
+      var lab = labelEls[id];
+      lab.setAttribute('x', p.x.toFixed(1));
+      lab.setAttribute('y', (p.y - r - 5).toFixed(1));
+      var edge = edgeEls[id];
+      if (edge) {
+        var parentPos = pos[n.parent] || { x: 0, y: 0 };
+        edge.setAttribute('x1', parentPos.x.toFixed(1)); edge.setAttribute('y1', parentPos.y.toFixed(1));
+        edge.setAttribute('x2', p.x.toFixed(1)); edge.setAttribute('y2', p.y.toFixed(1));
+      }
+    });
+    focusRing.setAttribute('r', sizeOf(focus) + 8);
+    raf = requestAnimationFrame(frame);
+  }
+
+  function focusOn(id){
+    if (!byId[id] || id === focus) return;
+    focus = id;
+    if (id !== SUN && opts.onPivot) { try { opts.onPivot(id); } catch (err) {} }
+  }
+
+  root.appendChild(svg);
+  raf = requestAnimationFrame(frame);
+
+  return {
+    destroy: function(){ if (raf) cancelAnimationFrame(raf); if (svg.parentNode) svg.parentNode.removeChild(svg); },
+    focus: function(id){ if (byId[id]) focus = id; },
+  };
+}
+
 class Component extends DCLogic {
   constructor(props){
     super(props);
@@ -566,6 +709,7 @@ class Component extends DCLogic {
       spaceEditOpen:false, spacePickerOpen:false, _sk:0
     };
     this.scrollRef=(el)=>{ if(el) this._scroll=el; };
+    this.solarRef=(el)=>this.mountSolar(el);
     this._sid=1;
   }
   componentDidMount(){
@@ -632,14 +776,14 @@ class Component extends DCLogic {
     const e={
       ortiz:{id:'ortiz',name:'Elena Ortiz',color:'#c77dba',role:'Senator · sponsor of the Riverton deal',count:12,links:3,flags:1,
         conns:[{v:'SPONSORED',c:'#4f9a6b',t:'the Riverton deal'},{v:'QUOTED ON',c:'#5b9bd5',t:'the Ministry memo'},{v:'CONTRADICTS',c:'#c0662e',t:'her 2021 statement'}],
-        note:'Stance reversed between 2021 and 2025 on the same plan.',related:[{n:'Ministry',c:'#5b9bd5'},{n:'2019 report',c:'#6bbf8a'}],
+        note:'Stance reversed between 2021 and 2025 on the same plan.',related:[{n:'Ministry',c:'#5b9bd5',id:'ministry'},{n:'2019 report',c:'#6bbf8a',id:'report'}],
         ctx:['“a lesson in wishful accounting.”','“the most honest budget in a decade.” — 2021','staked her name on the deal']},
       ministry:{id:'ministry',name:'Ministry of Finance',color:'#5b9bd5',role:'Government body · budget authority',count:7,links:5,flags:0,
         conns:[{v:'ISSUED',c:'#4f9a6b',t:'the 2024 memo'},{v:'ADMINISTERS',c:'#5b9bd5',t:'the Riverton deal'}],
-        note:'Internal memo predates public disclosure by months.',related:[{n:'Ortiz',c:'#c77dba'}],ctx:['memo obtained by this paper','founding promise abandoned in early 2024']},
+        note:'Internal memo predates public disclosure by months.',related:[{n:'Ortiz',c:'#c77dba',id:'ortiz'}],ctx:['memo obtained by this paper','founding promise abandoned in early 2024']},
       report:{id:'report',name:'2019 report',color:'#6bbf8a',role:'Document · fiscal projection',count:4,links:2,flags:1,
         conns:[{v:'PREDICTED',c:'#5b9bd5',t:'the shortfall'},{v:'CITED BY',c:'#4f9a6b',t:'both sides'}],
-        note:'Cited as vindication by defenders and critics alike.',related:[{n:'Ortiz',c:'#c77dba'}],ctx:['predicted the shortfall, not the closures','defenders point to the same document']},
+        note:'Cited as vindication by defenders and critics alike.',related:[{n:'Ortiz',c:'#c77dba',id:'ortiz'}],ctx:['predicted the shortfall, not the closures','defenders point to the same document']},
       riverton:{id:'riverton',name:'Riverton',color:'#e0a94c',role:'Place · the deal’s namesake',count:3,links:1,flags:0,
         conns:[{v:'SITE OF',c:'#4f9a6b',t:'the budget deal'}],note:'Clinic closures concentrated here.',related:[],ctx:['the Riverton budget deal']}
     };
@@ -745,7 +889,7 @@ class Component extends DCLogic {
     });
     const top=list.slice(0,120); top.forEach(e=>e._co={});
     paras.forEach(p=>{ const here=top.filter(e=>p.toLowerCase().indexOf(e.name.toLowerCase())>=0); for(let x=0;x<here.length;x++){ for(let y=0;y<here.length;y++){ if(x!==y) here[x]._co[here[y].id]=(here[x]._co[here[y].id]||0)+1; } } });
-    top.forEach(e=>{ const r=Object.keys(e._co).sort((a,b)=>e._co[b]-e._co[a]); e.links=r.length; e.conns=r.slice(0,5).map(id=>({v:'WITH',c:entById[id].color,t:entById[id].name})); e.related=r.slice(0,3).map(id=>({n:entById[id].name,c:entById[id].color})); delete e._co; });
+    top.forEach(e=>{ const r=Object.keys(e._co).sort((a,b)=>e._co[b]-e._co[a]); e.links=r.length; e.conns=r.slice(0,5).map(id=>({v:'WITH',c:entById[id].color,t:entById[id].name,id})); e.related=r.slice(0,3).map(id=>({n:entById[id].name,c:entById[id].color,id})); delete e._co; });
     const hi=[...new Set((whole.match(/[“"][^“”"]{6,140}[”"]/g)||[]))].slice(0,80);
     const toc=this.detectToc(paras);
     const chapters=toc.filter(e=>!e.implicit).length;
@@ -806,6 +950,56 @@ class Component extends DCLogic {
   exploreBack(){ this.setState(s=>({explore:{...s.explore,terrain:null}})); }
   closeExplore(){ this.setState({explore:null, sel:null, linkSel:null, level:'prompt'}); }
   jumpChapter(i){ this.gotoChap(i); this.setState({explore:null, sel:null, linkSel:null, level:'prompt'}); }
+
+  // ── the entity graph as paradigms (largest mass) orbited by entities (smallest mass) ──
+  // Reuses the same salience form as the eoreader4.2 perceiver (log(1+mass)+log(1+coupling)),
+  // fed by mentions (count) and co-occurrence (links) that analyzeText already computes —
+  // no new detection pass, just a read of the signal that was already there. The document
+  // itself is the sun; the handful of highest-salience referents are its planets (paradigms);
+  // everything else is a moon of whichever paradigm it co-occurs with most, or the sun directly.
+  paradigmGraph(){
+    const d=this.state.doc, a=d&&d.analysis;
+    const list=(a&&a.list)||[];
+    if(!list.length) return null;
+    const byName={}; list.forEach(e=>{ byName[(e.name||'').toLowerCase()]=e; });
+    const byId={}; list.forEach(e=>{ byId[e.id]=e; });
+    const sal=e=>Math.log(1+(e.count||0))+Math.log(1+(e.links||0));
+    const ranked=list.slice().sort((x,y)=>sal(y)-sal(x));
+    const paradigmN=Math.max(1,Math.min(4,Math.round(ranked.length/6)));
+    const paradigmIds=new Set(ranked.slice(0,paradigmN).map(e=>e.id));
+    const shown=ranked.slice(0,Math.max(paradigmN,18));
+    const shownIds=new Set(shown.map(e=>e.id));
+    const resolveParent=(e)=>{
+      for(const r of (e.related||[])){
+        const cand=(r.id&&byId[r.id])||byName[(r.n||'').toLowerCase()];
+        if(cand&&paradigmIds.has(cand.id)&&shownIds.has(cand.id)&&cand.id!==e.id) return cand.id;
+      }
+      return null;
+    };
+    const nodes=shown.map(e=>({
+      id:e.id, label:e.name, color:e.color, count:e.count||0,
+      kind:paradigmIds.has(e.id)?'paradigm':'entity',
+      salience:sal(e),
+      parent:paradigmIds.has(e.id)?null:resolveParent(e),
+    }));
+    return { sunLabel:(d&&(d.title||d.name))||'This document', nodes };
+  }
+  mountSolar(el){
+    if(this._solar){ this._solar.destroy(); this._solar=null; }
+    if(!el) return;
+    const g=this.paradigmGraph();
+    if(!g||!g.nodes.length) return;
+    const t=this.theme();
+    this._solar=mountEOSolar(el, {
+      nodes:g.nodes, sunLabel:g.sunLabel, focusId:this.state.sel,
+      width:300, height:200,
+      textColor:t.text, mutedColor:t.mut, edgeColor:t.border, bgColor:t.bar, sunColor:t.accent,
+      onPivot:(id)=>{ if(id) this.pick(id); },
+    });
+  }
+  componentDidUpdate(prevProps, prevState){
+    if(this._solar && prevState.sel!==this.state.sel && this.state.sel) this._solar.focus(this.state.sel);
+  }
 
   bucketOf(m){ const b={Webpage:'Web & news',PDF:'Documents',Document:'Documents',Slides:'Documents',Spreadsheet:'Data & sheets',Data:'Data & sheets',Code:'Code',Image:'Media',Audio:'Media',Video:'Media',Text:'Notes'}; return b[m]||'Other'; }
   setDoc(d){
@@ -1378,6 +1572,8 @@ class Component extends DCLogic {
       isEntSel:!!sel, isLinkSel:!!linkSel,
       showHalf:!!sel&&(lvl==='half'||lvl==='full'), showFull:!!sel&&lvl==='full', backdrop:(!!sel&&lvl==='full')||explOpen,
       hasConns:!!(sel&&sel.conns&&sel.conns.length), hasNote:!!(sel&&sel.note&&L.nw),
+      solarRef:this.solarRef,
+      relatedChips:sel?(sel.related||[]).map(r=>({n:r.n,c:r.c,pick:r.id?(()=>this.pick(r.id)):null})):[],
       flagColor:(sel&&sel.flags>0)?'#c0341a':t.text,
       linkText:linkSel?linkSel.text:'', linkUrl:linkSel?linkSel.url:'#', linkHost:linkSel?this.hostOf(linkSel.url):'',
       peekIdle:lp.status==='idle', peekLoading:lp.status==='loading', peekError:lp.status==='error', peekErrorMsg:lp.error||'', peekDone:lp.status==='done',
