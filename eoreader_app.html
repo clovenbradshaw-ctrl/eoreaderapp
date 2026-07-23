@@ -61,9 +61,6 @@
     </div>
 
     <div style="position:relative;display:flex;align-items:center;gap:4px;flex-wrap:nowrap;margin:9px 0 8px;overflow-x:auto">
-      <span onClick="{{ setReader }}" style="flex:none;display:flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;font-size:16px;cursor:pointer;transition:.15s;background:{{ tabRB }};color:{{ tabRC }}" title="Reader"><i class="ph-bold ph-book-open"></i></span>
-      <span onClick="{{ setCross }}" style="flex:none;display:flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;font-size:16px;cursor:pointer;transition:.15s;background:{{ tabCB }};color:{{ tabCC }}" title="Sources"><i class="ph-bold ph-stack"></i></span>
-      <span onClick="{{ setStruct }}" style="flex:none;display:flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;font-size:16px;cursor:pointer;transition:.15s;background:{{ tabSB }};color:{{ tabSC }}" title="Insight"><i class="ph-bold ph-lightbulb"></i></span>
       <sc-if value="{{ isReader }}" hint-placeholder-val="{{ true }}">
         <div style="position:absolute;left:50%;top:50%;transform:translate(calc(-50% - 9px),-50%);flex:none;display:flex;align-items:center;gap:5px;background:{{ t.bar }};border:1px solid {{ t.border }};border-radius:20px;padding:5px 9px 5px 7px" title="Reveal — native → native + layers → reader">
           <span onClick="{{ setV0 }}" style="width:6px;height:6px;border-radius:50%;background:{{ dot0 }};cursor:pointer"></span>
@@ -76,7 +73,7 @@
     </div>
   </div>
 
-  <div style="flex:1;min-height:0;overflow-y:auto;position:relative">
+  <div style="flex:1;min-height:0;overflow-y:auto;position:relative;padding-bottom:72px">
     <sc-if value="{{ isReader }}" hint-placeholder-val="{{ true }}">
       <div style="position:relative;min-height:100%">{{ docEl }}</div>
     </sc-if>
@@ -228,6 +225,13 @@
 
     </div>
     </sc-if>
+  </div>
+
+
+  <div style="position:absolute;left:14px;right:14px;bottom:12px;z-index:25;background:{{ t.sheet }};border:1px solid {{ t.border }};box-shadow:0 10px 30px rgba(0,0,0,.16);border-radius:22px;padding:6px;display:flex;gap:6px;font-family:system-ui">
+    <button onClick="{{ setReader }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;background:{{ tabRB }};color:{{ tabRC }};font:800 12px system-ui;cursor:pointer">Source</button>
+    <button onClick="{{ setStruct }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;background:{{ tabSB }};color:{{ tabSC }};font:800 12px system-ui;cursor:pointer">Structure</button>
+    <button onClick="{{ setCross }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;background:{{ tabCB }};color:{{ tabCC }};font:800 12px system-ui;cursor:pointer">Ask</button>
   </div>
 
   <sc-if value="{{ backdrop }}">
@@ -813,7 +817,7 @@ class Component extends DCLogic {
     if(vid.includes(ext)||(f.type||'').startsWith('video')){ this.setDoc({name,title:name,medium:'Video',mode:'media',mtype:'video',url:URL.createObjectURL(f),size}); return; }
     if(ext==='pdf'||(f.type||'')==='application/pdf'){ this.ingestPdf(f,name,size); return; }
     if(ext==='html'||ext==='htm'){ const r=new FileReader(); r.onload=()=>{ let txt='', linkMap={}; try{ const doc=new DOMParser().parseFromString(r.result||'','text/html'); txt=doc.body.innerText; linkMap=this.extractLinksFromDom(doc); }catch(_){txt=r.result||'';} this.setDoc({name,title:name,medium:'Webpage',mode:'text',size,rawHtml:r.result||'',analysis:this.analyzeText(txt,linkMap)}); }; r.readAsText(f); return; }
-    if(textLike.includes(ext)||(f.type||'').startsWith('text')){ const r=new FileReader(); r.onload=()=>this.setDoc({name,title:name,medium,mode:'text',size,rawText:r.result||'',analysis:this.analyzeText(r.result||'')}); r.readAsText(f); return; }
+    if(textLike.includes(ext)||(f.type||'').startsWith('text')){ const r=new FileReader(); r.onload=()=>{ const raw=r.result||''; const csv=(ext==='csv'||ext==='tsv')?this.parseCsvRows(raw):null; this.setDoc({name,title:name,medium,mode:'text',size,rawText:raw,csv,analysis:this.analyzeText(raw)}); }; r.readAsText(f); return; }
     const r=new FileReader();
     r.onload=()=>{ const buf=new Uint8Array(r.result), n=Math.min(buf.length,4000); let a=0; for(let i=0;i<n;i++){ const b=buf[i]; if((b>=32&&b<127)||b===9||b===10||b===13)a++; }
       if(n>0 && a/n>0.85){ let txt=''; try{txt=new TextDecoder().decode(buf);}catch(_){} this.setDoc({name,title:name,medium,mode:'text',size,rawText:txt,analysis:this.analyzeText(txt)}); }
@@ -870,6 +874,65 @@ class Component extends DCLogic {
       h('span',{key:0,style:{font:"700 10px 'IBM Plex Mono',monospace",letterSpacing:'.05em',color:t.accent,background:t.accentSoft,border:'1px solid '+t.accentLine,borderRadius:'5px',padding:'3px 7px'}}, String(title).toUpperCase()),
       h('span',{key:1,style:{flex:1,height:'1px',background:t.border}})]); }
 
+  parseCsvRows(raw){
+    const lines=(raw||'').trim().split(/\r?\n/).filter(Boolean);
+    if(!lines.length) return null;
+    const split=l=>l.split(',').map(x=>x.trim().replace(/^"|"$/g,''));
+    const headers=split(lines[0]);
+    const rows=lines.slice(1).map(split).map(cols=>Object.fromEntries(headers.map((h,i)=>[h,cols[i]||''])));
+    const yearKey=headers.find(h=>/^year$/i.test(h))||headers.find(h=>rows.some(r=>/^\d{4}$/.test(r[h])));
+    const valKey=headers.find(h=>h!==yearKey && rows.some(r=>Number.isFinite(parseFloat(r[h]))));
+    const points=rows.map((r,i)=>({i,year:parseInt(r[yearKey],10),value:parseFloat(r[valKey]),row:r})).filter(p=>Number.isFinite(p.year)&&Number.isFinite(p.value));
+    return {headers,rows,yearKey,valKey,points};
+  }
+  csvStats(points){
+    if(!points||points.length<2) return null;
+    const first=points[0], last=points[points.length-1], n=points.length;
+    const xm=points.reduce((a,p)=>a+p.year,0)/n, ym=points.reduce((a,p)=>a+p.value,0)/n;
+    const den=points.reduce((a,p)=>a+Math.pow(p.year-xm,2),0)||1;
+    const slopeYear=points.reduce((a,p)=>a+(p.year-xm)*(p.value-ym),0)/den;
+    return {start:first,end:last,change:last.value-first.value,trend:slopeYear*10,rows:n,mean:ym};
+  }
+  spark(points,w=28){
+    if(!points||!points.length) return '';
+    const vals=points.map(p=>p.value), min=Math.min(...vals), max=Math.max(...vals), chars='▁▂▃▄▅▆▇█';
+    return points.filter((_,i)=>i%(Math.ceil(points.length/w)||1)===0).slice(0,w).map(p=>chars[Math.max(0,Math.min(chars.length-1,Math.round(((p.value-min)/((max-min)||1))*(chars.length-1))))]).join('');
+  }
+  buildCsvSource(d,t,h,pad){
+    const c=d.csv||this.parseCsvRows(d.rawText||''); if(!c||!c.points.length) return null;
+    const pts=c.points, min=Math.min(...pts.map(p=>p.value)), max=Math.max(...pts.map(p=>p.value));
+    const recent=pts.slice(Math.max(0,pts.length-50)), rst=this.csvStats(recent)||{start:recent[0],end:recent[0],change:0,trend:0,rows:recent.length};
+    return h('div',{style:pad},[
+      h('div',{key:'h',style:{font:'800 11px system-ui',letterSpacing:'.06em',color:t.mut,marginBottom:'12px'}}, String(c.valKey||'VALUE').toUpperCase()+' BY '+String(c.yearKey||'YEAR').toUpperCase()),
+      h('div',{key:'chart',style:{background:t.card,border:'1px solid '+t.border,borderRadius:'14px',padding:'14px',marginBottom:'12px'}},[
+        h('div',{key:'mx',style:{font:"700 11px 'IBM Plex Mono',monospace",color:t.mut,marginBottom:'6px'}}, max.toFixed(1)+' |'),
+        h('div',{key:'sp',style:{font:"700 28px/1.1 'IBM Plex Mono',monospace",letterSpacing:'1px',color:t.accent,overflow:'hidden'}}, this.spark(pts,34)),
+        h('div',{key:'mn',style:{font:"700 11px 'IBM Plex Mono',monospace",color:t.mut,marginTop:'6px'}}, min.toFixed(1)+' +── '+pts[0].year+' ───── '+pts[pts.length-1].year)
+      ]),
+      h('div',{key:'tog',style:{display:'flex',gap:'8px',marginBottom:'14px'}},['Chart','Table'].map((x,i)=>h('span',{key:x,style:{background:i?t.bar:t.accent,color:i?t.t2:'#fff',borderRadius:'16px',padding:'6px 12px',font:'700 12px system-ui'}},x))),
+      h('div',{key:'sel',style:{background:t.bar,border:'1px solid '+t.border,borderRadius:'14px',padding:'14px'}},[
+        h('div',{key:0,style:{font:'700 12px system-ui',color:t.text,marginBottom:'10px'}}, 'Selected · '+recent[0].year+'-'+recent[recent.length-1].year),
+        ...[['Start',rst.start.value.toFixed(1)],['End',rst.end.value.toFixed(1)],['Change',(rst.change>=0?'+':'')+rst.change.toFixed(1)],['Trend',(rst.trend>=0?'+':'')+rst.trend.toFixed(2)+' / decade'],['Rows',String(rst.rows)]].map((r,i)=>h('div',{key:'r'+i,style:{display:'flex',justifyContent:'space-between',font:'600 13px system-ui',color:t.t2,padding:'3px 0'}},[h('span',{key:0},r[0]),h('span',{key:1,style:{fontFamily:"'IBM Plex Mono',monospace",color:t.text}},r[1])])),
+        h('div',{key:'a',style:{display:'flex',gap:'8px',marginTop:'12px'}},['Inspect rows','Open structure'].map(x=>h('span',{key:x,style:{border:'1px solid '+t.border,borderRadius:'10px',padding:'7px 10px',font:'700 11px system-ui',color:t.accent,background:t.card}},x)))
+      ])
+    ]);
+  }
+  buildAudioSource(d,t,h,pad){
+    const wave='_/\\/\\__/^^^^\\___/\\_/^^^\\____/\\/_';
+    return h('div',{style:pad},[
+      h('div',{key:'m',style:{font:'700 12px system-ui',color:t.mut,marginBottom:'16px'}}, (d.name||'audio')+' · '+(d.size||'WAV')+' · playable source'),
+      h('audio',{key:'a',src:d.url,controls:true,style:{width:'100%',marginBottom:'16px'}}),
+      h('div',{key:'w',style:{font:"800 18px 'IBM Plex Mono',monospace",color:t.accent,background:t.card,border:'1px solid '+t.border,borderRadius:'14px',padding:'18px 12px',overflow:'hidden'}}, wave),
+      h('div',{key:'c',style:{display:'flex',justifyContent:'center',gap:'10px',margin:'18px 0'}},['-15s','▶','+15s'].map(x=>h('button',{key:x,style:{border:'1px solid '+t.border,borderRadius:'12px',background:t.bar,color:t.text,padding:'9px 13px',font:'800 12px system-ui'}},x))),
+      h('div',{key:'det',style:{background:t.bar,border:'1px solid '+t.border,borderRadius:'14px',padding:'14px'}},[
+        h('div',{key:0,style:{font:'800 11px system-ui',letterSpacing:'.06em',color:t.mut,marginBottom:'8px'}},'DETECTED WHILE LISTENING'),
+        h('div',{key:1,style:{font:'700 15px system-ui',color:t.text}},'Motif A returns'),
+        h('div',{key:2,style:{font:"600 12px 'IBM Plex Mono',monospace",color:t.accent,margin:'5px 0 14px'}},'00:02 · 00:47 · 03:18'),
+        h('div',{key:3,style:{font:'600 13px/1.55 system-ui',color:t.t2}},'Current passage: high onset density · rising intensity · tonal center candidate (not asserted unless grounded).')
+      ])
+    ]);
+  }
+
   buildDoc(){
     const d=this.state.doc; if(!d) return null;
     const t=this.theme(), h=React.createElement, view=this.state.view;
@@ -879,8 +942,8 @@ class Component extends DCLogic {
     const kicker = null;
 
     if(d.mode==='image') return h('div',{style:pad},[kicker, h('img',{key:'img',src:d.url,style:{width:'100%',borderRadius:'12px',display:'block'}}), h('div',{key:'m',style:{font:'500 12px system-ui',color:t.mut,marginTop:'12px'}}, d.name+' · '+d.size)]);
-    if(d.mode==='media'){ const el = d.mtype==='video' ? h('video',{key:'v',src:d.url,controls:true,style:{width:'100%',borderRadius:'12px',background:'#000',display:'block'}}) : h('audio',{key:'a',src:d.url,controls:true,style:{width:'100%',marginTop:'6px'}});
-      return h('div',{style:pad},[kicker, el, h('div',{key:'n',style:{font:'400 13px/1.5 system-ui',color:t.t2,marginTop:'14px'}}, view==='reader' ? 'Reader view transcribes and segments the media; wire a transcript source to read it as text.' : d.name+' · '+d.size)]); }
+    if(d.mode==='media'){ if(d.mtype==='audio') return this.buildAudioSource(d,t,h,pad); const el = h('video',{key:'v',src:d.url,controls:true,style:{width:'100%',borderRadius:'12px',background:'#000',display:'block'}});
+      return h('div',{style:pad},[kicker, el, h('div',{key:'n',style:{font:'400 13px/1.5 system-ui',color:t.t2,marginTop:'14px'}}, d.name+' · '+d.size)]); }
     if(d.mode==='binary') return h('div',{style:pad},[kicker,
       h('div',{key:'c',style:{background:t.card,border:'1px solid '+t.border,borderRadius:'12px',padding:'16px'}},[
         h('div',{key:0,style:{font:'700 14px system-ui',color:t.text,marginBottom:'6px',wordBreak:'break-all'}}, d.name),
@@ -905,6 +968,7 @@ class Component extends DCLogic {
     if((view==='native'||view==='annotated') && d.medium==='Webpage' && d.rawHtml){
       return nativeWrap([h('iframe',{key:'f',srcDoc:d.rawHtml,sandbox:'allow-same-origin allow-popups',title:d.title,style:{flex:1,minHeight:'700px',border:'none',width:'100%',background:'#fff'}})], '#fff');
     }
+    if(d.medium==='Spreadsheet' && d.rawText){ const csvEl=this.buildCsvSource(d,t,h,pad); if(csvEl) return csvEl; }
     if((view==='native'||view==='annotated') && (d.medium==='Text'||d.medium==='Code'||d.medium==='Data') && d.rawText){
       return nativeWrap([h('div',{key:'txt',style:pad},[kicker,
         h('pre',{key:'pre',style:{margin:0,font:"13px/1.6 'IBM Plex Mono',ui-monospace,monospace",color:t.text,whiteSpace:'pre-wrap',wordBreak:'break-word'}}, d.rawText)])]);
@@ -995,17 +1059,17 @@ class Component extends DCLogic {
       isStructure:S.tab==='structure', notStructure:S.tab!=='structure',
       setStruct:()=>this.setState({tab:'structure'}),
       tabSB:S.tab==='structure'?activeBg:'transparent', tabSC:S.tab==='structure'?activeC:t.mut,
-      sheetDisp:S.tab==='structure'?'none':'flex',
+      sheetDisp:(S.tab==='structure'||S.tab==='ask')?'none':'flex',
       structSources, corpusStats, sharedEnts, hasShared:sharedEnts.length>0, mediumFilters, crossInsights, crossSources,
       hasCross:crossInsights.length>0, noCross:crossInsights.length===0,
       activeSrcCount:act.length, totalSrcCount:raw.length,
       memCount:memList.length, memEmpty:memList.length===0, memHas:memList.length>0, spaceName:sp?sp.name:'',
       t, themeGlyph:dark?'☾':'☀', flipDark:()=>this.setState({dark:!dark}),
       memColor:memIn?'#2f7a55':t.accent, memBg:memIn?'rgba(47,122,85,.10)':t.accentSoft, memBorder:memIn?'#2f7a55':t.accentLine, memGlyph:memIn?'✓':'+', toggleMemBtn:()=>{ if(d) this.toggleMemory(d); },
-      isReader:S.tab==='reader', isCross:S.tab==='cross',
-      setReader:()=>this.setState({tab:'reader'}), setCross:()=>this.setState({tab:'cross'}),
+      isReader:S.tab==='reader', isCross:S.tab==='ask',
+      setReader:()=>this.setState({tab:'reader'}), setCross:()=>this.setState({tab:'ask'}),
       tabRB:S.tab==='reader'?activeBg:'transparent', tabRC:S.tab==='reader'?activeC:t.mut,
-      tabCB:S.tab==='cross'?activeBg:'transparent', tabCC:S.tab==='cross'?activeC:t.mut,
+      tabCB:S.tab==='ask'?activeBg:'transparent', tabCC:S.tab==='ask'?activeC:t.mut,
       view:S.view, viewLabel:vlabel[S.view], progW:((vi+1)/3*100).toFixed(0)+'%',
       dot0:vi>=0?dotOn:dotOff, dot1:vi>=1?dotOn:dotOff, dot2:vi>=2?dotOn:dotOff,
       setV0:()=>this.setState({view:'native'}), setV1:()=>this.setState({view:'annotated'}), setV2:()=>this.setState({view:'reader'}),
