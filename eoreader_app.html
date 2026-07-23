@@ -48,7 +48,7 @@
     </div>
   </div>
 
-  <div style="flex:none;padding:5px 14px 0">
+  <div style="flex:none;padding:{{ chromePadT }} 14px 0;max-height:{{ chromeMaxH }};opacity:{{ chromeOpacity }};pointer-events:{{ chromePE }};overflow:hidden;transition:max-height .3s cubic-bezier(.4,0,.2,1),opacity .22s ease,padding-top .3s ease">
     <div style="display:flex;align-items:center;gap:6px">
       <span onClick="{{ openSpacePicker }}" title="Spaces" style="flex:none;width:34px;height:34px;border-radius:10px;background:{{ t.bar }};border:1px solid {{ t.border }};display:flex;align-items:center;justify-content:center;cursor:pointer">
         <i class="ph ph-book-open" style="font-size:16px;color:{{ t.accent }}"></i>
@@ -83,7 +83,7 @@
     </div>
   </div>
 
-  <div style="flex:1;min-height:0;overflow-y:auto;position:relative;padding-bottom:72px">
+  <div ref="{{ scrollRef }}" style="flex:1;min-height:0;overflow-y:auto;position:relative;padding-bottom:72px">
     <sc-if value="{{ isReader }}" hint-placeholder-val="{{ true }}">
       <div style="position:relative;min-height:100%">{{ docEl }}</div>
     </sc-if>
@@ -249,7 +249,7 @@
   </div>
 
 
-  <div style="position:absolute;left:14px;right:14px;bottom:12px;z-index:25;background:{{ t.sheet }};border:1px solid {{ t.border }};box-shadow:0 10px 30px rgba(0,0,0,.16);border-radius:22px;padding:6px;display:flex;gap:6px;font-family:system-ui">
+  <div style="position:absolute;left:14px;right:14px;bottom:12px;z-index:25;background:{{ t.sheet }};border:1px solid {{ t.border }};box-shadow:0 10px 30px rgba(0,0,0,.16);border-radius:22px;padding:6px;display:flex;gap:6px;font-family:system-ui;transform:{{ chromeBottomT }};opacity:{{ chromeBottomOp }};pointer-events:{{ chromeBottomPE }};transition:transform .3s cubic-bezier(.4,0,.2,1),opacity .22s ease">
     <button onClick="{{ setReader }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;background:{{ tabRB }};color:{{ tabRC }};font:800 12px system-ui;cursor:pointer">Source</button>
     <button onClick="{{ setStruct }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;background:{{ tabSB }};color:{{ tabSC }};font:800 12px system-ui;cursor:pointer">Structure</button>
     <button onClick="{{ setCross }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;background:{{ tabCB }};color:{{ tabCC }};font:800 12px system-ui;cursor:pointer">Search</button>
@@ -926,9 +926,27 @@ class Component extends DCLogic {
       proxy, proxyOpen:false,
       searchQ:'', searchResults:[], mediaResults:[], searching:false, searchMsg:'', libraryShelf:'web', _exTick:0,
       spaceEditOpen:false, spacePickerOpen:false, _sk:0,
-      webFrameActiveIds:[]
+      chromeHidden:false, webFrameActiveIds:[]
     };
-    this.scrollRef=(el)=>{ if(el) this._scroll=el; };
+    this.scrollRef=(el)=>{
+      if(!el) return;
+      this._scroll=el;
+      if(this._scrollBound) return;
+      this._scrollBound=true;
+      let lastY=0, ticking=false;
+      el.addEventListener('scroll',()=>{
+        if(ticking) return;
+        ticking=true;
+        requestAnimationFrame(()=>{
+          ticking=false;
+          const y=el.scrollTop, dy=y-lastY;
+          lastY=y;
+          const reading=this.state.tab==='reader';
+          if(reading && y>56 && dy>4){ if(!this.state.chromeHidden) this.setState({chromeHidden:true}); }
+          else if(!reading || dy<-4 || y<40){ if(this.state.chromeHidden) this.setState({chromeHidden:false}); }
+        });
+      },{passive:true});
+    };
     this.solarRef=(el)=>this.mountSolar(el);
     this._sid=1;
   }
@@ -1910,6 +1928,7 @@ class Component extends DCLogic {
     const order=['native','annotated','reader'], vi=order.indexOf(S.view);
     const dotOn=t.accent, dotOff=t.bStrong;
     const vlabel={native:'Native',annotated:'Native +',reader:'Reader'};
+    const chromeCollapsed = S.tab==='reader' && !!S.chromeHidden;
 
     // spaces
     const spaceTabs=(S.spaces||[]).map(x=>{ const on=x.id===S.spaceId; return {id:x.id,name:x.name,on,
@@ -1999,6 +2018,11 @@ class Component extends DCLogic {
       memIconClass:memIn?'ph-fill ph-bookmark-simple':'ph ph-bookmark-simple', memTitle:memIn?'Saved to space — tap to remove':'Save to space',
       toggleMemBtn:()=>{ if(d) this.toggleMemory(d); },
       isReader:S.tab==='reader', isSearch:S.tab==='search',
+      scrollRef:this.scrollRef,
+      chromeMaxH:chromeCollapsed?'0px':'150px', chromePadT:chromeCollapsed?'0px':'5px',
+      chromeOpacity:chromeCollapsed?0:1, chromePE:chromeCollapsed?'none':'auto',
+      chromeBottomT:chromeCollapsed?'translateY(96px)':'translateY(0)',
+      chromeBottomOp:chromeCollapsed?0:1, chromeBottomPE:chromeCollapsed?'none':'auto',
       setReader:()=>this.setState({tab:'reader'}), setCross:()=>this.setState({tab:'search'}),
       tabRB:S.tab==='reader'?activeBg:'transparent', tabRC:S.tab==='reader'?activeC:t.mut,
       tabCB:S.tab==='search'?activeBg:'transparent', tabCC:S.tab==='search'?activeC:t.mut,

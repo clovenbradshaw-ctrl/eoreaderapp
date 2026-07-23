@@ -48,7 +48,7 @@
     </div>
   </div>
 
-  <div style="flex:none;padding:5px 14px 0">
+  <div style="flex:none;padding:{{ chromePadT }} 14px 0;max-height:{{ chromeMaxH }};opacity:{{ chromeOpacity }};pointer-events:{{ chromePE }};overflow:hidden;transition:max-height .3s cubic-bezier(.4,0,.2,1),opacity .22s ease,padding-top .3s ease">
     <div style="display:flex;align-items:center;gap:6px">
       <span onClick="{{ openSpacePicker }}" title="Spaces" style="flex:none;width:34px;height:34px;border-radius:10px;background:{{ t.bar }};border:1px solid {{ t.border }};display:flex;align-items:center;justify-content:center;cursor:pointer">
         <i class="ph ph-book-open" style="font-size:16px;color:{{ t.accent }}"></i>
@@ -83,7 +83,7 @@
     </div>
   </div>
 
-  <div style="flex:1;min-height:0;overflow-y:auto;position:relative;padding-bottom:72px">
+  <div ref="{{ scrollRef }}" style="flex:1;min-height:0;overflow-y:auto;position:relative;padding-bottom:72px">
     <sc-if value="{{ isReader }}" hint-placeholder-val="{{ true }}">
       <div style="position:relative;min-height:100%">{{ docEl }}</div>
     </sc-if>
@@ -249,7 +249,7 @@
   </div>
 
 
-  <div style="position:absolute;left:14px;right:14px;bottom:12px;z-index:25;background:{{ t.sheet }};border:1px solid {{ t.border }};box-shadow:0 10px 30px rgba(0,0,0,.16);border-radius:22px;padding:6px;display:flex;gap:6px;font-family:system-ui">
+  <div style="position:absolute;left:14px;right:14px;bottom:12px;z-index:25;background:{{ t.sheet }};border:1px solid {{ t.border }};box-shadow:0 10px 30px rgba(0,0,0,.16);border-radius:22px;padding:6px;display:flex;gap:6px;font-family:system-ui;transform:{{ chromeBottomT }};opacity:{{ chromeBottomOp }};pointer-events:{{ chromeBottomPE }};transition:transform .3s cubic-bezier(.4,0,.2,1),opacity .22s ease">
     <button onClick="{{ setReader }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;background:{{ tabRB }};color:{{ tabRC }};font:800 12px system-ui;cursor:pointer">Source</button>
     <button onClick="{{ setStruct }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;background:{{ tabSB }};color:{{ tabSC }};font:800 12px system-ui;cursor:pointer">Structure</button>
     <button onClick="{{ setCross }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;background:{{ tabCB }};color:{{ tabCC }};font:800 12px system-ui;cursor:pointer">Search</button>
@@ -925,9 +925,28 @@ class Component extends DCLogic {
       spaces, spaceId, memoryBySpace,
       proxy, proxyOpen:false,
       searchQ:'', searchResults:[], mediaResults:[], searching:false, searchMsg:'', libraryShelf:'web', _exTick:0,
-      spaceEditOpen:false, spacePickerOpen:false, _sk:0
+      spaceEditOpen:false, spacePickerOpen:false, _sk:0,
+      chromeHidden:false, webFrameActiveIds:[]
     };
-    this.scrollRef=(el)=>{ if(el) this._scroll=el; };
+    this.scrollRef=(el)=>{
+      if(!el) return;
+      this._scroll=el;
+      if(this._scrollBound) return;
+      this._scrollBound=true;
+      let lastY=0, ticking=false;
+      el.addEventListener('scroll',()=>{
+        if(ticking) return;
+        ticking=true;
+        requestAnimationFrame(()=>{
+          ticking=false;
+          const y=el.scrollTop, dy=y-lastY;
+          lastY=y;
+          const reading=this.state.tab==='reader';
+          if(reading && y>56 && dy>4){ if(!this.state.chromeHidden) this.setState({chromeHidden:true}); }
+          else if(!reading || dy<-4 || y<40){ if(this.state.chromeHidden) this.setState({chromeHidden:false}); }
+        });
+      },{passive:true});
+    };
     this.solarRef=(el)=>this.mountSolar(el);
     this._sid=1;
   }
@@ -1245,14 +1264,92 @@ class Component extends DCLogic {
   }
   componentDidUpdate(prevProps, prevState){
     if(this._solar && prevState.sel!==this.state.sel && this.state.sel) this._solar.focus(this.state.sel);
+    if(this._webFrameDoc && prevState.doc===this.state.doc &&
+       (prevState.view!==this.state.view || prevState.layers!==this.state.layers)){
+      this.syncWebMarks();
+    }
+  }
+
+  // ── iframe entity marking (Native+ over a live srcDoc webpage) ──
+  // The iframe's sandbox carries allow-same-origin but not allow-scripts, so the parent
+  // can read/write contentDocument directly with no postMessage handshake needed.
+  onWebIframeLoad(e){
+    let doc=null; try{ doc=e.target && e.target.contentDocument; }catch(_){}
+    if(!doc || !doc.body){ this._webFrameDoc=null; return; }
+    this._webFrameDoc=doc;
+    this._webFrameCleanHTML=doc.body.innerHTML;
+    if(!doc.head.querySelector('style[data-eo-marks]')){
+      const style=doc.createElement('style');
+      style.setAttribute('data-eo-marks','1');
+      style.textContent='[data-eo-ent]{border-bottom:2px solid;font-weight:600;cursor:pointer}'
+        +'[data-eo-link]{color:#2a78d6;text-decoration:underline;text-decoration-style:dotted;text-underline-offset:3px;cursor:pointer;font-weight:600}'
+        +'[data-eo-hi]{background:rgba(232,176,74,.42);border-radius:3px;padding:0 2px}'
+        +'[data-eo-ten]{background:rgba(208,71,46,.18);box-shadow:inset 0 -2px #d0472e;border-radius:2px;padding:0 2px}';
+      doc.head.appendChild(style);
+    }
+    if(!this._webFrameClickBound){
+      doc.addEventListener('click', ev=>{
+        const entEl=ev.target.closest && ev.target.closest('[data-eo-ent]');
+        if(entEl){ ev.preventDefault(); this.pick(entEl.getAttribute('data-eo-ent')); return; }
+        const linkEl=ev.target.closest && ev.target.closest('[data-eo-link]');
+        if(linkEl){ ev.preventDefault(); this.pickLink(linkEl.getAttribute('data-eo-link'), linkEl.textContent||''); }
+      });
+      this._webFrameClickBound=true;
+    }
+    this.syncWebMarks();
+  }
+  // Re-marks the iframe body from a clean snapshot each time, so toggling layers/view never
+  // has to reconcile against a previous (possibly stale) wrap — it's cheap and always correct.
+  syncWebMarks(){
+    const doc=this._webFrameDoc; if(!doc || !doc.body || this._webFrameCleanHTML==null) return;
+    const d=this.state.doc; if(!d || d.medium!=='Webpage' || !d.analysis) return;
+    doc.body.innerHTML=this._webFrameCleanHTML;
+    const marksOn=this.state.view==='annotated';
+    if(!marksOn){ this._webFrameActiveIds=[]; if((this.state.webFrameActiveIds||[]).length) this.setState({webFrameActiveIds:[]}); return; }
+    const prep=this.prepMarks(d.analysis, true);
+    if(!prep){ this._webFrameActiveIds=[]; if((this.state.webFrameActiveIds||[]).length) this.setState({webFrameActiveIds:[]}); return; }
+    const SKIP={script:1,style:1,noscript:1,textarea:1};
+    const walker=doc.createTreeWalker(doc.body, NodeFilter.SHOW_TEXT, {
+      acceptNode:node=>{
+        const p=node.parentNode;
+        if(!p || SKIP[(p.nodeName||'').toLowerCase()]) return NodeFilter.FILTER_REJECT;
+        return NodeFilter.FILTER_ACCEPT;
+      }
+    });
+    const nodes=[]; let n; while((n=walker.nextNode())) nodes.push(n);
+    const entIds=new Set();
+    nodes.forEach(node=>{
+      const text=node.nodeValue; if(!text) return;
+      prep.re.lastIndex=0;
+      const matches=[]; let m;
+      while((m=prep.re.exec(text))){ matches.push({index:m.index, text:m[0], kind:prep.kind[m[0]]}); if(!m[0].length) prep.re.lastIndex++; }
+      if(!matches.length) return;
+      const frag=doc.createDocumentFragment(); let last=0;
+      matches.forEach(mt=>{
+        if(mt.index>last) frag.appendChild(doc.createTextNode(text.slice(last,mt.index)));
+        const span=doc.createElement('span'), k=mt.kind;
+        if(k.type==='ent'){ span.setAttribute('data-eo-ent',k.id); span.style.borderBottomColor=k.color; entIds.add(k.id); }
+        else if(k.type==='hi'){ span.setAttribute('data-eo-hi','1'); }
+        else if(k.type==='link'){ span.setAttribute('data-eo-link',k.url); }
+        else { span.setAttribute('data-eo-ten','1'); }
+        span.textContent=mt.text;
+        frag.appendChild(span);
+        last=mt.index+mt.text.length;
+      });
+      if(last<text.length) frag.appendChild(doc.createTextNode(text.slice(last)));
+      node.parentNode.replaceChild(frag, node);
+    });
+    this._webFrameActiveIds=[...entIds];
+    this.setState({webFrameActiveIds:[...entIds]});
   }
 
   bucketOf(m){ const b={Webpage:'Web & news',PDF:'Documents',Document:'Documents',Slides:'Documents',Spreadsheet:'Data & sheets',Data:'Data & sheets',Code:'Code',Image:'Media',Audio:'Media',Video:'Media',Text:'Notes'}; return b[m]||'Other'; }
   setDoc(d, opts){
     const det = d.mode==='loading' ? 'Loading…' : (d.mode==='text' ? (d.medium+' · '+this.nf(d.analysis.words)+' words') : (d.medium+' · imported'));
+    this._webFrameDoc=null; this._webFrameCleanHTML=null; this._webFrameClickBound=false; this._webFrameActiveIds=[];
     this.setState({doc:d, importOpen:false, searchResults:[], mediaResults:[], searchMsg:'', sel:null, level:'prompt', chap:0, tab:'reader',
       searchProjection:'evidence', searchScope:'all', queryText:'', queryReading:null, queryWhy:null,
-      view:(opts&&opts.view)||'native',
+      view:(opts&&opts.view)||'native', webFrameActiveIds:[],
       src:{label:d.name||d.title, det, dot:this.medColor(d.medium)}});
   }
   resetSample(){ this.setState({doc:this.demoDoc(), importOpen:false, sel:null, level:'prompt', chap:0, tab:'reader', view:'reader', src:{label:'theatlantic.com/…/the-quiet-collapse',det:'News · sample',dot:'#c0662e'}}); }
@@ -1712,6 +1809,12 @@ class Component extends DCLogic {
     const activeSceneEntities=()=>{
       const list=(a&&a.list?a.list:[]);
       if(!list.length) return [];
+      if(d.medium==='Webpage' && d.rawHtml){
+        const ids=this.state.webFrameActiveIds||[];
+        if(!ids.length) return [];
+        const byId=new Map(list.map(e=>[e.id,e]));
+        return ids.map(id=>byId.get(id)).filter(Boolean).sort((x,y)=>y.count-x.count).slice(0,5);
+      }
       const paras=(a&&a.paras?a.paras:[]);
       const toc=a&&a.toc?a.toc:[];
       let lo=0, hi=paras.length;
@@ -1741,7 +1844,7 @@ class Component extends DCLogic {
       return nativeWrap([h('iframe',{key:'f',src:d.pdfUrl,title:d.name,style:{flex:1,minHeight:'640px',border:'none',width:'100%',background:'#525659'}})], '#525659');
     }
     if((view==='native'||view==='annotated') && d.medium==='Webpage' && d.rawHtml){
-      return nativeWrap([h('iframe',{key:'f',srcDoc:d.rawHtml,sandbox:'allow-same-origin allow-popups',title:d.title,style:{flex:1,minHeight:'700px',border:'none',width:'100%',background:'#fff'}})], '#fff');
+      return nativeWrap([h('iframe',{key:'f',srcDoc:d.rawHtml,sandbox:'allow-same-origin allow-popups',title:d.title,onLoad:e=>this.onWebIframeLoad(e),style:{flex:1,minHeight:'700px',border:'none',width:'100%',background:'#fff'}})], '#fff');
     }
     if(d.medium==='Spreadsheet' && d.rawText){ const csvEl=this.buildCsvSource(d,t,h,pad); if(csvEl) return csvEl; }
     if((view==='native'||view==='annotated') && (d.medium==='Text'||d.medium==='Code'||d.medium==='Data') && d.rawText){
@@ -1825,6 +1928,7 @@ class Component extends DCLogic {
     const order=['native','annotated','reader'], vi=order.indexOf(S.view);
     const dotOn=t.accent, dotOff=t.bStrong;
     const vlabel={native:'Native',annotated:'Native +',reader:'Reader'};
+    const chromeCollapsed = S.tab==='reader' && !!S.chromeHidden;
 
     // spaces
     const spaceTabs=(S.spaces||[]).map(x=>{ const on=x.id===S.spaceId; return {id:x.id,name:x.name,on,
@@ -1914,6 +2018,11 @@ class Component extends DCLogic {
       memIconClass:memIn?'ph-fill ph-bookmark-simple':'ph ph-bookmark-simple', memTitle:memIn?'Saved to space — tap to remove':'Save to space',
       toggleMemBtn:()=>{ if(d) this.toggleMemory(d); },
       isReader:S.tab==='reader', isSearch:S.tab==='search',
+      scrollRef:this.scrollRef,
+      chromeMaxH:chromeCollapsed?'0px':'150px', chromePadT:chromeCollapsed?'0px':'5px',
+      chromeOpacity:chromeCollapsed?0:1, chromePE:chromeCollapsed?'none':'auto',
+      chromeBottomT:chromeCollapsed?'translateY(96px)':'translateY(0)',
+      chromeBottomOp:chromeCollapsed?0:1, chromeBottomPE:chromeCollapsed?'none':'auto',
       setReader:()=>this.setState({tab:'reader'}), setCross:()=>this.setState({tab:'search'}),
       tabRB:S.tab==='reader'?activeBg:'transparent', tabRC:S.tab==='reader'?activeC:t.mut,
       tabCB:S.tab==='search'?activeBg:'transparent', tabCC:S.tab==='search'?activeC:t.mut,
