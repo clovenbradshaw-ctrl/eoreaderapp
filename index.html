@@ -1,1 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>EO Reader</title>
+</head>
+<body>
+<div id="root"></div>
 
+<!-- eoreaderapp is the content/app shell. It never hardcodes an engine path;
+     engine.config.js is the one place that names which engine submodule is
+     live (currently engine/eoreader4.2 -- swap target: engine/eoreader5).
+     This loader script reads that config and injects the engine's own
+     vendor + boot scripts, in the same order eoreader4.2/index.html uses. -->
+<script type="module">
+  import { ENGINE_ASSETS } from './engine.config.js';
+
+  function loadScript({ src, type, defer }) {
+    return new Promise((resolve, reject) => {
+      const el = document.createElement('script');
+      el.src = src;
+      if (type) el.type = type;
+      if (defer) el.defer = true;
+      el.onload = resolve;
+      el.onerror = () => reject(new Error(`failed to load ${src}`));
+      document.head.appendChild(el);
+    });
+  }
+
+  async function boot() {
+    // vendor scripts must land before support.js / boot.js run
+    await Promise.all([
+      loadScript({ src: ENGINE_ASSETS.vendorReact, defer: true }),
+      loadScript({ src: ENGINE_ASSETS.vendorReactDom, defer: true }),
+      loadScript({ src: ENGINE_ASSETS.vendorOlm, defer: true }),
+    ]);
+    await loadScript({ src: ENGINE_ASSETS.support, defer: true });
+    await loadScript({ src: ENGINE_ASSETS.boot, type: 'module' });
+  }
+
+  boot().catch((err) => {
+    console.error('[eoreaderapp] engine failed to boot', err);
+    document.getElementById('root').textContent =
+      'The engine failed to load. Check engine.config.js and the engine submodule.';
+  });
+</script>
+</body>
+</html>
