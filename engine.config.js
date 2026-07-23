@@ -1,16 +1,14 @@
-// Single source of truth for which engine this app boots.
-// To swap engines (e.g. eoreader4.2 -> eoreader5):
-//   1. git submodule add <repo-url> engine/<name>
-//   2. change ENGINE_DIR below to "engine/<name>"
-//   3. confirm the new engine still exposes vendor/, support.js and
-//      src/rooms/reader/boot.js (or update the paths below to match it)
-// Nothing else in this app should hardcode an engine path.
-export const ENGINE_DIR = 'engine/eoreader4.2';
+// Build-time engine adapter selection manifest.
+//
+// The app integrates EOReader engines only through src/engine/adapter.js.
+// This manifest names public package entry points and compatibility routes; it
+// must not contain deep paths into vendored engine assets.
+export const ENGINE_SELECTION = Object.freeze({
+  adapter: 'eoreader5',
+  enginePackage: '@eoreader/engine',
+  specPackage: '@eoreader/spec',
+  compatPackage: '@eoreader/compat-4.2',
+  legacyRoute: './src/legacy/legacy-42-route.js',
+});
 
-export const ENGINE_ASSETS = {
-  vendorReact: `${ENGINE_DIR}/vendor/react.production.min.js`,
-  vendorReactDom: `${ENGINE_DIR}/vendor/react-dom.production.min.js`,
-  vendorOlm: `${ENGINE_DIR}/vendor/olm/olm.js`,
-  support: `${ENGINE_DIR}/support.js`,
-  boot: `${ENGINE_DIR}/src/rooms/reader/boot.js`,
-};
+export default ENGINE_SELECTION;
