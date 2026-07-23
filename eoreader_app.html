@@ -486,9 +486,22 @@ class Component extends DCLogic {
     this._sid=1;
   }
   componentDidMount(){
-    const set=()=>this.setState({engineLive:!!(window.EO && window.EO.parse)});
-    if(window.EO) set();
-    else if(window.addEventListener) window.addEventListener('eo:ready', set, {once:true});
+    const set=()=>this.setState({engineLive:!!this.engineBridge(), engineName:this.engineBridgeName()});
+    set();
+    if(window.addEventListener){
+      window.addEventListener('eo5:ready', set);
+      window.addEventListener('eo:ready', set);
+    }
+  }
+  engineBridge(){
+    if(window.EOReader5 && (window.EOReader5.read||window.EOReader5.parse||window.EOReader5.createEOReaderEngine)) return window.EOReader5;
+    if(window.EO && window.EO.parse) return window.EO;
+    return null;
+  }
+  engineBridgeName(){
+    if(window.EOReader5 && (window.EOReader5.read||window.EOReader5.parse||window.EOReader5.createEOReaderEngine)) return 'EOReader5 engine · live';
+    if(window.EO && window.EO.parse) return 'EOReader 4.2 compatibility · live';
+    return 'Local entity finder · EOReader5 bridge idle';
   }
 
   // ── persistence ──
@@ -614,19 +627,28 @@ class Component extends DCLogic {
     if(paras.length<2) paras=text.split(/\n/).map(s=>s.trim()).filter(Boolean);
     paras=paras.slice(0,6000);
     const whole=paras.join('\n\n');
-    const stop=new Set('The A An And But Or Nor For In On At To Of With From By As Is Are Was Were Be This That These Those It He She They We You I If Then So When While Where What Who Which How Why Not No Yes Mr Mrs Ms Dr However Meanwhile Today Chapter Book Part Volume Act Scene Canto Epilogue Prologue Section Introduction'.split(' '));
-    const freq={}, re=/\b([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+){0,3})\b/g; let m;
-    while((m=re.exec(whole))){ let n=m[1].trim(); if(n.split(' ').length===1 && stop.has(n)) continue; freq[n]=(freq[n]||0)+1; }
-    let ents=Object.keys(freq).map(n=>({name:n,count:freq[n]})).filter(e=>(e.count>=2||e.name.includes(' '))&&e.name.toUpperCase()!==e.name).sort((a,b)=>b.count-a.count);
+    const stop=new Set('The A An And But Or Nor For In On At To Of With From By As Is Are Was Were Be This That These Those It He She They We You I If Then So When While Where What Who Which How Why Not No Yes Mr Mrs Ms Dr Prof Senator President Ministry Department Office Committee Company Inc Corp LLC Ltd University Institute Foundation Report Memo Chapter Book Part Volume Act Scene Canto Epilogue Prologue Section Introduction Monday Tuesday Wednesday Thursday Friday Saturday Sunday January February March April May June July August September October November December'.split(' '));
+    const suffix=/\b(Inc|Corp|Corporation|Company|Co|LLC|Ltd|Limited|University|Institute|Foundation|Ministry|Department|Agency|Committee|Council|Bank|Labs|Systems|Technologies|Group|Holdings)\.?$/;
     const pal=['#c77dba','#5b9bd5','#6bbf8a','#e0a94c','#c0662e','#8e6fb3','#4f9a6b','#2a78d6','#b0842f','#d0472e','#3fb0a0','#a0708a'];
+    const freq={}, surfaces={};
+    const add=(name, weight)=>{ name=(''+name).replace(/\s+/g,' ').replace(/[.,;:!?)]$/,'').trim(); if(!name||name.length<2||name.length>90)return; const parts=name.split(' '); if(parts.length===1 && stop.has(name))return; if(name.toUpperCase()===name && name.length>6)return; const key=name.toLowerCase(); freq[key]=(freq[key]||0)+(weight||1); if(!surfaces[key]||name.length>surfaces[key].length)surfaces[key]=name; };
+    const cap=/\b([A-Z][a-zA-Z0-9&.'’-]*(?:\s+(?:of|the|and|for|de|du|van|von|[A-Z][a-zA-Z0-9&.'’-]*)){0,5})\b/g; let m;
+    while((m=cap.exec(whole))) add(m[1],1);
+    const emails=whole.match(/[\w.+-]+@[\w.-]+\.[a-z]{2,}/gi)||[]; emails.forEach(x=>add(x,3));
+    const urls=whole.match(/https?:\/\/[^\s)]+/gi)||[]; urls.forEach(x=>{ try{ add(new URL(x).host.replace(/^www\./,''),3); }catch(_){}});
+    const money=whole.match(/(?:[$€£]\s?\d[\d,.]*(?:\s?(?:million|billion|trillion|m|bn))?|\b\d[\d,.]*\s?(?:million|billion|trillion|percent|%)\b)/gi)||[]; money.forEach(x=>add(x,2));
+    const dates=whole.match(/\b(?:20\d{2}|19\d{2}|Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\s+\d{1,2}(?:,\s*\d{4})?|\b\d{1,2}\/\d{1,2}\/\d{2,4}\b/g)||[]; dates.forEach(x=>add(x,2));
+    let ents=Object.keys(freq).map(k=>({key:k,name:surfaces[k],count:freq[k]})).filter(e=>(e.count>=2||e.name.includes(' ')||suffix.test(e.name)||/@|\.|\d/.test(e.name))&&!/^\d+$/.test(e.name)).sort((a,b)=>b.count-a.count||b.name.length-a.name.length);
     const entById={},list=[];
-    ents.forEach((e,i)=>{ const id='e'+i,color=pal[i%pal.length],ctx=[];
-      for(const p of paras){ if(ctx.length>=30)break; if(p.indexOf(e.name)<0)continue; const ss=p.split(/(?<=[.?!])\s+/); for(const s of ss){ if(ctx.length>=30)break; if(s.indexOf(e.name)>=0){ const c=s.replace(/\s+/g,' ').trim(); if(c) ctx.push(c); } } }
-      const o={id,name:e.name,color,count:e.count,role:'Detected entity',links:0,flags:0,conns:[],note:'',related:[],ctx};
+    ents.slice(0,240).forEach((e,i)=>{ const id='e'+i,color=pal[i%pal.length],ctx=[];
+      const er=new RegExp('(^|\\b)'+e.name.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'(\\b|$)','i');
+      for(const p of paras){ if(ctx.length>=30)break; if(!er.test(p))continue; const ss=p.split(/(?<=[.?!])\s+/); for(const s of ss){ if(ctx.length>=30)break; if(er.test(s)){ const c=s.replace(/\s+/g,' ').trim(); if(c) ctx.push(c); } } }
+      const role=suffix.test(e.name)?'Detected organization':(/@/.test(e.name)?'Detected contact':(/\d/.test(e.name)?'Detected value/date':'Detected entity'));
+      const o={id,name:e.name,color,count:e.count,role,links:0,flags:0,conns:[],note:'',related:[],ctx};
       entById[id]=o; list.push(o);
     });
     const top=list.slice(0,120); top.forEach(e=>e._co={});
-    paras.forEach(p=>{ const here=top.filter(e=>p.indexOf(e.name)>=0); for(let x=0;x<here.length;x++){ for(let y=0;y<here.length;y++){ if(x!==y) here[x]._co[here[y].id]=(here[x]._co[here[y].id]||0)+1; } } });
+    paras.forEach(p=>{ const here=top.filter(e=>p.toLowerCase().indexOf(e.name.toLowerCase())>=0); for(let x=0;x<here.length;x++){ for(let y=0;y<here.length;y++){ if(x!==y) here[x]._co[here[y].id]=(here[x]._co[here[y].id]||0)+1; } } });
     top.forEach(e=>{ const r=Object.keys(e._co).sort((a,b)=>e._co[b]-e._co[a]); e.links=r.length; e.conns=r.slice(0,5).map(id=>({v:'WITH',c:entById[id].color,t:entById[id].name})); e.related=r.slice(0,3).map(id=>({n:entById[id].name,c:entById[id].color})); delete e._co; });
     const hi=[...new Set((whole.match(/[“"][^“”"]{6,140}[”"]/g)||[]))].slice(0,80);
     const toc=this.detectToc(paras);
@@ -998,7 +1020,7 @@ class Component extends DCLogic {
       importOpen:S.importOpen, openImport:()=>this.setState({importOpen:true,spaceEditOpen:false}), closeImport:()=>this.setState({importOpen:false}),
       resetSample:()=>this.resetSample(),
       engineLive:S.engineLive, engineColor:S.engineLive?'#2f7a55':t.faint,
-      engineText:S.engineLive?'eoreader4.2 engine · live':'Local preview reader · engine bridge idle',
+      engineText:S.engineName||this.engineBridgeName(),
       onUrl:(e)=>this.setState({urlVal:e.target.value}),
       readUrl:()=>this.readUrl(),
       onSearch:(e)=>this.setState({searchQ:e.target.value}),
