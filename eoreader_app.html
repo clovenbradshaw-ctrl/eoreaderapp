@@ -300,9 +300,11 @@
         </sc-for>
       </sc-if>
       <sc-if value="{{ showFull }}">
+        <div style="font:600 10px system-ui;letter-spacing:.05em;text-transform:uppercase;color:{{ t.mut }};margin:14px 0 6px">Meaning map · paradigms &amp; entities</div>
+        <div ref="{{ solarRef }}" style="height:200px;border-radius:14px;overflow:hidden;background:{{ t.bar }};border:1px solid {{ t.border }}"></div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:14px">
-          <sc-for list="{{ sel.related }}" as="r" hint-placeholder-count="2">
-            <span style="display:flex;align-items:center;gap:6px;background:{{ t.bar }};border:1px solid {{ t.border }};border-radius:20px;padding:5px 10px;font:600 12px system-ui;color:{{ t.t2 }}"><span style="width:8px;height:8px;border-radius:3px;background:{{ r.c }}"></span>{{ r.n }}</span>
+          <sc-for list="{{ relatedChips }}" as="r" hint-placeholder-count="2">
+            <span onClick="{{ r.pick }}" style="display:flex;align-items:center;gap:6px;background:{{ t.bar }};border:1px solid {{ t.border }};border-radius:20px;padding:5px 10px;font:600 12px system-ui;color:{{ t.t2 }};cursor:pointer"><span style="width:8px;height:8px;border-radius:3px;background:{{ r.c }}"></span>{{ r.n }}</span>
           </sc-for>
         </div>
         <button onClick="{{ closeSheet }}" style="margin-top:16px;width:100%;padding:12px;border:none;border-radius:12px;background:{{ t.accent }};color:#fff;font:600 13.5px system-ui;cursor:pointer">↺ Re-center reading on {{ sel.name }}</button>
@@ -341,6 +343,61 @@
       </sc-if>
     </div>
     </sc-if>
+    <sc-if value="{{ isExplore }}">
+    <div style="flex:none;display:flex;align-items:center;gap:9px;padding:0 18px 10px">
+      <sc-if value="{{ explBackShown }}">
+        <span onClick="{{ explBack }}" style="font-size:19px;color:{{ t.mut }};cursor:pointer;flex:none;line-height:1">‹</span>
+      </sc-if>
+      <div style="flex:1;min-width:0;font:700 16px system-ui;color:{{ t.text }};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ explTitle }}</div>
+      <span onClick="{{ explClose }}" style="flex:none;width:28px;height:28px;border-radius:50%;background:{{ t.bar }};display:flex;align-items:center;justify-content:center;color:{{ t.mut }};font-size:13px;cursor:pointer">✕</span>
+    </div>
+    <div style="flex:1;min-height:0;overflow-y:auto;padding:0 18px 22px">
+      <sc-if value="{{ explTop }}" hint-placeholder-val="{{ true }}">
+        <div style="font:500 12px/1.5 system-ui;color:{{ t.mut }};margin-bottom:14px">Grouped by what actually appears together in this text — not a fixed category list.</div>
+        <sc-if value="{{ explTopEmpty }}">
+          <div style="font:500 13px system-ui;color:{{ t.faint }};padding:8px 0">Nothing detected yet in this passage.</div>
+        </sc-if>
+        <sc-for list="{{ explTopRows }}" as="row" hint-placeholder-count="3">
+          <div onClick="{{ row.pick }}" style="display:flex;align-items:center;gap:11px;padding:12px 0;border-top:1px solid {{ t.border }};cursor:pointer">
+            <span style="width:10px;height:10px;border-radius:3px;background:{{ row.color }};flex:none"></span>
+            <div style="flex:1;min-width:0">
+              <div style="font:700 14.5px system-ui;color:{{ t.text }};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ row.label }}</div>
+              <div style="font:500 12px system-ui;color:{{ t.mut }}">{{ row.sub }}</div>
+            </div>
+            <span style="color:{{ t.faint }};font-size:16px;flex:none">›</span>
+          </div>
+        </sc-for>
+      </sc-if>
+      <sc-if value="{{ explEntities }}">
+        <sc-for list="{{ explEntityRows }}" as="row" hint-placeholder-count="3">
+          <div onClick="{{ row.pick }}" style="display:flex;align-items:center;gap:11px;padding:12px 0;border-top:1px solid {{ t.border }};cursor:pointer">
+            <span style="width:10px;height:10px;border-radius:50%;background:{{ row.color }};flex:none"></span>
+            <div style="flex:1;min-width:0">
+              <div style="font:700 14.5px system-ui;color:{{ t.text }};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ row.name }}</div>
+              <div style="font:500 12px system-ui;color:{{ t.mut }}">{{ row.sub }}</div>
+            </div>
+            <span style="color:{{ t.faint }};font-size:16px;flex:none">›</span>
+          </div>
+        </sc-for>
+      </sc-if>
+      <sc-if value="{{ explQuotes }}">
+        <sc-for list="{{ explQuoteRows }}" as="row" hint-placeholder-count="3">
+          <div style="padding:12px 0;border-top:1px solid {{ t.border }};font:400 14.5px/1.5 'Source Serif 4',Georgia,serif;color:{{ t.text }}">{{ row.text }}</div>
+        </sc-for>
+      </sc-if>
+      <sc-if value="{{ explStructure }}">
+        <sc-for list="{{ explChapterRows }}" as="row" hint-placeholder-count="3">
+          <div onClick="{{ row.pick }}" style="display:flex;align-items:center;gap:11px;padding:12px 0;border-top:1px solid {{ t.border }};cursor:pointer">
+            <div style="flex:1;min-width:0">
+              <div style="font:700 14.5px system-ui;color:{{ t.text }};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ row.title }}</div>
+              <div style="font:500 12px system-ui;color:{{ t.mut }}">{{ row.sub }}</div>
+            </div>
+            <span style="color:{{ t.faint }};font-size:16px;flex:none">›</span>
+          </div>
+        </sc-for>
+      </sc-if>
+    </div>
+    </sc-if>
   </div>
 
   <sc-if value="{{ layersOpen }}">
@@ -363,6 +420,7 @@
         <div style="font:700 9.5px 'IBM Plex Mono',monospace;letter-spacing:.08em;text-transform:uppercase;color:#6b4fa0;margin-bottom:4px">What it means</div>
         <div style="display:flex;align-items:center;gap:9px;padding:7px 0"><div><div style="font:500 14px system-ui;color:{{ t.text }}">Noteworthy</div><div style="font:500 10.5px system-ui;color:{{ t.mut }}">shown as candidates, never verdicts</div></div><span onClick="{{ togNw }}" style="margin-left:auto;width:32px;height:18px;border-radius:20px;background:{{ tw.nw.track }};position:relative;flex:none;transition:background .2s;cursor:pointer"><span style="position:absolute;top:2px;left:{{ tw.nw.knob }};width:14px;height:14px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25);transition:left .2s"></span></span></div>
       </div>
+      <button onClick="{{ openExploreFromLayers }}" style="width:100%;margin-top:16px;padding:12px;border:none;border-radius:12px;background:{{ t.accent }};color:#fff;font:600 13.5px system-ui;cursor:pointer">Browse entities & terrains →</button>
     </div>
   </sc-if>
 
@@ -696,6 +754,147 @@ const trimBookFrontFurniture = (paras, gaps, title = '') => {
   return { paras: ps.slice(k), gaps: gs.slice(k) };
 };
 
+// EO: a small egocentric orbital view of the entity graph — paradigms (the largest, most
+// salient referents) as planets around the document, plain entities as their moons. A click
+// on any body pivots the camera onto it right there: true motion never changes, only which
+// body sits still at the centre (ported/trimmed from the eoreader4.2 GEO solar-system view).
+function mountEOSolar(root, opts){
+  opts = opts || {};
+  var W = opts.width || 300, H = opts.height || 200;
+  var cx = W / 2, cy = H / 2;
+  var SUN = '__doc__';
+  var textColor = opts.textColor || '#15181e';
+  var mutedColor = opts.mutedColor || '#8A8A95';
+  var edgeColor = opts.edgeColor || '#d9d5c8';
+  var bgColor = opts.bgColor || '#fff';
+  var sunColor = opts.sunColor || mutedColor;
+
+  var nodes = (opts.nodes || []).map(function(n){ return Object.assign({}, n); });
+  var byId = {}; byId[SUN] = { id: SUN, label: opts.sunLabel || 'This document', kind: 'sun' };
+  nodes.forEach(function(n){ byId[n.id] = n; });
+  nodes.forEach(function(n){
+    if (n.kind === 'paradigm' || !n.parent || !byId[n.parent] || n.parent === n.id) n.parent = SUN;
+  });
+  var ids = [SUN].concat(nodes.map(function(n){ return n.id; }));
+
+  var maxSal = 0.0001;
+  nodes.forEach(function(n){ if ((n.salience || 0) > maxSal) maxSal = n.salience; });
+  function sizeOf(id){
+    if (id === SUN) return 20;
+    var n = byId[id];
+    var frac = maxSal > 0 ? Math.max(0, Math.min(1, (n.salience || 0) / maxSal)) : 0.5;
+    return n.kind === 'paradigm' ? (12 + frac * 7) : (5 + frac * 5);
+  }
+
+  var kidsOf = {};
+  nodes.forEach(function(n){ (kidsOf[n.parent] = kidsOf[n.parent] || []).push(n); });
+  var ORBIT = {}; ORBIT[SUN] = { parent: null, r: 0, omega: 0, phase: 0 };
+  Object.keys(kidsOf).forEach(function(pid){
+    var arr = kidsOf[pid], onSun = (pid === SUN);
+    arr.forEach(function(n, k){
+      var ring = k % 3;
+      var r = onSun ? (70 + ring * 34) : (22 + ring * 9);
+      var period = onSun ? (20 + ring * 7 + (k % 5) * 3) : (5 + ring * 1.6 + (k % 4) * 0.8);
+      ORBIT[n.id] = {
+        parent: pid, r: r,
+        phase: (k / Math.max(1, arr.length)) * Math.PI * 2 + ring * 0.8,
+        omega: (Math.PI * 2) / period,
+      };
+    });
+  });
+
+  function truePos(id, t, cache){
+    if (cache[id]) return cache[id];
+    var o = ORBIT[id];
+    if (!o || !o.parent) { cache[id] = { x: 0, y: 0 }; return cache[id]; }
+    cache[id] = { x: 0, y: 0 };
+    var p = truePos(o.parent, t, cache);
+    var ang = o.phase + t * o.omega;
+    var pos = { x: p.x + o.r * Math.cos(ang), y: p.y + o.r * Math.sin(ang) };
+    cache[id] = pos; return pos;
+  }
+
+  var NS = 'http://www.w3.org/2000/svg';
+  function sv(tag, attrs){
+    var e = document.createElementNS(NS, tag);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    return e;
+  }
+
+  var svg = sv('svg', { viewBox: '0 0 ' + W + ' ' + H, width: '100%', height: H, style: 'display:block;touch-action:none' });
+  var universe = sv('g', {});
+  svg.appendChild(universe);
+  var focusRing = sv('circle', { cx: 0, cy: 0, r: 30, fill: 'none', stroke: mutedColor, 'stroke-opacity': 0.4, 'stroke-width': 1, 'stroke-dasharray': '2 3' });
+  universe.appendChild(focusRing);
+
+  var edgeEls = {};
+  nodes.forEach(function(n){
+    var line = sv('line', { stroke: edgeColor, 'stroke-opacity': 0.5, 'stroke-width': 0.75 });
+    universe.appendChild(line);
+    edgeEls[n.id] = line;
+  });
+
+  var bodyEls = {}, labelEls = {};
+  function mkBody(id, r, fill, label, fontSize){
+    var g = sv('g', { style: 'cursor:pointer' });
+    g.appendChild(sv('circle', { r: r, fill: fill, stroke: 'rgba(0,0,0,.22)', 'stroke-width': 1 }));
+    g.addEventListener('click', function(ev){ ev.stopPropagation(); focusOn(id); });
+    universe.appendChild(g);
+    var t = sv('text', {
+      'text-anchor': 'middle', 'font-size': fontSize, fill: textColor,
+      style: 'paint-order:stroke;stroke:' + bgColor + ';stroke-width:3px;stroke-linejoin:round;pointer-events:none;font-family:system-ui'
+    });
+    t.textContent = label;
+    universe.appendChild(t);
+    bodyEls[id] = g; labelEls[id] = t;
+  }
+  mkBody(SUN, sizeOf(SUN), sunColor, byId[SUN].label, 10);
+  nodes.forEach(function(n){ mkBody(n.id, sizeOf(n.id), n.color || mutedColor, n.label, n.kind === 'paradigm' ? 10 : 8.5); });
+
+  var focus = (opts.focusId && byId[opts.focusId]) ? opts.focusId : SUN;
+  var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var t0 = null, raf = null;
+
+  function frame(now){
+    if (!root.isConnected) { raf = null; return; }
+    if (t0 == null) t0 = now;
+    var t = reduceMotion ? 0 : (now - t0) / 1000;
+    var cache = {}, pos = {};
+    ids.forEach(function(id){ pos[id] = truePos(id, t, cache); });
+    var target = pos[focus] || { x: 0, y: 0 };
+    universe.setAttribute('transform', 'translate(' + (cx - target.x).toFixed(1) + ',' + (cy - target.y).toFixed(1) + ')');
+    ids.forEach(function(id){
+      var p = pos[id], n = byId[id], r = sizeOf(id);
+      bodyEls[id].setAttribute('transform', 'translate(' + p.x.toFixed(1) + ',' + p.y.toFixed(1) + ')');
+      var lab = labelEls[id];
+      lab.setAttribute('x', p.x.toFixed(1));
+      lab.setAttribute('y', (p.y - r - 5).toFixed(1));
+      var edge = edgeEls[id];
+      if (edge) {
+        var parentPos = pos[n.parent] || { x: 0, y: 0 };
+        edge.setAttribute('x1', parentPos.x.toFixed(1)); edge.setAttribute('y1', parentPos.y.toFixed(1));
+        edge.setAttribute('x2', p.x.toFixed(1)); edge.setAttribute('y2', p.y.toFixed(1));
+      }
+    });
+    focusRing.setAttribute('r', sizeOf(focus) + 8);
+    raf = requestAnimationFrame(frame);
+  }
+
+  function focusOn(id){
+    if (!byId[id] || id === focus) return;
+    focus = id;
+    if (id !== SUN && opts.onPivot) { try { opts.onPivot(id); } catch (err) {} }
+  }
+
+  root.appendChild(svg);
+  raf = requestAnimationFrame(frame);
+
+  return {
+    destroy: function(){ if (raf) cancelAnimationFrame(raf); if (svg.parentNode) svg.parentNode.removeChild(svg); },
+    focus: function(id){ if (byId[id]) focus = id; },
+  };
+}
+
 class Component extends DCLogic {
   constructor(props){
     super(props);
@@ -719,7 +918,7 @@ class Component extends DCLogic {
       view: vmap[props.view]||'reader',
       layersOpen:false, settingsOpen:false, importOpen:false, urlVal:'', engineLive:false,
       layers:{hi:true,en:true,ch:true,ln:true,nw:props.candidates!==false},
-      sel:null, linkSel:null, linkPeek:{status:'idle'}, level:'prompt', chap:0, tocOpen:false,
+      sel:null, linkSel:null, linkPeek:{status:'idle'}, level:'prompt', chap:0, tocOpen:false, explore:null,
       structFilter:'all', structExp:{}, structRows:{}, structActive:{},
       doc:this.loadingDoc('https://www.npr.org'),
       src:{label:'npr.org',det:'Loading…',dot:'#5b9bd5'},
@@ -729,6 +928,7 @@ class Component extends DCLogic {
       spaceEditOpen:false, spacePickerOpen:false, _sk:0
     };
     this.scrollRef=(el)=>{ if(el) this._scroll=el; };
+    this.solarRef=(el)=>this.mountSolar(el);
     this._sid=1;
   }
   componentDidMount(){
@@ -822,14 +1022,14 @@ class Component extends DCLogic {
     const e={
       ortiz:{id:'ortiz',name:'Elena Ortiz',color:'#c77dba',role:'Senator · sponsor of the Riverton deal',count:12,links:3,flags:1,
         conns:[{v:'SPONSORED',c:'#4f9a6b',t:'the Riverton deal'},{v:'QUOTED ON',c:'#5b9bd5',t:'the Ministry memo'},{v:'CONTRADICTS',c:'#c0662e',t:'her 2021 statement'}],
-        note:'Stance reversed between 2021 and 2025 on the same plan.',related:[{n:'Ministry',c:'#5b9bd5'},{n:'2019 report',c:'#6bbf8a'}],
+        note:'Stance reversed between 2021 and 2025 on the same plan.',related:[{n:'Ministry',c:'#5b9bd5',id:'ministry'},{n:'2019 report',c:'#6bbf8a',id:'report'}],
         ctx:['“a lesson in wishful accounting.”','“the most honest budget in a decade.” — 2021','staked her name on the deal']},
       ministry:{id:'ministry',name:'Ministry of Finance',color:'#5b9bd5',role:'Government body · budget authority',count:7,links:5,flags:0,
         conns:[{v:'ISSUED',c:'#4f9a6b',t:'the 2024 memo'},{v:'ADMINISTERS',c:'#5b9bd5',t:'the Riverton deal'}],
-        note:'Internal memo predates public disclosure by months.',related:[{n:'Ortiz',c:'#c77dba'}],ctx:['memo obtained by this paper','founding promise abandoned in early 2024']},
+        note:'Internal memo predates public disclosure by months.',related:[{n:'Ortiz',c:'#c77dba',id:'ortiz'}],ctx:['memo obtained by this paper','founding promise abandoned in early 2024']},
       report:{id:'report',name:'2019 report',color:'#6bbf8a',role:'Document · fiscal projection',count:4,links:2,flags:1,
         conns:[{v:'PREDICTED',c:'#5b9bd5',t:'the shortfall'},{v:'CITED BY',c:'#4f9a6b',t:'both sides'}],
-        note:'Cited as vindication by defenders and critics alike.',related:[{n:'Ortiz',c:'#c77dba'}],ctx:['predicted the shortfall, not the closures','defenders point to the same document']},
+        note:'Cited as vindication by defenders and critics alike.',related:[{n:'Ortiz',c:'#c77dba',id:'ortiz'}],ctx:['predicted the shortfall, not the closures','defenders point to the same document']},
       riverton:{id:'riverton',name:'Riverton',color:'#e0a94c',role:'Place · the deal’s namesake',count:3,links:1,flags:0,
         conns:[{v:'SITE OF',c:'#4f9a6b',t:'the budget deal'}],note:'Clinic closures concentrated here.',related:[],ctx:['the Riverton budget deal']}
     };
@@ -909,7 +1109,7 @@ class Component extends DCLogic {
     const suffix=/\b(Inc|Corp|Corporation|Company|Co|LLC|Ltd|Limited|University|Institute|Foundation|Ministry|Department|Agency|Committee|Council|Bank|Labs|Systems|Technologies|Group|Holdings)\.?$/;
     const pal=['#c77dba','#5b9bd5','#6bbf8a','#e0a94c','#c0662e','#8e6fb3','#4f9a6b','#2a78d6','#b0842f','#d0472e','#3fb0a0','#a0708a'];
     const freq={}, surfaces={};
-    const add=(name, weight)=>{ name=(''+name).replace(/\s+/g,' ').replace(/[.,;:!?)]$/,'').trim(); if(!name||name.length<2||name.length>90)return; const parts=name.split(' '); if(parts.length===1 && stop.has(name))return; if(name.toUpperCase()===name && name.length>6)return; const key=name.toLowerCase(); freq[key]=(freq[key]||0)+(weight||1); if(!surfaces[key]||name.length>surfaces[key].length)surfaces[key]=name; };
+    const add=(name, weight)=>{ name=(''+name).replace(/\s+/g,' ').replace(/['’]s$/,'').replace(/['’]$/,'').replace(/[.,;:!?)]$/,'').trim(); if(!name||name.length<2||name.length>90)return; const parts=name.split(' '); if(parts.length===1 && stop.has(name))return; if(name.toUpperCase()===name && name.length>6)return; const key=name.toLowerCase(); freq[key]=(freq[key]||0)+(weight||1); if(!surfaces[key]||name.length>surfaces[key].length)surfaces[key]=name; };
     // Prose-anchored harvesting: a real named entity is embedded in running prose —
     // a sentence with lowercase context and end punctuation — whereas page chrome
     // ("Listen", "Download Embed", "Transcript Toggle", "Getty Images") surfaces only
@@ -935,7 +1135,7 @@ class Component extends DCLogic {
     });
     const top=list.slice(0,120); top.forEach(e=>e._co={});
     paras.forEach(p=>{ const here=top.filter(e=>p.toLowerCase().indexOf(e.name.toLowerCase())>=0); for(let x=0;x<here.length;x++){ for(let y=0;y<here.length;y++){ if(x!==y) here[x]._co[here[y].id]=(here[x]._co[here[y].id]||0)+1; } } });
-    top.forEach(e=>{ const r=Object.keys(e._co).sort((a,b)=>e._co[b]-e._co[a]); e.links=r.length; e.conns=r.slice(0,5).map(id=>({v:'WITH',c:entById[id].color,t:entById[id].name})); e.related=r.slice(0,3).map(id=>({n:entById[id].name,c:entById[id].color})); delete e._co; });
+    top.forEach(e=>{ const r=Object.keys(e._co).sort((a,b)=>e._co[b]-e._co[a]); e.links=r.length; e.conns=r.slice(0,5).map(id=>({v:'WITH',c:entById[id].color,t:entById[id].name,id})); e.related=r.slice(0,3).map(id=>({n:entById[id].name,c:entById[id].color,id})); delete e._co; });
     const hi=[...new Set((whole.match(/[“"][^“”"]{6,140}[”"]/g)||[]))].slice(0,80);
     const toc=this.detectToc(paras);
     const chapters=toc.filter(e=>!e.implicit).length;
@@ -954,7 +1154,7 @@ class Component extends DCLogic {
       let body=txt, title=ls.url;
       const j=this.parseJina(txt);
       if(j){ body=this.cleanMarkdown(j.body); title=j.title||ls.url; }
-      else if(/^\s*</.test(txt)){ try{ body=new DOMParser().parseFromString(txt,'text/html').body.innerText; }catch(_){} }
+      else if(/^\s*</.test(txt)){ try{ body=this.dechrome(txt).text; }catch(_){} }
       let paras=body.split(/\n{2,}/).map(s=>s.trim()).filter(Boolean);
       if(paras.length<2) paras=body.split(/\n/).map(s=>s.trim()).filter(Boolean);
       const ctx=this.linkContext(ls.text);
@@ -975,6 +1175,77 @@ class Component extends DCLogic {
   }
   expand(){ if(!this.state.sel && !this.state.linkSel)return; const o=['peek','half','full']; let i=o.indexOf(this.state.level); if(i<0)i=1; this.setState({level:o[(i+1)%3]}); }
   entMap(){ const d=this.state.doc; return (d&&d.analysis)?d.analysis.entById:{}; }
+  // ── terrains: entity clusters named from their own co-occurring entities, not a fixed taxonomy ──
+  terrainClusters(){
+    const d=this.state.doc, a=d&&d.analysis; if(!a||!a.list||!a.list.length) return [];
+    const ents=a.list.slice(0,40);
+    const parent={}; ents.forEach(e=>parent[e.id]=e.id);
+    const find=x=>parent[x]===x?x:(parent[x]=find(parent[x]));
+    const union=(x,y)=>{ const rx=find(x),ry=find(y); if(rx!==ry) parent[rx]=ry; };
+    const byName={}; ents.forEach(e=>byName[e.name]=e);
+    ents.forEach(e=>(e.related||[]).forEach(r=>{ const t=byName[r.n]; if(t) union(e.id,t.id); }));
+    const groups={};
+    ents.forEach(e=>{ const r=find(e.id); (groups[r]=groups[r]||[]).push(e); });
+    return Object.values(groups).map((g,i)=>{
+      const sorted=g.slice().sort((x,y)=>y.count-x.count);
+      return {id:'t'+i, label:sorted.slice(0,2).map(e=>e.name).join(' & '), color:sorted[0].color, entities:sorted, total:sorted.reduce((s,e)=>s+e.count,0)};
+    }).sort((x,y)=>y.total-x.total);
+  }
+  openExplore(){ this.setState({explore:{terrain:null}, sel:null, linkSel:null, level:'full'}); }
+  openTerrain(id){ this.setState(s=>({explore:{...s.explore,terrain:id}})); }
+  exploreBack(){ this.setState(s=>({explore:{...s.explore,terrain:null}})); }
+  closeExplore(){ this.setState({explore:null, sel:null, linkSel:null, level:'prompt'}); }
+  jumpChapter(i){ this.gotoChap(i); this.setState({explore:null, sel:null, linkSel:null, level:'prompt'}); }
+
+  // ── the entity graph as paradigms (largest mass) orbited by entities (smallest mass) ──
+  // Reuses the same salience form as the eoreader4.2 perceiver (log(1+mass)+log(1+coupling)),
+  // fed by mentions (count) and co-occurrence (links) that analyzeText already computes —
+  // no new detection pass, just a read of the signal that was already there. The document
+  // itself is the sun; the handful of highest-salience referents are its planets (paradigms);
+  // everything else is a moon of whichever paradigm it co-occurs with most, or the sun directly.
+  paradigmGraph(){
+    const d=this.state.doc, a=d&&d.analysis;
+    const list=(a&&a.list)||[];
+    if(!list.length) return null;
+    const byName={}; list.forEach(e=>{ byName[(e.name||'').toLowerCase()]=e; });
+    const byId={}; list.forEach(e=>{ byId[e.id]=e; });
+    const sal=e=>Math.log(1+(e.count||0))+Math.log(1+(e.links||0));
+    const ranked=list.slice().sort((x,y)=>sal(y)-sal(x));
+    const paradigmN=Math.max(1,Math.min(4,Math.round(ranked.length/6)));
+    const paradigmIds=new Set(ranked.slice(0,paradigmN).map(e=>e.id));
+    const shown=ranked.slice(0,Math.max(paradigmN,18));
+    const shownIds=new Set(shown.map(e=>e.id));
+    const resolveParent=(e)=>{
+      for(const r of (e.related||[])){
+        const cand=(r.id&&byId[r.id])||byName[(r.n||'').toLowerCase()];
+        if(cand&&paradigmIds.has(cand.id)&&shownIds.has(cand.id)&&cand.id!==e.id) return cand.id;
+      }
+      return null;
+    };
+    const nodes=shown.map(e=>({
+      id:e.id, label:e.name, color:e.color, count:e.count||0,
+      kind:paradigmIds.has(e.id)?'paradigm':'entity',
+      salience:sal(e),
+      parent:paradigmIds.has(e.id)?null:resolveParent(e),
+    }));
+    return { sunLabel:(d&&(d.title||d.name))||'This document', nodes };
+  }
+  mountSolar(el){
+    if(this._solar){ this._solar.destroy(); this._solar=null; }
+    if(!el) return;
+    const g=this.paradigmGraph();
+    if(!g||!g.nodes.length) return;
+    const t=this.theme();
+    this._solar=mountEOSolar(el, {
+      nodes:g.nodes, sunLabel:g.sunLabel, focusId:this.state.sel,
+      width:300, height:200,
+      textColor:t.text, mutedColor:t.mut, edgeColor:t.border, bgColor:t.bar, sunColor:t.accent,
+      onPivot:(id)=>{ if(id) this.pick(id); },
+    });
+  }
+  componentDidUpdate(prevProps, prevState){
+    if(this._solar && prevState.sel!==this.state.sel && this.state.sel) this._solar.focus(this.state.sel);
+  }
 
   bucketOf(m){ const b={Webpage:'Web & news',PDF:'Documents',Document:'Documents',Slides:'Documents',Spreadsheet:'Data & sheets',Data:'Data & sheets',Code:'Code',Image:'Media',Audio:'Media',Video:'Media',Text:'Notes'}; return b[m]||'Other'; }
   setDoc(d, opts){
@@ -1179,7 +1450,7 @@ class Component extends DCLogic {
       let clean=txt, t=title||u, rawHtml=null, linkMap={};
       const j=this.parseJina(txt);
       if(j){ clean=this.cleanMarkdown(j.body); t=title||j.title||u; linkMap=this.extractLinksFromMd(j.body); }
-      else if(/^\s*</.test(txt)){ rawHtml=txt; try{ const doc=new DOMParser().parseFromString(txt,'text/html'); clean=doc.body.innerText; linkMap=this.extractLinksFromDom(doc); }catch(_){} }
+      else if(/^\s*</.test(txt)){ rawHtml=txt; try{ const d=this.dechrome(txt); clean=d.text; linkMap=d.linkMap; }catch(_){} }
       this.setDoc({name:u,url:u,title:t,medium:'Webpage',mode:'text',size:'',rawHtml,analysis:this.analyzeText(clean,linkMap)});
     }).catch(err=>this.setDoc({name:u,url:u,title:title||u,medium:'Webpage',mode:'binary',size:'',mime:'could not fetch: '+err.message+' — try routing through your proxy (edit routing in Search & open)'}));
   }
@@ -1238,7 +1509,7 @@ class Component extends DCLogic {
     if(aud.includes(ext)||(f.type||'').startsWith('audio')){ this.setDoc({name,title:name,medium:'Audio',mode:'media',mtype:'audio',url:URL.createObjectURL(f),size}); return; }
     if(vid.includes(ext)||(f.type||'').startsWith('video')){ this.setDoc({name,title:name,medium:'Video',mode:'media',mtype:'video',url:URL.createObjectURL(f),size}); return; }
     if(ext==='pdf'||(f.type||'')==='application/pdf'){ this.ingestPdf(f,name,size); return; }
-    if(ext==='html'||ext==='htm'){ const r=new FileReader(); r.onload=()=>{ let txt='', linkMap={}; try{ const doc=new DOMParser().parseFromString(r.result||'','text/html'); txt=doc.body.innerText; linkMap=this.extractLinksFromDom(doc); }catch(_){txt=r.result||'';} this.setDoc({name,title:name,medium:'Webpage',mode:'text',size,rawHtml:r.result||'',analysis:this.analyzeText(txt,linkMap)}); }; r.readAsText(f); return; }
+    if(ext==='html'||ext==='htm'){ const r=new FileReader(); r.onload=()=>{ let txt='', linkMap={}; try{ const d=this.dechrome(r.result||''); txt=d.text; linkMap=d.linkMap; }catch(_){txt=r.result||'';} this.setDoc({name,title:name,medium:'Webpage',mode:'text',size,rawHtml:r.result||'',analysis:this.analyzeText(txt,linkMap)}); }; r.readAsText(f); return; }
     if(textLike.includes(ext)||(f.type||'').startsWith('text')){ const r=new FileReader(); r.onload=()=>{ const raw=r.result||''; const csv=(ext==='csv'||ext==='tsv')?this.parseCsvRows(raw):null; this.setDoc({name,title:name,medium,mode:'text',size,rawText:raw,csv,analysis:this.analyzeText(raw)}); }; r.readAsText(f); return; }
     const r=new FileReader();
     r.onload=()=>{ const buf=new Uint8Array(r.result), n=Math.min(buf.length,4000); let a=0; for(let i=0;i<n;i++){ const b=buf[i]; if((b>=32&&b<127)||b===9||b===10||b===13)a++; }
@@ -1277,6 +1548,57 @@ class Component extends DCLogic {
   extractLinksFromDom(doc){
     const map={}; try{ doc.querySelectorAll('a[href]').forEach(a=>{ const txt=(a.textContent||'').trim(); const href=a.href; if(txt && txt.length>=2 && txt.length<=120 && /^https?:\/\//.test(href)) map[txt]=href; }); }catch(_){}
     return map;
+  }
+  // ── semantic dechrome ──
+  // Raw page HTML mixes prose with structural chrome — skip links, nav menus,
+  // subscribe/social rails, footers — that plain innerText can't tell apart
+  // from the article. Strip it by what it *is* (tag, ARIA role, id/class
+  // naming convention) rather than by site-specific selectors, then — when no
+  // single <article>/<main> stands out — score remaining containers the way
+  // Readability does: prose length minus link density, so nav-like link farms
+  // lose to paragraph-heavy prose even without a semantic wrapper.
+  stripChromeNodes(root){
+    const KILL_TAGS=['script','style','noscript','template','iframe','svg','form','button','select','textarea','nav','header','footer','aside'];
+    KILL_TAGS.forEach(tag=>{ try{ root.querySelectorAll(tag).forEach(el=>el.remove()); }catch(_){} });
+    const KILL_ROLES=['navigation','banner','contentinfo','complementary','search','dialog','alertdialog','menu','menubar','tablist','toolbar','tooltip'];
+    KILL_ROLES.forEach(role=>{ try{ root.querySelectorAll('[role="'+role+'"]').forEach(el=>el.remove()); }catch(_){} });
+    try{ root.querySelectorAll('[aria-hidden="true"],[hidden]').forEach(el=>el.remove()); }catch(_){}
+    try{ root.querySelectorAll('a[href^="#"]').forEach(a=>{ if(/^\s*skip to\b/i.test(a.textContent||'')) a.remove(); }); }catch(_){}
+    const CHROME=/(?:^|[-_ ])(nav|navbar|navigation|menu(?:bar)?|sidebar|footer|masthead|topbar|toolbar|breadcrumbs?|paginat(?:ion|or)|pager|skip-?links?|cookie|consent|gdpr|banner|promo|advert(?:isement)?|\bad[-_]|subscri\w*|newsletter|social|share|sharing|related|recommend(?:ed)?|comments?|disqus|popup|modal|overlay|widget|byline-tools|utility-nav|global-nav|site-header|site-footer)(?:$|[-_ ])/i;
+    const CONTENT=/(?:^|[-_ ])(article|articlebody|entry|hentry|post|story|content|main|page|storytext)(?:$|[-_ ])/i;
+    try{
+      root.querySelectorAll('[id],[class]').forEach(el=>{
+        const cls=typeof el.className==='string'?el.className:(el.getAttribute('class')||'');
+        const sig=(el.id||'')+' '+cls;
+        if(CHROME.test(sig) && !CONTENT.test(sig)) el.remove();
+      });
+    }catch(_){}
+  }
+  pickMainRoot(doc){
+    const body=doc.body; if(!body) return null;
+    this.stripChromeNodes(body);
+    const explicit=body.querySelector('article, [role="main"], main');
+    if(explicit && (explicit.textContent||'').trim().split(/\s+/).filter(Boolean).length>=40) return explicit;
+    let best=null,bestScore=-1;
+    try{
+      body.querySelectorAll('div,section,article,main').forEach(el=>{
+        const text=(el.textContent||'').trim();
+        if(text.length<200) return;
+        const linkText=Array.from(el.querySelectorAll('a')).reduce((n,a)=>n+(a.textContent||'').length,0);
+        const density=linkText/Math.max(text.length,1);
+        if(density>0.5) return;
+        const ps=el.querySelectorAll('p').length;
+        const score=text.length*(1-density)+ps*40;
+        if(score>bestScore){ bestScore=score; best=el; }
+      });
+    }catch(_){}
+    return best||body;
+  }
+  dechrome(html){
+    const doc=new DOMParser().parseFromString(html||'','text/html');
+    let root=null; try{ root=this.pickMainRoot(doc); }catch(_){}
+    root=root||doc.body;
+    return {text:(root&&root.innerText)||'', linkMap:this.extractLinksFromDom(root||doc)};
   }
   spans(p,prep,kb){
     if(!prep) return [p];
@@ -1407,11 +1729,11 @@ class Component extends DCLogic {
       const details=[];
       if(this.state.layers.hi && (a.hi||[]).length) details.push('quotes');
       if(this.state.layers.nw && (a.tension||[]).length) details.push('claims');
-      return h('div',{key:'eo',style:{position:'absolute',left:'12px',right:'12px',top:'12px',zIndex:2,pointerEvents:'none'}},
-        h('div',{style:{pointerEvents:'auto',display:'flex',alignItems:'center',gap:'9px',minHeight:'42px',background:this.state.dark?'rgba(15,20,34,.90)':'rgba(255,255,255,.92)',border:'1px solid '+(this.state.dark?'rgba(255,255,255,.14)':'rgba(30,28,25,.12)'),borderRadius:'18px',padding:'8px 10px',fontFamily:'system-ui'}},[
+      return h('div',{key:'eo',style:{position:'sticky',bottom:'12px',margin:'10px 12px 0',zIndex:2,pointerEvents:'none'}},
+        h('div',{style:{pointerEvents:'auto',display:'flex',alignItems:'center',gap:'9px',minHeight:'42px',background:this.state.dark?'rgba(15,20,34,.90)':'rgba(255,255,255,.92)',border:'1px solid '+(this.state.dark?'rgba(255,255,255,.14)':'rgba(30,28,25,.12)'),borderRadius:'18px',padding:'8px 10px',fontFamily:'system-ui',boxShadow:'0 8px 22px rgba(0,0,0,.16)'}},[
           h('div',{key:'label',style:{flex:'none',font:"800 8.5px 'IBM Plex Mono',monospace",letterSpacing:'.08em',textTransform:'uppercase',color:t.mut,whiteSpace:'nowrap'}},'Active here'),
           h('div',{key:'ents',style:{flex:1,minWidth:0,display:'flex',alignItems:'center',gap:'7px',overflowX:'auto'}}, ents.length?ents.map(e=>h('button',{key:e.id,onClick:()=>this.pick(e.id),title:e.role,style:{flex:'none',display:'inline-flex',alignItems:'center',gap:'6px',border:0,background:'transparent',padding:'3px 0',font:'650 12px system-ui',color:t.t2,cursor:'pointer',whiteSpace:'nowrap'}},[h('span',{key:'d',style:{width:'7px',height:'7px',borderRadius:'50%',background:e.color,boxShadow:'0 0 0 3px '+(this.state.dark?'rgba(255,255,255,.06)':'rgba(0,0,0,.04)'),flex:'none'}}),h('span',{key:'n'},e.name)])):h('span',{style:{font:'600 12px system-ui',color:t.faint,whiteSpace:'nowrap'}},'No named entities in this passage')),
-          h('div',{key:'mode',style:{flex:'none',font:"800 8.5px 'IBM Plex Mono',monospace",letterSpacing:'.08em',color:t.accent,whiteSpace:'nowrap'}}, details.length?'X-RAY · '+details.join(' · '):'X-RAY')
+          h('div',{key:'mode',onClick:()=>this.openExplore(),style:{flex:'none',font:"800 8.5px 'IBM Plex Mono',monospace",letterSpacing:'.08em',color:t.accent,whiteSpace:'nowrap',cursor:'pointer'}}, details.length?'X-RAY · '+details.join(' · '):'X-RAY')
         ]));
     };
     const nativeWrap=(children,bg)=>h('div',{style:{padding:'0',display:'flex',flexDirection:'column',minHeight:'100%',position:'relative',background:bg||'transparent'}}, view==='annotated'?[...children,nativePlusOverlay()]:children);
@@ -1427,14 +1749,14 @@ class Component extends DCLogic {
         h('pre',{key:'pre',style:{margin:0,font:"13px/1.6 'IBM Plex Mono',ui-monospace,monospace",color:t.text,whiteSpace:'pre-wrap',wordBreak:'break-word'}}, d.rawText)])]);
     }
 
-    const marks=view==='reader', reader=view==='reader';
+    const marks=(view==='reader'||view==='annotated'), reader=view==='reader';
     const prep = this.prepMarks(a, marks);
     const mono = (d.medium==='Code'||d.medium==='Data');
     const fam = mono ? "'IBM Plex Mono',ui-monospace,monospace" : "'Source Serif 4',Georgia,serif";
     const toc=a.toc||[], chapterMode=toc.filter(e=>!e.implicit).length>=3;
     const body=[kicker];
     if(view==='native'||view==='annotated'){
-      body.push(h('div',{key:'nn',style:{font:'500 12px/1.5 system-ui',color:t.mut,background:t.bar,border:'1px solid '+t.border,borderRadius:'10px',padding:'10px 12px',margin:'2px 0 18px'}}, 'The original couldn’t be preserved for this source — showing extracted text, unmarked.'));
+      body.push(h('div',{key:'nn',style:{font:'500 12px/1.5 system-ui',color:t.mut,background:t.bar,border:'1px solid '+t.border,borderRadius:'10px',padding:'10px 12px',margin:'2px 0 18px'}}, 'The original couldn’t be preserved for this source — showing extracted text'+(marks?', entities tappable.':', unmarked.')));
     }
     let lo=0, hiIdx=a.paras.length, title=d.title, ci=0;
     if(chapterMode){ ci=Math.max(0,Math.min(this.state.chap,toc.length-1)); const en=toc[ci]; title=en.implicit?(d.title||'Opening'):en.title; lo=en.implicit?en.pi:en.pi+1; hiIdx=(ci+1<toc.length)?toc[ci+1].pi:a.paras.length; }
@@ -1496,8 +1818,10 @@ class Component extends DCLogic {
     const sw=(on)=>({track:on?t.accent:(dark?'#33406b':'#d9d4c8'), knob:on?'17px':'2px'});
     const sel=S.sel?this.entMap()[S.sel]:null, lvl=S.level;
     const linkSel=S.linkSel||null, lp=S.linkPeek||{status:'idle'};
-    const sheetH = (!sel && !linkSel) ? '56px' : (linkSel ? (lp.status==='done'?'520px':'360px') : (lvl==='peek'?'112px':(lvl==='half'?'340px':'620px')));
-    const a=(d&&d.analysis)?d.analysis:{hi:[],list:[],chapters:0,links:0};
+    const explore=S.explore||null;
+    const fullSheetH='calc(100% - 24px)';
+    const sheetH = explore ? fullSheetH : ((!sel && !linkSel) ? '56px' : (linkSel ? (lp.status==='done'?'520px':'360px') : (lvl==='peek'?'112px':(lvl==='half'?'340px':fullSheetH))));
+    const a=(d&&d.analysis)?d.analysis:{hi:[],list:[],chapters:0,links:0,toc:[]};
     const order=['native','annotated','reader'], vi=order.indexOf(S.view);
     const dotOn=t.accent, dotOff=t.bStrong;
     const vlabel={native:'Native',annotated:'Native +',reader:'Reader'};
@@ -1556,11 +1880,28 @@ class Component extends DCLogic {
     const contextEvidence=(reading.context_evidence||[]).map(ev=>({label:ev.text,anchor:(ev.source_title||'Source')+' · '+(ev.anchor&&ev.anchor.label||'structure')}));
     const gaps=reading.unfilled_roles||[];
 
+    // ── explore: progressive disclosure from top-level terrains down to a single entity ──
+    const toc=a.toc||[];
+    const terrains=this.terrainClusters();
+    const explOpen=!!explore && !sel && !linkSel;
+    const explTerrainId=explore&&explore.terrain;
+    const curTerrain=(explTerrainId && explTerrainId!=='__quotes__' && explTerrainId!=='__structure__') ? terrains.find(x=>x.id===explTerrainId) : null;
+    const explKind = !explTerrainId ? 'top' : (explTerrainId==='__quotes__'?'quotes':(explTerrainId==='__structure__'?'structure':'entities'));
+    const explTopRows=[
+      ...terrains.map(tr=>({id:tr.id,label:tr.label,color:tr.color,sub:tr.entities.length+' entit'+(tr.entities.length===1?'y':'ies')+' · '+tr.total+' mention'+(tr.total===1?'':'s'),pick:()=>this.openTerrain(tr.id)})),
+      ...((a.hi||[]).length?[{id:'__quotes__',label:'Quotes',color:'#e8b04a',sub:a.hi.length+' highlighted line'+(a.hi.length===1?'':'s'),pick:()=>this.openTerrain('__quotes__')}]:[]),
+      ...(toc.filter(e=>!e.implicit).length>=3?[{id:'__structure__',label:'Structure',color:'#2a78d6',sub:toc.length+' section'+(toc.length===1?'':'s'),pick:()=>this.openTerrain('__structure__')}]:[])
+    ];
+    const explEntityRows=curTerrain?curTerrain.entities.map(e=>({id:e.id,name:e.name,color:e.color,sub:e.role+' · '+e.count+' mention'+(e.count===1?'':'s'),pick:()=>this.pick(e.id)})):[];
+    const explQuoteRows=(a.hi||[]).map((q,i)=>({id:'hq'+i,text:q}));
+    const explChapterRows=toc.map((c,i)=>({id:'ch'+i,title:c.implicit?(d&&d.title||'Opening'):c.title,sub:'Section '+(i+1)+' of '+toc.length,pick:()=>this.jumpChapter(i)}));
+    const explTitle = explKind==='top' ? 'Explore this document' : (explKind==='quotes'?'Quotes':(explKind==='structure'?'Structure':(curTerrain?curTerrain.label:'')));
+
     return {
       isStructure:S.tab==='structure', notStructure:S.tab!=='structure',
       setStruct:()=>this.setState({tab:'structure'}),
       tabSB:S.tab==='structure'?activeBg:'transparent', tabSC:S.tab==='structure'?activeC:t.mut,
-      sheetDisp:(S.tab==='structure'||S.tab==='search'||(!sel&&!linkSel))?'none':'flex',
+      sheetDisp:(S.tab==='structure'||S.tab==='search'||(!sel&&!linkSel&&!explore))?'none':'flex',
       structSources, corpusStats, sharedEnts, hasShared:sharedEnts.length>0, mediumFilters, crossInsights, crossSources,
       hasCross:crossInsights.length>0, noCross:crossInsights.length===0,
       queryText, onQueryInput:(e)=>this.setState({queryText:e.target.value}), onQueryKey:(e)=>{ if(e.key==='Enter') this.runLocalSearch(e.target.value); }, clearQuery:()=>this.runLocalSearch(''),
@@ -1584,6 +1925,7 @@ class Component extends DCLogic {
       L, tw:{hi:sw(L.hi),en:sw(L.en),ch:sw(L.ch),ln:sw(L.ln),nw:sw(L.nw)}, appearTrack:sw(dark).track, appearKnob:sw(dark).knob,
       togHi:()=>this.tog('hi'),togEn:()=>this.tog('en'),togCh:()=>this.tog('ch'),togLn:()=>this.tog('ln'),togNw:()=>this.tog('nw'),
       layersOpen:S.layersOpen, openLayers:()=>this.setState({layersOpen:true}), closeLayers:()=>this.setState({layersOpen:false}),
+      openExploreFromLayers:()=>{ this.setState({layersOpen:false}); this.openExplore(); },
       settingsOpen:S.settingsOpen, openSettings:()=>this.setState({settingsOpen:true}), closeSettings:()=>this.setState({settingsOpen:false}),
       activeCount:Object.values(L).filter(Boolean).length,
       cHi:a.hi.length, cEn:a.list.length, cCh:a.chapters, cLn:a.links,
@@ -1627,17 +1969,24 @@ class Component extends DCLogic {
       spaceEditOpen:S.spaceEditOpen, closeSpaceEditor:()=>this.closeSpaceEditor(),
       editName:sp?sp.name:'', onSpaceName:(e)=>this.setSpaceField({name:e.target.value||'Untitled'}),
       palette, canDelete:(S.spaces||[]).length>1, deleteSpace:()=>this.deleteSpace(),
-      sel, hasSel:!!sel||!!linkSel, noSel:!sel&&!linkSel, sheetH,
+      sel, hasSel:!!sel||!!linkSel, noSel:!sel&&!linkSel&&!explOpen, sheetH,
       isEntSel:!!sel, isLinkSel:!!linkSel,
-      showHalf:!!sel&&(lvl==='half'||lvl==='full'), showFull:!!sel&&lvl==='full', backdrop:!!sel&&lvl==='full',
+      showHalf:!!sel&&(lvl==='half'||lvl==='full'), showFull:!!sel&&lvl==='full', backdrop:(!!sel&&lvl==='full')||explOpen,
       hasConns:!!(sel&&sel.conns&&sel.conns.length), hasNote:!!(sel&&sel.note&&L.nw),
+      solarRef:this.solarRef,
+      relatedChips:sel?(sel.related||[]).map(r=>({n:r.n,c:r.c,pick:r.id?(()=>this.pick(r.id)):null})):[],
       flagColor:(sel&&sel.flags>0)?'#c0341a':t.text,
       linkText:linkSel?linkSel.text:'', linkUrl:linkSel?linkSel.url:'#', linkHost:linkSel?this.hostOf(linkSel.url):'',
       peekIdle:lp.status==='idle', peekLoading:lp.status==='loading', peekError:lp.status==='error', peekErrorMsg:lp.error||'', peekDone:lp.status==='done',
       peekBtnLabel: lp.status==='loading'?'Reading…':(lp.status==='done'?'Peek again':'Peek ahead'),
       peekTitle:lp.title||'', peekSnippet:lp.snippet||'',
       peekAhead:()=>this.peekAhead(), readLinkFull:()=>this.readLinkFull(),
-      expand:()=>this.expand(), toHalf:()=>this.setState({level:'half'}), closeSheet:()=>this.setState({sel:null,linkSel:null,level:'prompt'})
+      expand:()=>this.expand(), toHalf:()=>this.setState({level:'half'}),
+      closeSheet:()=>this.setState(s=> s.explore ? {sel:null,linkSel:null} : {sel:null,linkSel:null,level:'prompt'}),
+      openExplore:()=>this.openExplore(),
+      isExplore:explOpen, explTitle, explBackShown:!!explTerrainId, explBack:()=>this.exploreBack(), explClose:()=>this.closeExplore(),
+      explTop:explKind==='top', explEntities:explKind==='entities', explQuotes:explKind==='quotes', explStructure:explKind==='structure',
+      explTopRows, explEntityRows, explQuoteRows, explChapterRows, explTopEmpty:explKind==='top'&&explTopRows.length===0
     };
   }
 }
