@@ -341,6 +341,61 @@
       </sc-if>
     </div>
     </sc-if>
+    <sc-if value="{{ isExplore }}">
+    <div style="flex:none;display:flex;align-items:center;gap:9px;padding:0 18px 10px">
+      <sc-if value="{{ explBackShown }}">
+        <span onClick="{{ explBack }}" style="font-size:19px;color:{{ t.mut }};cursor:pointer;flex:none;line-height:1">‹</span>
+      </sc-if>
+      <div style="flex:1;min-width:0;font:700 16px system-ui;color:{{ t.text }};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ explTitle }}</div>
+      <span onClick="{{ explClose }}" style="flex:none;width:28px;height:28px;border-radius:50%;background:{{ t.bar }};display:flex;align-items:center;justify-content:center;color:{{ t.mut }};font-size:13px;cursor:pointer">✕</span>
+    </div>
+    <div style="flex:1;min-height:0;overflow-y:auto;padding:0 18px 22px">
+      <sc-if value="{{ explTop }}" hint-placeholder-val="{{ true }}">
+        <div style="font:500 12px/1.5 system-ui;color:{{ t.mut }};margin-bottom:14px">Grouped by what actually appears together in this text — not a fixed category list.</div>
+        <sc-if value="{{ explTopEmpty }}">
+          <div style="font:500 13px system-ui;color:{{ t.faint }};padding:8px 0">Nothing detected yet in this passage.</div>
+        </sc-if>
+        <sc-for list="{{ explTopRows }}" as="row" hint-placeholder-count="3">
+          <div onClick="{{ row.pick }}" style="display:flex;align-items:center;gap:11px;padding:12px 0;border-top:1px solid {{ t.border }};cursor:pointer">
+            <span style="width:10px;height:10px;border-radius:3px;background:{{ row.color }};flex:none"></span>
+            <div style="flex:1;min-width:0">
+              <div style="font:700 14.5px system-ui;color:{{ t.text }};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ row.label }}</div>
+              <div style="font:500 12px system-ui;color:{{ t.mut }}">{{ row.sub }}</div>
+            </div>
+            <span style="color:{{ t.faint }};font-size:16px;flex:none">›</span>
+          </div>
+        </sc-for>
+      </sc-if>
+      <sc-if value="{{ explEntities }}">
+        <sc-for list="{{ explEntityRows }}" as="row" hint-placeholder-count="3">
+          <div onClick="{{ row.pick }}" style="display:flex;align-items:center;gap:11px;padding:12px 0;border-top:1px solid {{ t.border }};cursor:pointer">
+            <span style="width:10px;height:10px;border-radius:50%;background:{{ row.color }};flex:none"></span>
+            <div style="flex:1;min-width:0">
+              <div style="font:700 14.5px system-ui;color:{{ t.text }};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ row.name }}</div>
+              <div style="font:500 12px system-ui;color:{{ t.mut }}">{{ row.sub }}</div>
+            </div>
+            <span style="color:{{ t.faint }};font-size:16px;flex:none">›</span>
+          </div>
+        </sc-for>
+      </sc-if>
+      <sc-if value="{{ explQuotes }}">
+        <sc-for list="{{ explQuoteRows }}" as="row" hint-placeholder-count="3">
+          <div style="padding:12px 0;border-top:1px solid {{ t.border }};font:400 14.5px/1.5 'Source Serif 4',Georgia,serif;color:{{ t.text }}">{{ row.text }}</div>
+        </sc-for>
+      </sc-if>
+      <sc-if value="{{ explStructure }}">
+        <sc-for list="{{ explChapterRows }}" as="row" hint-placeholder-count="3">
+          <div onClick="{{ row.pick }}" style="display:flex;align-items:center;gap:11px;padding:12px 0;border-top:1px solid {{ t.border }};cursor:pointer">
+            <div style="flex:1;min-width:0">
+              <div style="font:700 14.5px system-ui;color:{{ t.text }};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ row.title }}</div>
+              <div style="font:500 12px system-ui;color:{{ t.mut }}">{{ row.sub }}</div>
+            </div>
+            <span style="color:{{ t.faint }};font-size:16px;flex:none">›</span>
+          </div>
+        </sc-for>
+      </sc-if>
+    </div>
+    </sc-if>
   </div>
 
   <sc-if value="{{ layersOpen }}">
@@ -363,6 +418,7 @@
         <div style="font:700 9.5px 'IBM Plex Mono',monospace;letter-spacing:.08em;text-transform:uppercase;color:#6b4fa0;margin-bottom:4px">What it means</div>
         <div style="display:flex;align-items:center;gap:9px;padding:7px 0"><div><div style="font:500 14px system-ui;color:{{ t.text }}">Noteworthy</div><div style="font:500 10.5px system-ui;color:{{ t.mut }}">shown as candidates, never verdicts</div></div><span onClick="{{ togNw }}" style="margin-left:auto;width:32px;height:18px;border-radius:20px;background:{{ tw.nw.track }};position:relative;flex:none;transition:background .2s;cursor:pointer"><span style="position:absolute;top:2px;left:{{ tw.nw.knob }};width:14px;height:14px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25);transition:left .2s"></span></span></div>
       </div>
+      <button onClick="{{ openExploreFromLayers }}" style="width:100%;margin-top:16px;padding:12px;border:none;border-radius:12px;background:{{ t.accent }};color:#fff;font:600 13.5px system-ui;cursor:pointer">Browse entities & terrains →</button>
     </div>
   </sc-if>
 
@@ -500,7 +556,7 @@ class Component extends DCLogic {
       view: vmap[props.view]||'reader',
       layersOpen:false, settingsOpen:false, importOpen:false, urlVal:'', engineLive:false,
       layers:{hi:true,en:true,ch:true,ln:true,nw:props.candidates!==false},
-      sel:null, linkSel:null, linkPeek:{status:'idle'}, level:'prompt', chap:0, tocOpen:false,
+      sel:null, linkSel:null, linkPeek:{status:'idle'}, level:'prompt', chap:0, tocOpen:false, explore:null,
       structFilter:'all', structExp:{}, structRows:{}, structActive:{},
       doc:this.loadingDoc('https://www.npr.org'),
       src:{label:'npr.org',det:'Loading…',dot:'#5b9bd5'},
@@ -729,6 +785,27 @@ class Component extends DCLogic {
   }
   expand(){ if(!this.state.sel && !this.state.linkSel)return; const o=['peek','half','full']; let i=o.indexOf(this.state.level); if(i<0)i=1; this.setState({level:o[(i+1)%3]}); }
   entMap(){ const d=this.state.doc; return (d&&d.analysis)?d.analysis.entById:{}; }
+  // ── terrains: entity clusters named from their own co-occurring entities, not a fixed taxonomy ──
+  terrainClusters(){
+    const d=this.state.doc, a=d&&d.analysis; if(!a||!a.list||!a.list.length) return [];
+    const ents=a.list.slice(0,40);
+    const parent={}; ents.forEach(e=>parent[e.id]=e.id);
+    const find=x=>parent[x]===x?x:(parent[x]=find(parent[x]));
+    const union=(x,y)=>{ const rx=find(x),ry=find(y); if(rx!==ry) parent[rx]=ry; };
+    const byName={}; ents.forEach(e=>byName[e.name]=e);
+    ents.forEach(e=>(e.related||[]).forEach(r=>{ const t=byName[r.n]; if(t) union(e.id,t.id); }));
+    const groups={};
+    ents.forEach(e=>{ const r=find(e.id); (groups[r]=groups[r]||[]).push(e); });
+    return Object.values(groups).map((g,i)=>{
+      const sorted=g.slice().sort((x,y)=>y.count-x.count);
+      return {id:'t'+i, label:sorted.slice(0,2).map(e=>e.name).join(' & '), color:sorted[0].color, entities:sorted, total:sorted.reduce((s,e)=>s+e.count,0)};
+    }).sort((x,y)=>y.total-x.total);
+  }
+  openExplore(){ this.setState({explore:{terrain:null}, sel:null, linkSel:null, level:'full'}); }
+  openTerrain(id){ this.setState(s=>({explore:{...s.explore,terrain:id}})); }
+  exploreBack(){ this.setState(s=>({explore:{...s.explore,terrain:null}})); }
+  closeExplore(){ this.setState({explore:null, sel:null, linkSel:null, level:'prompt'}); }
+  jumpChapter(i){ this.gotoChap(i); this.setState({explore:null, sel:null, linkSel:null, level:'prompt'}); }
 
   bucketOf(m){ const b={Webpage:'Web & news',PDF:'Documents',Document:'Documents',Slides:'Documents',Spreadsheet:'Data & sheets',Data:'Data & sheets',Code:'Code',Image:'Media',Audio:'Media',Video:'Media',Text:'Notes'}; return b[m]||'Other'; }
   setDoc(d){
@@ -1066,11 +1143,11 @@ class Component extends DCLogic {
       const details=[];
       if(this.state.layers.hi && (a.hi||[]).length) details.push('quotes');
       if(this.state.layers.nw && (a.tension||[]).length) details.push('claims');
-      return h('div',{key:'eo',style:{position:'absolute',left:'12px',right:'12px',top:'12px',zIndex:2,pointerEvents:'none'}},
-        h('div',{style:{pointerEvents:'auto',display:'flex',alignItems:'center',gap:'9px',minHeight:'42px',background:this.state.dark?'rgba(15,20,34,.90)':'rgba(255,255,255,.92)',border:'1px solid '+(this.state.dark?'rgba(255,255,255,.14)':'rgba(30,28,25,.12)'),borderRadius:'18px',padding:'8px 10px',fontFamily:'system-ui'}},[
+      return h('div',{key:'eo',style:{position:'sticky',bottom:'12px',margin:'10px 12px 0',zIndex:2,pointerEvents:'none'}},
+        h('div',{style:{pointerEvents:'auto',display:'flex',alignItems:'center',gap:'9px',minHeight:'42px',background:this.state.dark?'rgba(15,20,34,.90)':'rgba(255,255,255,.92)',border:'1px solid '+(this.state.dark?'rgba(255,255,255,.14)':'rgba(30,28,25,.12)'),borderRadius:'18px',padding:'8px 10px',fontFamily:'system-ui',boxShadow:'0 8px 22px rgba(0,0,0,.16)'}},[
           h('div',{key:'label',style:{flex:'none',font:"800 8.5px 'IBM Plex Mono',monospace",letterSpacing:'.08em',textTransform:'uppercase',color:t.mut,whiteSpace:'nowrap'}},'Active here'),
           h('div',{key:'ents',style:{flex:1,minWidth:0,display:'flex',alignItems:'center',gap:'7px',overflowX:'auto'}}, ents.length?ents.map(e=>h('button',{key:e.id,onClick:()=>this.pick(e.id),title:e.role,style:{flex:'none',display:'inline-flex',alignItems:'center',gap:'6px',border:0,background:'transparent',padding:'3px 0',font:'650 12px system-ui',color:t.t2,cursor:'pointer',whiteSpace:'nowrap'}},[h('span',{key:'d',style:{width:'7px',height:'7px',borderRadius:'50%',background:e.color,boxShadow:'0 0 0 3px '+(this.state.dark?'rgba(255,255,255,.06)':'rgba(0,0,0,.04)'),flex:'none'}}),h('span',{key:'n'},e.name)])):h('span',{style:{font:'600 12px system-ui',color:t.faint,whiteSpace:'nowrap'}},'No named entities in this passage')),
-          h('div',{key:'mode',style:{flex:'none',font:"800 8.5px 'IBM Plex Mono',monospace",letterSpacing:'.08em',color:t.accent,whiteSpace:'nowrap'}}, details.length?'X-RAY · '+details.join(' · '):'X-RAY')
+          h('div',{key:'mode',onClick:()=>this.openExplore(),style:{flex:'none',font:"800 8.5px 'IBM Plex Mono',monospace",letterSpacing:'.08em',color:t.accent,whiteSpace:'nowrap',cursor:'pointer'}}, details.length?'X-RAY · '+details.join(' · '):'X-RAY')
         ]));
     };
     const nativeWrap=(children,bg)=>h('div',{style:{padding:'0',display:'flex',flexDirection:'column',minHeight:'100%',position:'relative',background:bg||'transparent'}}, view==='annotated'?[...children,nativePlusOverlay()]:children);
@@ -1086,14 +1163,14 @@ class Component extends DCLogic {
         h('pre',{key:'pre',style:{margin:0,font:"13px/1.6 'IBM Plex Mono',ui-monospace,monospace",color:t.text,whiteSpace:'pre-wrap',wordBreak:'break-word'}}, d.rawText)])]);
     }
 
-    const marks=view==='reader', reader=view==='reader';
+    const marks=(view==='reader'||view==='annotated'), reader=view==='reader';
     const prep = this.prepMarks(a, marks);
     const mono = (d.medium==='Code'||d.medium==='Data');
     const fam = mono ? "'IBM Plex Mono',ui-monospace,monospace" : "'Source Serif 4',Georgia,serif";
     const toc=a.toc||[], chapterMode=toc.filter(e=>!e.implicit).length>=3;
     const body=[kicker];
     if(view==='native'||view==='annotated'){
-      body.push(h('div',{key:'nn',style:{font:'500 12px/1.5 system-ui',color:t.mut,background:t.bar,border:'1px solid '+t.border,borderRadius:'10px',padding:'10px 12px',margin:'2px 0 18px'}}, 'The original couldn’t be preserved for this source — showing extracted text, unmarked.'));
+      body.push(h('div',{key:'nn',style:{font:'500 12px/1.5 system-ui',color:t.mut,background:t.bar,border:'1px solid '+t.border,borderRadius:'10px',padding:'10px 12px',margin:'2px 0 18px'}}, 'The original couldn’t be preserved for this source — showing extracted text'+(marks?', entities tappable.':', unmarked.')));
     }
     let lo=0, hiIdx=a.paras.length, title=d.title, ci=0;
     if(chapterMode){ ci=Math.max(0,Math.min(this.state.chap,toc.length-1)); const en=toc[ci]; title=en.implicit?(d.title||'Opening'):en.title; lo=en.implicit?en.pi:en.pi+1; hiIdx=(ci+1<toc.length)?toc[ci+1].pi:a.paras.length; }
@@ -1155,8 +1232,10 @@ class Component extends DCLogic {
     const sw=(on)=>({track:on?t.accent:(dark?'#33406b':'#d9d4c8'), knob:on?'17px':'2px'});
     const sel=S.sel?this.entMap()[S.sel]:null, lvl=S.level;
     const linkSel=S.linkSel||null, lp=S.linkPeek||{status:'idle'};
-    const sheetH = (!sel && !linkSel) ? '56px' : (linkSel ? (lp.status==='done'?'520px':'360px') : (lvl==='peek'?'112px':(lvl==='half'?'340px':'620px')));
-    const a=(d&&d.analysis)?d.analysis:{hi:[],list:[],chapters:0,links:0};
+    const explore=S.explore||null;
+    const fullSheetH='calc(100% - 24px)';
+    const sheetH = explore ? fullSheetH : ((!sel && !linkSel) ? '56px' : (linkSel ? (lp.status==='done'?'520px':'360px') : (lvl==='peek'?'112px':(lvl==='half'?'340px':fullSheetH))));
+    const a=(d&&d.analysis)?d.analysis:{hi:[],list:[],chapters:0,links:0,toc:[]};
     const order=['native','annotated','reader'], vi=order.indexOf(S.view);
     const dotOn=t.accent, dotOff=t.bStrong;
     const vlabel={native:'Native',annotated:'Native +',reader:'Reader'};
@@ -1215,11 +1294,28 @@ class Component extends DCLogic {
     const contextEvidence=(reading.context_evidence||[]).map(ev=>({label:ev.text,anchor:(ev.source_title||'Source')+' · '+(ev.anchor&&ev.anchor.label||'structure')}));
     const gaps=reading.unfilled_roles||[];
 
+    // ── explore: progressive disclosure from top-level terrains down to a single entity ──
+    const toc=a.toc||[];
+    const terrains=this.terrainClusters();
+    const explOpen=!!explore && !sel && !linkSel;
+    const explTerrainId=explore&&explore.terrain;
+    const curTerrain=(explTerrainId && explTerrainId!=='__quotes__' && explTerrainId!=='__structure__') ? terrains.find(x=>x.id===explTerrainId) : null;
+    const explKind = !explTerrainId ? 'top' : (explTerrainId==='__quotes__'?'quotes':(explTerrainId==='__structure__'?'structure':'entities'));
+    const explTopRows=[
+      ...terrains.map(tr=>({id:tr.id,label:tr.label,color:tr.color,sub:tr.entities.length+' entit'+(tr.entities.length===1?'y':'ies')+' · '+tr.total+' mention'+(tr.total===1?'':'s'),pick:()=>this.openTerrain(tr.id)})),
+      ...((a.hi||[]).length?[{id:'__quotes__',label:'Quotes',color:'#e8b04a',sub:a.hi.length+' highlighted line'+(a.hi.length===1?'':'s'),pick:()=>this.openTerrain('__quotes__')}]:[]),
+      ...(toc.filter(e=>!e.implicit).length>=3?[{id:'__structure__',label:'Structure',color:'#2a78d6',sub:toc.length+' section'+(toc.length===1?'':'s'),pick:()=>this.openTerrain('__structure__')}]:[])
+    ];
+    const explEntityRows=curTerrain?curTerrain.entities.map(e=>({id:e.id,name:e.name,color:e.color,sub:e.role+' · '+e.count+' mention'+(e.count===1?'':'s'),pick:()=>this.pick(e.id)})):[];
+    const explQuoteRows=(a.hi||[]).map((q,i)=>({id:'hq'+i,text:q}));
+    const explChapterRows=toc.map((c,i)=>({id:'ch'+i,title:c.implicit?(d&&d.title||'Opening'):c.title,sub:'Section '+(i+1)+' of '+toc.length,pick:()=>this.jumpChapter(i)}));
+    const explTitle = explKind==='top' ? 'Explore this document' : (explKind==='quotes'?'Quotes':(explKind==='structure'?'Structure':(curTerrain?curTerrain.label:'')));
+
     return {
       isStructure:S.tab==='structure', notStructure:S.tab!=='structure',
       setStruct:()=>this.setState({tab:'structure'}),
       tabSB:S.tab==='structure'?activeBg:'transparent', tabSC:S.tab==='structure'?activeC:t.mut,
-      sheetDisp:(S.tab==='structure'||S.tab==='search'||(!sel&&!linkSel))?'none':'flex',
+      sheetDisp:(S.tab==='structure'||S.tab==='search'||(!sel&&!linkSel&&!explore))?'none':'flex',
       structSources, corpusStats, sharedEnts, hasShared:sharedEnts.length>0, mediumFilters, crossInsights, crossSources,
       hasCross:crossInsights.length>0, noCross:crossInsights.length===0,
       queryText, onQueryInput:(e)=>this.setState({queryText:e.target.value}), onQueryKey:(e)=>{ if(e.key==='Enter') this.runLocalSearch(e.target.value); }, clearQuery:()=>this.runLocalSearch(''),
@@ -1243,6 +1339,7 @@ class Component extends DCLogic {
       L, tw:{hi:sw(L.hi),en:sw(L.en),ch:sw(L.ch),ln:sw(L.ln),nw:sw(L.nw)}, appearTrack:sw(dark).track, appearKnob:sw(dark).knob,
       togHi:()=>this.tog('hi'),togEn:()=>this.tog('en'),togCh:()=>this.tog('ch'),togLn:()=>this.tog('ln'),togNw:()=>this.tog('nw'),
       layersOpen:S.layersOpen, openLayers:()=>this.setState({layersOpen:true}), closeLayers:()=>this.setState({layersOpen:false}),
+      openExploreFromLayers:()=>{ this.setState({layersOpen:false}); this.openExplore(); },
       settingsOpen:S.settingsOpen, openSettings:()=>this.setState({settingsOpen:true}), closeSettings:()=>this.setState({settingsOpen:false}),
       activeCount:Object.values(L).filter(Boolean).length,
       cHi:a.hi.length, cEn:a.list.length, cCh:a.chapters, cLn:a.links,
@@ -1277,9 +1374,9 @@ class Component extends DCLogic {
       spaceEditOpen:S.spaceEditOpen, closeSpaceEditor:()=>this.closeSpaceEditor(),
       editName:sp?sp.name:'', onSpaceName:(e)=>this.setSpaceField({name:e.target.value||'Untitled'}),
       palette, canDelete:(S.spaces||[]).length>1, deleteSpace:()=>this.deleteSpace(),
-      sel, hasSel:!!sel||!!linkSel, noSel:!sel&&!linkSel, sheetH,
+      sel, hasSel:!!sel||!!linkSel, noSel:!sel&&!linkSel&&!explOpen, sheetH,
       isEntSel:!!sel, isLinkSel:!!linkSel,
-      showHalf:!!sel&&(lvl==='half'||lvl==='full'), showFull:!!sel&&lvl==='full', backdrop:!!sel&&lvl==='full',
+      showHalf:!!sel&&(lvl==='half'||lvl==='full'), showFull:!!sel&&lvl==='full', backdrop:(!!sel&&lvl==='full')||explOpen,
       hasConns:!!(sel&&sel.conns&&sel.conns.length), hasNote:!!(sel&&sel.note&&L.nw),
       flagColor:(sel&&sel.flags>0)?'#c0341a':t.text,
       linkText:linkSel?linkSel.text:'', linkUrl:linkSel?linkSel.url:'#', linkHost:linkSel?this.hostOf(linkSel.url):'',
@@ -1287,7 +1384,12 @@ class Component extends DCLogic {
       peekBtnLabel: lp.status==='loading'?'Reading…':(lp.status==='done'?'Peek again':'Peek ahead'),
       peekTitle:lp.title||'', peekSnippet:lp.snippet||'',
       peekAhead:()=>this.peekAhead(), readLinkFull:()=>this.readLinkFull(),
-      expand:()=>this.expand(), toHalf:()=>this.setState({level:'half'}), closeSheet:()=>this.setState({sel:null,linkSel:null,level:'prompt'})
+      expand:()=>this.expand(), toHalf:()=>this.setState({level:'half'}),
+      closeSheet:()=>this.setState(s=> s.explore ? {sel:null,linkSel:null} : {sel:null,linkSel:null,level:'prompt'}),
+      openExplore:()=>this.openExplore(),
+      isExplore:explOpen, explTitle, explBackShown:!!explTerrainId, explBack:()=>this.exploreBack(), explClose:()=>this.closeExplore(),
+      explTop:explKind==='top', explEntities:explKind==='entities', explQuotes:explKind==='quotes', explStructure:explKind==='structure',
+      explTopRows, explEntityRows, explQuoteRows, explChapterRows, explTopEmpty:explKind==='top'&&explTopRows.length===0
     };
   }
 }
