@@ -53,7 +53,7 @@
       <span onClick="{{ openSpacePicker }}" title="Spaces" style="flex:none;width:34px;height:34px;border-radius:10px;background:{{ t.bar }};border:1px solid {{ t.border }};display:flex;align-items:center;justify-content:center;cursor:pointer">
         <i class="ph ph-book-open" style="font-size:16px;color:{{ t.accent }}"></i>
       </span>
-      <span onClick="{{ openLayers }}" title="Reading layers" style="flex:none;width:34px;height:34px;border-radius:10px;background:{{ t.bar }};border:1px solid {{ t.border }};display:flex;align-items:center;justify-content:center;cursor:pointer">
+      <span onClick="{{ openLibrary }}" title="Library" style="flex:none;width:34px;height:34px;border-radius:10px;background:{{ t.bar }};border:1px solid {{ t.border }};display:flex;align-items:center;justify-content:center;cursor:pointer">
         <i class="ph ph-books" style="font-size:16px;color:{{ t.t2 }}"></i>
       </span>
       <div style="flex:1;min-width:0;display:flex;align-items:center;gap:7px;background:{{ t.bar }};border:1px solid {{ t.border }};border-radius:10px;padding:7px 11px">
@@ -430,6 +430,7 @@
       <div style="width:40px;height:5px;border-radius:3px;background:{{ t.bStrong }};margin:0 auto 14px"></div>
       <div style="display:flex;align-items:center;margin-bottom:14px"><div style="font:700 16px system-ui;color:{{ t.text }}">Settings</div><span onClick="{{ closeSettings }}" style="margin-left:auto;color:{{ t.accent }};font:600 13px system-ui;cursor:pointer">Done</span></div>
       <div style="display:flex;align-items:center;gap:9px;padding:7px 0"><span style="font:500 14px system-ui;color:{{ t.text }}">Appearance</span><span style="margin-left:auto;font:500 12.5px system-ui;color:{{ t.mut }}">{{ themeGlyph }}</span><span onClick="{{ flipDark }}" style="width:32px;height:18px;border-radius:20px;background:{{ appearTrack }};position:relative;flex:none;transition:background .2s;cursor:pointer"><span style="position:absolute;top:2px;left:{{ appearKnob }};width:14px;height:14px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25);transition:left .2s"></span></span></div>
+      <div onClick="{{ openLayersFromSettings }}" style="display:flex;align-items:center;gap:9px;padding:11px 0 0;margin-top:4px;border-top:1px solid {{ t.border }};cursor:pointer"><span style="font:500 14px system-ui;color:{{ t.text }}">Reading layers</span><span style="margin-left:auto;color:{{ t.faint }};font-size:15px">›</span></div>
     </div>
   </sc-if>
 
@@ -2034,6 +2035,8 @@ class Component extends DCLogic {
       L, tw:{hi:sw(L.hi),en:sw(L.en),ch:sw(L.ch),ln:sw(L.ln),nw:sw(L.nw)}, appearTrack:sw(dark).track, appearKnob:sw(dark).knob,
       togHi:()=>this.tog('hi'),togEn:()=>this.tog('en'),togCh:()=>this.tog('ch'),togLn:()=>this.tog('ln'),togNw:()=>this.tog('nw'),
       layersOpen:S.layersOpen, openLayers:()=>this.setState({layersOpen:true}), closeLayers:()=>this.setState({layersOpen:false}),
+      openLibrary:()=>this.setState({tab:'structure'}),
+      openLayersFromSettings:()=>this.setState({settingsOpen:false,layersOpen:true}),
       openExploreFromLayers:()=>{ this.setState({layersOpen:false}); this.openExplore(); },
       settingsOpen:S.settingsOpen, openSettings:()=>this.setState({settingsOpen:true}), closeSettings:()=>this.setState({settingsOpen:false}),
       activeCount:Object.values(L).filter(Boolean).length,
