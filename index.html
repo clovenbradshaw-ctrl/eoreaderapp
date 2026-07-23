@@ -1315,10 +1315,14 @@ class Component extends DCLogic {
     const prep=this.prepMarks(d.analysis, true);
     if(!prep){ this._webFrameActiveIds=[]; if((this.state.webFrameActiveIds||[]).length) this.setState({webFrameActiveIds:[]}); return; }
     const SKIP={script:1,style:1,noscript:1,textarea:1};
+    // Confine marks to article prose: skip the site's own chrome (masthead, nav, footer, rails)
+    // so a real page gets entities only where the reader does — ported from eoreader4.2 eoInChrome.
+    const inChrome=el=>!!(el && el.closest && el.closest('nav,header,footer,aside,[role="navigation"],[role="banner"],[role="contentinfo"]'));
     const walker=doc.createTreeWalker(doc.body, NodeFilter.SHOW_TEXT, {
       acceptNode:node=>{
         const p=node.parentNode;
         if(!p || SKIP[(p.nodeName||'').toLowerCase()]) return NodeFilter.FILTER_REJECT;
+        if(inChrome(p)) return NodeFilter.FILTER_REJECT;
         return NodeFilter.FILTER_ACCEPT;
       }
     });
@@ -1361,6 +1365,44 @@ class Component extends DCLogic {
       +'<body><article><h1>'+esc(d.title||'')+'</h1>'
       +(d.byline?'<div class="byline">'+esc(d.byline)+'</div>':'')
       +paras+'</article></body></html>';
+  }
+  // Port of eoreader4.2 reader-render's nativePageHtml: make the page's OWN fetched HTML render
+  // like the real site inside the script-less sandboxed iframe. A modern page hides most of its
+  // look behind JavaScript, so dropping raw markup into a no-script frame paints blank boxes.
+  // Four recovery moves fix that without running a line of the page:
+  //   • sanitize    — cut <script>/<meta refresh> so the markup can't navigate or leave dead nodes.
+  //   • re-base     — drop the page's own <base> and inject <base href> = the real URL, so every
+  //                   relative stylesheet/image/font resolves against the site (not the srcdoc's
+  //                   opaque origin), plus <meta referrer=no-referrer> and a CSP that upgrades http
+  //                   assets to https (else they're blocked as mixed content on our https host).
+  //   • un-lazy     — promote each image's real URL out of its data-* attr into src/srcset, the job
+  //                   the site's lazy-loader would have done, so images actually appear.
+  //   • un-noscript — UNWRAP <noscript> rather than delete it: its contents ARE the author's own
+  //                   no-JS fallback (the plain <img> or fallback stylesheet), exactly our state.
+  nativePageHtml(rawHtml, baseUrl){
+    const text=String(rawHtml||'');
+    const escAttr=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    // Lazy-load conventions: a placeholder sits in `src` while the real image waits in a data-*
+    // attr for a script to swap in on scroll (lazysizes, jQuery.lazyload, and their variants).
+    const LAZY_SRC=['data-src','data-lazy-src','data-original'], LAZY_SRCSET=['data-srcset','data-lazy-srcset'];
+    const attrVal=(tag,name)=>{ const m=new RegExp('\\b'+name+'\\s*=\\s*("([^"]*)"|\'([^\']*)\'|([^\\s"\'>]+))','i').exec(tag); return m?(m[2]!=null?m[2]:(m[3]!=null?m[3]:m[4])):null; };
+    const setAttr=(tag,name,value)=>{ const re=new RegExp('\\b'+name+'\\s*=\\s*("[^"]*"|\'[^\']*\'|[^\\s"\'>]+)','i'); const attr=name+'="'+escAttr(value)+'"'; return re.test(tag)?tag.replace(re,attr):tag.replace(/^<([a-z0-9]+)/i,'<$1 '+attr); };
+    const revealLazyTag=tag=>{ const src=LAZY_SRC.map(a=>attrVal(tag,a)).find(v=>v!=null&&v!==''); const srcset=LAZY_SRCSET.map(a=>attrVal(tag,a)).find(v=>v!=null&&v!==''); let out=tag; if(src) out=setAttr(out,'src',src); if(srcset) out=setAttr(out,'srcset',srcset); return out; };
+    // Match a whole <img>/<source> start tag without tripping on a `>` inside a quoted attribute
+    // (a lazy placeholder src is often an inline SVG data-URI whose `>` would end a naive match).
+    const revealLazyImages=html=>html.replace(/<(?:img|source)\b(?:[^>"']|"[^"]*"|'[^']*')*>/gi, revealLazyTag);
+    let doc=text
+      .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,'')
+      .replace(/<meta[^>]+http-equiv\s*=\s*["']?refresh["']?[^>]*>/gi,'')
+      .replace(/<base\b[^>]*>/gi,'');
+    doc=revealLazyImages(doc).replace(/<\/?noscript\b[^>]*>/gi,'');
+    const head='<base href="'+escAttr(baseUrl||'')+'" target="_blank">'
+      +'<meta name="referrer" content="no-referrer">'
+      +'<meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">';
+    if(/<head[^>]*>/i.test(doc)) doc=doc.replace(/<head([^>]*)>/i,'<head$1>'+head);
+    else if(/<html[^>]*>/i.test(doc)) doc=doc.replace(/<html([^>]*)>/i,'<html$1><head>'+head+'</head>');
+    else doc=head+doc;
+    return doc;
   }
 
   bucketOf(m){ const b={Webpage:'Web & news',PDF:'Documents',Document:'Documents',Slides:'Documents',Spreadsheet:'Data & sheets',Data:'Data & sheets',Code:'Code',Image:'Media',Audio:'Media',Video:'Media',Text:'Notes'}; return b[m]||'Other'; }
@@ -1864,7 +1906,7 @@ class Component extends DCLogic {
       return nativeWrap([h('iframe',{key:'f',src:d.pdfUrl,title:d.name,style:{flex:1,minHeight:'640px',border:'none',width:'100%',background:'#525659'}})], '#525659');
     }
     if((view==='native'||view==='annotated') && d.medium==='Webpage' && d.rawHtml){
-      return nativeWrap([h('iframe',{key:'f',srcDoc:d.rawHtml,sandbox:'allow-same-origin allow-popups',title:d.title,onLoad:e=>this.onWebIframeLoad(e),style:{flex:1,minHeight:'700px',border:'none',width:'100%',background:'#fff'}})], '#fff');
+      return nativeWrap([h('iframe',{key:'f',srcDoc:this.nativePageHtml(d.rawHtml, d.url),sandbox:'allow-same-origin allow-popups',title:d.title,onLoad:e=>this.onWebIframeLoad(e),style:{flex:1,minHeight:'700px',border:'none',width:'100%',background:'#fff'}})], '#fff');
     }
     // Native+'s whole premise is painting structure onto the page's own HTML. Most fetch
     // proxies hand back pre-extracted text rather than the original markup, so when there's
