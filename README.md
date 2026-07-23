@@ -43,9 +43,9 @@ The resolver verifies schema version, snapshot hash, operator epoch, engine comp
 
 ## Mobile projection shell
 
-The primary navigation is `Source · Structure · Ask`. Source views preserve native reading modes; Structure navigates engine-discovered boundaries, kinds, parameters, transitions, and higher-order organization; Ask queries the current immutable source and selected reading context. Core interactions must not depend on hover and must remain functional from 320 CSS px upward.
+The primary navigation is `Source · Structure · Search`. Source views preserve native reading modes; Structure navigates engine-discovered boundaries, kinds, parameters, transitions, and higher-order organization; Search queries the current immutable source and selected reading context as a source-anchored QueryReading, not a chat thread. Core interactions must not depend on hover and must remain functional from 320 CSS px upward.
 
-Output organs live under `src/outputs/` and render engine projections for text, audio, tables, images, code, structure cards, outlines, connections, provenance, and Ask. Optional model-generated labels or explanations must be checked against the closed inventory of engine hypotheses and exact anchors.
+Output organs live under `src/outputs/` and render engine projections for text, audio, tables, images, code, structure cards, outlines, connections, provenance, and Search. Optional model-generated labels or explanations must be checked against the closed inventory of engine hypotheses and exact anchors; generated answers stay outside the Search feature.
 
 ## Sense organs
 
