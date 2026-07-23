@@ -1,0 +1,3 @@
+[submodule "engine/eoreader4.2"]
+	path = engine/eoreader4.2
+	url = https://github.com/clovenbradshaw-ctrl/eoreader4.2.git
