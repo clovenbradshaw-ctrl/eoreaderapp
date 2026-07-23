@@ -663,7 +663,7 @@ class Component extends DCLogic {
     const suffix=/\b(Inc|Corp|Corporation|Company|Co|LLC|Ltd|Limited|University|Institute|Foundation|Ministry|Department|Agency|Committee|Council|Bank|Labs|Systems|Technologies|Group|Holdings)\.?$/;
     const pal=['#c77dba','#5b9bd5','#6bbf8a','#e0a94c','#c0662e','#8e6fb3','#4f9a6b','#2a78d6','#b0842f','#d0472e','#3fb0a0','#a0708a'];
     const freq={}, surfaces={};
-    const add=(name, weight)=>{ name=(''+name).replace(/\s+/g,' ').replace(/[.,;:!?)]$/,'').trim(); if(!name||name.length<2||name.length>90)return; const parts=name.split(' '); if(parts.length===1 && stop.has(name))return; if(name.toUpperCase()===name && name.length>6)return; const key=name.toLowerCase(); freq[key]=(freq[key]||0)+(weight||1); if(!surfaces[key]||name.length>surfaces[key].length)surfaces[key]=name; };
+    const add=(name, weight)=>{ name=(''+name).replace(/\s+/g,' ').replace(/['’]s$/,'').replace(/['’]$/,'').replace(/[.,;:!?)]$/,'').trim(); if(!name||name.length<2||name.length>90)return; const parts=name.split(' '); if(parts.length===1 && stop.has(name))return; if(name.toUpperCase()===name && name.length>6)return; const key=name.toLowerCase(); freq[key]=(freq[key]||0)+(weight||1); if(!surfaces[key]||name.length>surfaces[key].length)surfaces[key]=name; };
     // Prose-anchored harvesting: a real named entity is embedded in running prose —
     // a sentence with lowercase context and end punctuation — whereas page chrome
     // ("Listen", "Download Embed", "Transcript Toggle", "Getty Images") surfaces only
