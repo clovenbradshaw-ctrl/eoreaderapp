@@ -77,40 +77,51 @@
     <sc-if value="{{ isReader }}" hint-placeholder-val="{{ true }}">
       <div style="position:relative;min-height:100%">{{ docEl }}</div>
     </sc-if>
-    <sc-if value="{{ isCross }}">
-    <div style="padding:16px 16px 40px;font-family:system-ui">
-      <sc-if value="{{ memEmpty }}" hint-placeholder-val="{{ true }}">
-        <div style="text-align:center;padding:48px 22px;color:{{ t.mut }}">
-          <div style="font-size:30px;margin-bottom:12px;color:{{ t.faint }}">⁂</div>
-          <div style="font:700 15px system-ui;color:{{ t.text }};margin-bottom:7px">Nothing in {{ spaceName }} yet</div>
-          <div style="font:400 13px/1.55 system-ui">Search the web or open a URL, read it, then <b style="color:{{ t.accent }}">Add to memory</b>. Everything you keep in this space gets synthesized across here.</div>
-        </div>
-      </sc-if>
-      <sc-if value="{{ memHas }}">
-      <div style="font:600 11px system-ui;color:{{ t.mut }};text-transform:uppercase;letter-spacing:.05em;margin:2px 2px 14px">{{ memCount }} sources in {{ spaceName }} · what they share</div>
-      <sc-for list="{{ crossSources }}" as="cs" hint-placeholder-count="3">
-        <div style="display:flex;align-items:center;gap:9px;background:{{ t.card }};border:1px solid {{ t.border }};border-radius:12px;padding:11px 13px;margin-bottom:8px">
-          <span style="flex:none;font:700 9px 'IBM Plex Mono',monospace;letter-spacing:.04em;color:#fff;background:{{ cs.dot }};border-radius:5px;padding:4px 6px">{{ cs.code }}</span>
-          <div style="flex:1;min-width:0"><div style="font:600 13px system-ui;color:{{ t.text }};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ cs.title }}</div><div style="font:500 11px system-ui;color:{{ t.mut }}">{{ cs.det }}</div></div>
-        </div>
-      </sc-for>
-      <sc-if value="{{ hasCross }}">
-      <div style="font:600 9px system-ui;letter-spacing:.06em;text-transform:uppercase;color:{{ t.mut }};margin:16px 2px 8px">Shared across sources</div>
-      <sc-for list="{{ crossInsights }}" as="ci" hint-placeholder-count="2">
-        <div style="background:{{ t.accentWash }};border:1px solid {{ t.accentLine }};border-radius:12px;padding:14px;margin-bottom:9px">
-          <div style="font:700 10px 'IBM Plex Mono',monospace;letter-spacing:.06em;color:{{ ci.color }};margin-bottom:8px">{{ ci.kind }}</div>
-          <div style="font:400 14.5px/1.55 'Source Serif 4',Georgia,serif;color:{{ t.text }};margin-bottom:11px">{{ ci.text }}</div>
-          <div style="display:flex;gap:6px;flex-wrap:wrap">
-            <sc-for list="{{ ci.chips }}" as="ch" hint-placeholder-count="2">
-              <span style="display:flex;align-items:center;gap:6px;background:{{ t.card }};border:1px solid {{ t.border }};border-radius:20px;padding:5px 10px;font:600 11.5px system-ui;color:{{ t.t2 }}"><span style="width:8px;height:8px;border-radius:3px;background:{{ ch.c }}"></span>{{ ch.t }}</span>
-            </sc-for>
+    <sc-if value="{{ isSearch }}">
+    <div style="padding:14px 14px 40px;font-family:system-ui">
+      <div style="display:flex;align-items:center;gap:8px;background:{{ t.card }};border:1px solid {{ t.border }};border-radius:14px;padding:9px 10px;margin-bottom:10px">
+        <input defaultValue="{{ queryText }}" onInput="{{ onQueryInput }}" onKeyDown="{{ onQueryKey }}" placeholder="Search this reading…" style="flex:1;min-width:0;background:transparent;border:0;outline:none;font:700 14px system-ui;color:{{ t.text }}">
+        <span onClick="{{ clearQuery }}" style="font:800 14px system-ui;color:{{ t.mut }};cursor:pointer">×</span>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;background:{{ t.bar }};border:1px solid {{ t.border }};border-radius:12px;padding:10px 12px;margin-bottom:10px">
+        <div style="font:800 10px 'IBM Plex Mono',monospace;letter-spacing:.06em;color:{{ coverageColor }};text-transform:uppercase">{{ coverageLabel }}</div>
+        <div style="font:700 11px system-ui;color:{{ t.mut }}">{{ searchSources }} sources · {{ searchPassages }} passages · {{ searchContrasts }} contrasts</div>
+      </div>
+      <div style="display:flex;gap:6px;overflow-x:auto;margin-bottom:8px">
+        <sc-for list="{{ projectionTabs }}" as="pt" hint-placeholder-count="3">
+          <span onClick="{{ pt.pick }}" style="flex:none;background:{{ pt.bg }};color:{{ pt.fg }};border:1px solid {{ pt.bd }};border-radius:18px;padding:6px 10px;font:800 11px system-ui;cursor:pointer">{{ pt.label }}</span>
+        </sc-for>
+      </div>
+      <div style="display:flex;gap:6px;overflow-x:auto;margin-bottom:14px">
+        <sc-for list="{{ searchScopeChips }}" as="sc" hint-placeholder-count="3">
+          <span onClick="{{ sc.pick }}" style="flex:none;background:{{ sc.bg }};color:{{ sc.fg }};border:1px solid {{ sc.bd }};border-radius:18px;padding:6px 10px;font:800 11px system-ui;cursor:pointer"><span style="display:inline-block;width:7px;height:7px;border-radius:3px;background:{{ sc.dot }};margin-right:5px"></span>{{ sc.label }}</span>
+        </sc-for>
+      </div>
+
+      <sc-if value="{{ showEvidence }}" hint-placeholder-val="{{ true }}">
+        <div style="font:800 9px system-ui;letter-spacing:.08em;color:{{ t.mut }};text-transform:uppercase;margin:0 2px 8px">Direct evidence</div>
+        <sc-for list="{{ coreEvidence }}" as="ev" hint-placeholder-count="3">
+          <div style="background:{{ t.card }};border:1px solid {{ t.border }};border-left:3px solid {{ ev.color }};border-radius:12px;padding:12px 13px;margin-bottom:9px">
+            <div style="font:400 14.5px/1.55 'Source Serif 4',Georgia,serif;color:{{ t.text }}">{{ ev.text }}</div>
+            <div style="display:flex;align-items:center;gap:6px;margin-top:9px;font:700 10px 'IBM Plex Mono',monospace;color:{{ t.mut }}"><span>{{ ev.source }}</span><span>·</span><span>{{ ev.anchor }}</span></div>
+            <div style="display:flex;gap:7px;margin-top:10px"><span onClick="{{ ev.open }}" style="font:800 11px system-ui;color:{{ t.accent }};cursor:pointer">Open source</span><span onClick="{{ ev.why }}" style="font:800 11px system-ui;color:{{ t.accent }};cursor:pointer">Why here</span></div>
           </div>
-        </div>
-      </sc-for>
+        </sc-for>
       </sc-if>
-      <sc-if value="{{ noCross }}">
-        <div style="background:{{ t.bar }};border:1px solid {{ t.border }};border-radius:12px;padding:14px;font:400 13px/1.5 system-ui;color:{{ t.mut }};margin-top:6px">No entities are shared across these sources yet. Add sources that overlap — the same people, places, or documents — and the connections surface here.</div>
+
+      <sc-if value="{{ showStructure }}">
+        <div style="font:800 9px system-ui;letter-spacing:.08em;color:{{ t.mut }};text-transform:uppercase;margin:12px 2px 8px">Structural context</div>
+        <sc-for list="{{ contextEvidence }}" as="ev" hint-placeholder-count="2">
+          <div style="background:{{ t.bar }};border:1px solid {{ t.border }};border-radius:12px;padding:12px 13px;margin-bottom:8px">
+            <div style="font:700 13px system-ui;color:{{ t.text }}">{{ ev.label }}</div>
+            <div style="font:600 11px 'IBM Plex Mono',monospace;color:{{ t.mut }};margin-top:4px">{{ ev.anchor }}</div>
+          </div>
+        </sc-for>
       </sc-if>
+
+      <sc-if value="{{ hasGaps }}">
+        <div style="font:800 9px system-ui;letter-spacing:.08em;color:{{ t.mut }};text-transform:uppercase;margin:12px 2px 8px">Gap</div>
+        <div style="background:{{ t.bar }};border:1px dashed {{ t.border }};border-radius:12px;padding:12px 13px;font:600 13px/1.5 system-ui;color:{{ t.mut }}">{{ gapText }}</div>
       </sc-if>
     </div>
     </sc-if>
@@ -231,7 +242,7 @@
   <div style="position:absolute;left:14px;right:14px;bottom:12px;z-index:25;background:{{ t.sheet }};border:1px solid {{ t.border }};box-shadow:0 10px 30px rgba(0,0,0,.16);border-radius:22px;padding:6px;display:flex;gap:6px;font-family:system-ui">
     <button onClick="{{ setReader }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;background:{{ tabRB }};color:{{ tabRC }};font:800 12px system-ui;cursor:pointer">Source</button>
     <button onClick="{{ setStruct }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;background:{{ tabSB }};color:{{ tabSC }};font:800 12px system-ui;cursor:pointer">Structure</button>
-    <button onClick="{{ setCross }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;background:{{ tabCB }};color:{{ tabCC }};font:800 12px system-ui;cursor:pointer">Ask</button>
+    <button onClick="{{ setCross }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;background:{{ tabCB }};color:{{ tabCC }};font:800 12px system-ui;cursor:pointer">Search</button>
   </div>
 
   <sc-if value="{{ backdrop }}">
@@ -474,6 +485,7 @@ class Component extends DCLogic {
     this.state = {
       dark:(props.theme||'Light')==='Dark',
       tab:'reader',
+      searchProjection:'evidence', searchScope:'all', queryText:'', queryReading:null, queryWhy:null,
       view: vmap[props.view]||'reader',
       layersOpen:false, settingsOpen:false, importOpen:false, urlVal:'', engineLive:false,
       layers:{hi:true,en:true,ch:true,ln:true,nw:props.candidates!==false},
@@ -691,6 +703,7 @@ class Component extends DCLogic {
   setDoc(d){
     const det = d.mode==='text' ? (d.medium+' · '+this.nf(d.analysis.words)+' words') : (d.medium+' · imported');
     this.setState({doc:d, importOpen:false, searchResults:[], searchMsg:'', sel:null, level:'prompt', chap:0, tab:'reader',
+      searchProjection:'evidence', searchScope:'all', queryText:'', queryReading:null, queryWhy:null,
       view:'native',
       src:{label:d.name||d.title, det, dot:this.medColor(d.medium)}});
   }
@@ -999,6 +1012,42 @@ class Component extends DCLogic {
     return view==='annotated' ? nativeWrap([h('div',{style:pad}, body)]) : h('div',{style:pad}, body);
   }
 
+
+  normalizeQuery(q){ return (q||'').toLowerCase().replace(/[^\p{L}\p{N}\s-]/gu,' ').replace(/\s+/g,' ').trim(); }
+  queryRoles(q){
+    const n=this.normalizeQuery(q), roles=[];
+    if(n) roles.push('subject');
+    if(/\bwhen|year|date|time|where|location|coordinate\b/.test(n)) roles.push('time-coordinate-location');
+    if(/\bcompare|versus|vs|different|disagree|contradict|contrast\b/.test(n)) roles.push('comparison-or-disagreement');
+    if(/\bwhy|cause|consequence|because|lead|transition|accelerat|change|return\b/.test(n)) roles.push('cause-consequence-transition');
+    if(/\blist|which|what are|all\b/.test(n)) roles.push('singular-or-list');
+    if(/\boverview|map|structure|section|movement|regime\b/.test(n)) roles.push('overview-structure');
+    if(/\bof|for|from|to|relationship|transform|return\b/.test(n)) roles.push('relationship');
+    return [...new Set(roles.length?roles:['subject','relationship'])];
+  }
+  evidenceChannels(q){
+    const n=this.normalizeQuery(q), ch=['exact','referential','claims','structural'];
+    if(/\bwhy|cause|because|consequence|lead|transition|change|return\b/.test(n)) ch.push('relational','transitional');
+    if(/\bcompare|versus|vs|disagree|contradict|contrast\b/.test(n)) ch.push('cross-source');
+    ch.push('negative');
+    return [...new Set(ch)];
+  }
+  buildLocalQueryReading(q, scopeOverride){
+    const query=(q||'').trim(), norm=this.normalizeQuery(query), terms=norm.split(' ').filter(x=>x.length>2).slice(0,8);
+    const sources=(this.mem().length?this.mem():[this.state.doc].filter(Boolean)).filter(Boolean);
+    const scope=scopeOverride || this.state.searchScope || 'all';
+    const scoped=scope&&scope!=='all'?sources.filter(s=>String(s.id||s.title||s.name)===scope):sources;
+    const hits=[];
+    scoped.forEach((src,si)=>{ const a=src.analysis||{}, paras=a.paras||[]; paras.forEach((p,pi)=>{ const low=(p||'').toLowerCase(); const score=terms.reduce((acc,t)=>acc+(low.includes(t)?1:0),0); if(score>0) hits.push({schema:'EvidenceHit@1',id:(src.id||'doc')+':p:'+pi,channel:low.includes(norm)?'exact':'referential',score,source_id:src.id||src.name||'current',source_title:src.title||src.name||'Current source',anchor:{kind:'text-passage',paragraphIndex:pi,label:'¶ '+(pi+1)},text:p}); }); });
+      hits.sort((a,b)=>b.score-a.score||String(a.id).localeCompare(String(b.id)));
+    const core=hits.slice(0,5), context=core.slice(0,3).map(h=>({schema:'EvidenceHit@1',id:h.id+':context',channel:'structural',score:h.score,source_id:h.source_id,source_title:h.source_title,anchor:h.anchor,text:'Containing passage around '+h.anchor.label}));
+    const required=this.queryRoles(query), unfilled=required.filter(r=> r==='comparison-or-disagreement'?core.length<2 : (r==='time-coordinate-location'?!/\d{2,4}|\d+:\d+/.test(core.map(h=>h.text).join(' ')):core.length===0));
+    const coverage=core.length===0?'absent':(unfilled.length?'partial':'sufficient');
+    return {schema:'QueryReading@1',query,semantic_head:'app-local:'+this.state._sk,normalized_scope:{space:this.state.spaceId,source:scope},question_shape:{required_roles:required,channels:this.evidenceChannels(query),normalized_query:norm},core_evidence:core,context_evidence:context,counterevidence:[],additional_matches:hits.slice(5),fold_path:core.map(h=>({anchor:h.anchor,channel:h.channel,reason:'term overlap; pure local read'})),coverage,required_roles:required,unfilled_roles:unfilled,searched_scope:{sources:scoped.map(s=>s.title||s.name),channels:this.evidenceChannels(query)},alternative_fields:[],projection_options:['passages','referents','claims','contrast','structure'],provenance:{algorithm:'app-query-reading@0.1',generated_by:'local deterministic search surface'},query_reading_hash:'local:'+btoa(unescape(encodeURIComponent([norm,this.state.spaceId,scope,core.map(h=>h.id).join('|')].join('::')))).slice(0,24)};
+  }
+  runLocalSearch(q){ this.setState({queryText:q, queryReading:this.buildLocalQueryReading(q)}); }
+  openEvidence(ev){ this.setState({tab:'reader'}); }
+  whyEvidence(ev){ this.setState({queryWhy:ev}); alert('Why here: '+ev.channel+' channel · score '+ev.score+' · '+ev.source_title+' '+ev.anchor.label); }
   renderVals(){
     const S=this.state, dark=S.dark, L=S.layers, t=this.theme(), d=S.doc;
     const memIn = d ? this.inMemory(d) : false;
@@ -1055,21 +1104,36 @@ class Component extends DCLogic {
 
     const proxyHost=(S.proxy&&S.proxy.on)?('proxy · '+this.hostOf((S.proxy.fetch||'').replace('{url}','').replace('{urlenc}',''))):'direct (no proxy)';
 
+    const queryText=S.queryText || S.searchQ || '';
+    const reading=S.queryReading || this.buildLocalQueryReading(queryText || (d&&d.title) || '');
+    const projection=S.searchProjection || 'evidence';
+    const coverageColor={sufficient:'#2f7a55',partial:'#b0842f',ambiguous:'#b0842f',absent:'#c0392b'}[reading.coverage]||t.mut;
+    const sourceKeys=(memList.length?memList:[d].filter(Boolean)).map((m,i)=>({id:m.id||m.title||m.name||('source'+i),label:(m.title||m.name||'Source').slice(0,18),dot:this.medColor(m.medium)}));
+    const scopeChips=[{id:'all',label:'All',dot:t.accent},...sourceKeys].map(x=>{const on=(S.searchScope||'all')===x.id;return{label:x.label,dot:x.dot,bg:on?t.accent:t.bar,fg:on?'#fff':t.t2,bd:on?t.accent:t.border,pick:()=>this.setState({searchScope:x.id,queryReading:this.buildLocalQueryReading(queryText,x.id)})};});
+    const projectionTabs=['Evidence','Structure','All'].map(x=>{ const id=x.toLowerCase(); const on=projection===id; return {label:x,bg:on?t.accent:t.bar,fg:on?'#fff':t.t2,bd:on?t.accent:t.border,pick:()=>this.setState({searchProjection:id})}; });
+    const toCard=ev=>({text:ev.text&&ev.text.length>220?ev.text.slice(0,220)+'…':ev.text,source:ev.source_title,anchor:ev.anchor&&ev.anchor.label,color:ev.channel==='exact'?t.accent:(ev.channel==='structural'?'#2a78d6':'#8e6fb3'),open:()=>this.openEvidence(ev),why:()=>this.whyEvidence(ev)});
+    const coreEvidence=(reading.core_evidence||[]).map(toCard);
+    const contextEvidence=(reading.context_evidence||[]).map(ev=>({label:ev.text,anchor:(ev.source_title||'Source')+' · '+(ev.anchor&&ev.anchor.label||'structure')}));
+    const gaps=reading.unfilled_roles||[];
+
     return {
       isStructure:S.tab==='structure', notStructure:S.tab!=='structure',
       setStruct:()=>this.setState({tab:'structure'}),
       tabSB:S.tab==='structure'?activeBg:'transparent', tabSC:S.tab==='structure'?activeC:t.mut,
-      sheetDisp:(S.tab==='structure'||S.tab==='ask')?'none':'flex',
+      sheetDisp:(S.tab==='structure'||S.tab==='search')?'none':'flex',
       structSources, corpusStats, sharedEnts, hasShared:sharedEnts.length>0, mediumFilters, crossInsights, crossSources,
       hasCross:crossInsights.length>0, noCross:crossInsights.length===0,
+      queryText, onQueryInput:(e)=>this.setState({queryText:e.target.value}), onQueryKey:(e)=>{ if(e.key==='Enter') this.runLocalSearch(e.target.value); }, clearQuery:()=>this.runLocalSearch(''),
+      coverageLabel:String(reading.coverage||'absent'), coverageColor, searchSources:(reading.searched_scope.sources||[]).length, searchPassages:(reading.core_evidence||[]).length+(reading.context_evidence||[]).length, searchContrasts:(reading.counterevidence||[]).length,
+      projectionTabs, searchScopeChips:scopeChips, showEvidence:projection==='evidence'||projection==='all', showStructure:projection==='structure'||projection==='all', coreEvidence, contextEvidence, hasGaps:gaps.length>0, gapText:gaps.length?('Missing evidence roles: '+gaps.join(', ')):'',
       activeSrcCount:act.length, totalSrcCount:raw.length,
       memCount:memList.length, memEmpty:memList.length===0, memHas:memList.length>0, spaceName:sp?sp.name:'',
       t, themeGlyph:dark?'☾':'☀', flipDark:()=>this.setState({dark:!dark}),
       memColor:memIn?'#2f7a55':t.accent, memBg:memIn?'rgba(47,122,85,.10)':t.accentSoft, memBorder:memIn?'#2f7a55':t.accentLine, memGlyph:memIn?'✓':'+', toggleMemBtn:()=>{ if(d) this.toggleMemory(d); },
-      isReader:S.tab==='reader', isCross:S.tab==='ask',
-      setReader:()=>this.setState({tab:'reader'}), setCross:()=>this.setState({tab:'ask'}),
+      isReader:S.tab==='reader', isSearch:S.tab==='search',
+      setReader:()=>this.setState({tab:'reader'}), setCross:()=>this.setState({tab:'search'}),
       tabRB:S.tab==='reader'?activeBg:'transparent', tabRC:S.tab==='reader'?activeC:t.mut,
-      tabCB:S.tab==='ask'?activeBg:'transparent', tabCC:S.tab==='ask'?activeC:t.mut,
+      tabCB:S.tab==='search'?activeBg:'transparent', tabCC:S.tab==='search'?activeC:t.mut,
       view:S.view, viewLabel:vlabel[S.view], progW:((vi+1)/3*100).toFixed(0)+'%',
       dot0:vi>=0?dotOn:dotOff, dot1:vi>=1?dotOn:dotOff, dot2:vi>=2?dotOn:dotOff,
       setV0:()=>this.setState({view:'native'}), setV1:()=>this.setState({view:'annotated'}), setV2:()=>this.setState({view:'reader'}),

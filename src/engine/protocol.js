@@ -26,3 +26,36 @@ export function validateProgress(event) {
   }
   return event;
 }
+
+
+export const QUERY_ALGORITHM_VERSION = 'app-query-reading@0.1';
+
+export const EVIDENCE_CHANNELS = Object.freeze([
+  'exact', 'referential', 'claims', 'relational', 'structural', 'transitional', 'cross-source', 'negative'
+]);
+
+export const QUESTION_ROLES = Object.freeze([
+  'subject', 'relationship', 'time-coordinate-location', 'singular-or-list',
+  'comparison-or-disagreement', 'cause-consequence-transition', 'overview-structure'
+]);
+
+export function assertQueryRequest(request) {
+  if (request?.schema !== 'QueryRequest@1') throw new TypeError('Unsupported query request schema');
+  if (!request.query || typeof request.query !== 'string') throw new TypeError('QueryRequest requires a query string');
+  if (!request.semanticHead) throw new TypeError('QueryRequest requires a pinned semantic head');
+  return Object.freeze({
+    scope: { sources: [], filters: [], ...(request.scope || {}) },
+    priors: request.priors || null,
+    frame: request.frame || 'default',
+    lens: request.lens || 'neutral',
+    ...request,
+  });
+}
+
+export function validateQueryReading(reading) {
+  if (reading?.schema !== 'QueryReading@1') throw new TypeError('Unsupported query reading schema');
+  for (const key of ['query', 'semantic_head', 'normalized_scope', 'question_shape', 'core_evidence', 'coverage', 'required_roles', 'unfilled_roles', 'searched_scope', 'query_reading_hash']) {
+    if (reading[key] == null) throw new TypeError(`QueryReading missing ${key}`);
+  }
+  return reading;
+}
