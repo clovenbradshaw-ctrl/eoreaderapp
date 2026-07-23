@@ -1905,16 +1905,19 @@ class Component extends DCLogic {
     if((view==='native'||view==='annotated') && d.medium==='PDF' && d.pdfUrl){
       return nativeWrap([h('iframe',{key:'f',src:d.pdfUrl,title:d.name,style:{flex:1,minHeight:'640px',border:'none',width:'100%',background:'#525659'}})], '#525659');
     }
-    if((view==='native'||view==='annotated') && d.medium==='Webpage' && d.rawHtml){
-      return nativeWrap([h('iframe',{key:'f',srcDoc:this.nativePageHtml(d.rawHtml, d.url),sandbox:'allow-same-origin allow-popups',title:d.title,onLoad:e=>this.onWebIframeLoad(e),style:{flex:1,minHeight:'700px',border:'none',width:'100%',background:'#fff'}})], '#fff');
-    }
-    // Native+'s whole premise is painting structure onto the page's own HTML. Most fetch
-    // proxies hand back pre-extracted text rather than the original markup, so when there's
-    // no rawHtml to preserve, reconstruct a plain document from that text and run it through
-    // the same iframe + entity-marking pipeline — real HTML to inject into, not a JSX stand-in.
-    if(view==='annotated' && d.medium==='Webpage' && !d.rawHtml && a && a.paras && a.paras.length){
+    // Native + (annotated): the clean, reader-shaped article rebuilt as real HTML, with EO
+    // structure painted onto it in the iframe. A live site stripped of its own JavaScript and
+    // (in a sandboxed frame) most of its CSS renders as a mess of nav junk and broken images —
+    // ugly and unreadable — so Native+ injects structure into a clean reconstruction instead of
+    // the raw page. The untouched real page is still one dot away, under plain "Native" below.
+    if(view==='annotated' && d.medium==='Webpage' && a && a.paras && a.paras.length){
       const synHtml=this.buildSyntheticWebHtml(d);
       return nativeWrap([h('iframe',{key:'f',srcDoc:synHtml,sandbox:'allow-same-origin allow-popups',title:d.title,onLoad:e=>this.onWebIframeLoad(e),style:{flex:1,minHeight:'700px',border:'none',width:'100%',background:'#fff'}})], '#fff');
+    }
+    // Native: the page's own markup rendered like the real site (nativePageHtml recovery). No EO
+    // marks — this is the file as-fetched. Native+ with no extractable prose also lands here.
+    if((view==='native'||view==='annotated') && d.medium==='Webpage' && d.rawHtml){
+      return nativeWrap([h('iframe',{key:'f',srcDoc:this.nativePageHtml(d.rawHtml, d.url),sandbox:'allow-same-origin allow-popups',title:d.title,onLoad:e=>this.onWebIframeLoad(e),style:{flex:1,minHeight:'700px',border:'none',width:'100%',background:'#fff'}})], '#fff');
     }
     if(d.medium==='Spreadsheet' && d.rawText){ const csvEl=this.buildCsvSource(d,t,h,pad); if(csvEl) return csvEl; }
     if((view==='native'||view==='annotated') && (d.medium==='Text'||d.medium==='Code'||d.medium==='Data') && d.rawText){
