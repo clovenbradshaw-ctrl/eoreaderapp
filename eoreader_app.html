@@ -19,12 +19,24 @@
   body{margin:0;background:#dcd9d2;-webkit-font-smoothing:antialiased}
   a{color:inherit;text-decoration:none}a:hover{text-decoration:underline}
   ::-webkit-scrollbar{width:0;height:0}
+  .eo-shell{min-height:100svh!important;padding:8px 0 0!important;align-items:flex-start}
+  .eo-device{width:100%!important;min-height:100svh!important;padding:0!important;border-radius:0!important;box-shadow:none!important;background:transparent!important}
+  .eo-screen{width:100%!important;height:100svh!important;min-height:100svh!important;border-radius:0!important}
+  .eo-info-sheet{max-height:82svh!important}
+  @media (min-width: 520px){
+    .eo-shell{padding:14px 16px 28px!important}
+    .eo-device{width:min(402px,100%)!important;min-height:0!important;padding:6px!important;border-radius:54px!important;background:#0c0d10!important;box-shadow:0 22px 60px rgba(0,0,0,.4),inset 0 0 0 2px #24262c!important}
+    .eo-screen{width:100%!important;height:min(844px,calc(100svh - 40px))!important;min-height:680px!important;border-radius:48px!important}
+  }
+  @media (min-width: 900px){
+    .eo-shell{padding-top:18px!important}
+  }
 </style>
 </helmet>
 
-<div style="min-height:100vh;background:{{ t.bg }};display:flex;align-items:flex-start;justify-content:center;padding:26px 16px 44px;font-family:system-ui,-apple-system,sans-serif;transition:background .3s">
-<div style="width:402px;padding:6px;background:#0c0d10;border-radius:54px;box-shadow:0 22px 60px rgba(0,0,0,.4),inset 0 0 0 2px #24262c">
-<div style="position:relative;width:390px;height:844px;border-radius:48px;overflow:hidden;background:linear-gradient(180deg,{{ t.accentTop }} 0%,{{ t.screen }} 270px);display:flex;flex-direction:column;transition:background .35s">
+<div class="eo-shell" style="min-height:100vh;background:{{ t.bg }};display:flex;align-items:flex-start;justify-content:center;padding:26px 16px 44px;font-family:system-ui,-apple-system,sans-serif;transition:background .3s">
+<div class="eo-device" style="width:402px;padding:6px;background:#0c0d10;border-radius:54px;box-shadow:0 22px 60px rgba(0,0,0,.4),inset 0 0 0 2px #24262c">
+<div class="eo-screen" style="position:relative;width:390px;height:844px;border-radius:48px;overflow:hidden;background:linear-gradient(180deg,{{ t.accentTop }} 0%,{{ t.screen }} 270px);display:flex;flex-direction:column;transition:background .35s">
 
   <div style="position:relative;height:52px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 27px;color:{{ t.text }}">
     <span style="font:600 15px system-ui">9:41</span>
@@ -222,7 +234,7 @@
     <div onClick="{{ toHalf }}" style="position:absolute;inset:0;background:rgba(8,10,20,.34);z-index:20"></div>
   </sc-if>
 
-  <div style="position:absolute;left:0;right:0;bottom:0;height:{{ sheetH }};background:{{ t.sheet }};border-top:1px solid {{ t.border }};border-radius:22px 22px 0 0;box-shadow:0 -12px 36px rgba(0,0,0,.18);z-index:21;transition:height .34s cubic-bezier(.4,.95,.35,1);display:{{ sheetDisp }};flex-direction:column;overflow:hidden">
+  <div class="eo-info-sheet" style="position:absolute;left:0;right:0;bottom:0;height:{{ sheetH }};background:{{ t.sheet }};border-top:1px solid {{ t.border }};border-radius:22px 22px 0 0;box-shadow:0 -12px 36px rgba(0,0,0,.18);z-index:21;transition:height .34s cubic-bezier(.4,.95,.35,1);display:{{ sheetDisp }};flex-direction:column;overflow:hidden">
     <div onClick="{{ expand }}" style="flex:none;padding:9px 0 7px;cursor:pointer;display:flex;justify-content:center">
       <span style="width:40px;height:5px;border-radius:3px;background:{{ t.bStrong }}"></span>
     </div>
@@ -927,7 +939,7 @@ class Component extends DCLogic {
     const sw=(on)=>({track:on?t.accent:(dark?'#33406b':'#d9d4c8'), knob:on?'17px':'2px'});
     const sel=S.sel?this.entMap()[S.sel]:null, lvl=S.level;
     const linkSel=S.linkSel||null, lp=S.linkPeek||{status:'idle'};
-    const sheetH = (!sel && !linkSel) ? '56px' : (linkSel ? (lp.status==='done'?'560px':'400px') : (lvl==='peek'?'120px':(lvl==='half'?'396px':'664px')));
+    const sheetH = (!sel && !linkSel) ? '56px' : (linkSel ? (lp.status==='done'?'520px':'360px') : (lvl==='peek'?'112px':(lvl==='half'?'340px':'620px')));
     const a=(d&&d.analysis)?d.analysis:{hi:[],list:[],chapters:0,links:0};
     const order=['native','annotated','reader'], vi=order.indexOf(S.view);
     const dotOn=t.accent, dotOff=t.bStrong;
