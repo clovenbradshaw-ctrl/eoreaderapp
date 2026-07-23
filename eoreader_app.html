@@ -475,11 +475,26 @@
       <div style="display:flex;align-items:center;margin-bottom:3px"><div style="font:700 16px system-ui;color:{{ t.text }}">Search &amp; open</div><span style="margin-left:9px;font:600 11px system-ui;color:{{ t.accent }}">→ {{ spaceName }}</span><span onClick="{{ closeImport }}" style="margin-left:auto;color:{{ t.accent }};font:600 13px system-ui;cursor:pointer">Cancel</span></div>
       <div style="display:flex;align-items:center;gap:6px;font:600 10.5px 'IBM Plex Mono',monospace;color:{{ engineColor }};margin-bottom:13px"><span style="width:6px;height:6px;border-radius:50%;background:{{ engineColor }}"></span>{{ engineText }}</div>
 
-      <div style="display:flex;gap:8px;margin-bottom:10px">
-        <input type="text" defaultValue="{{ searchQ }}" onInput="{{ onSearch }}" onKeyDown="{{ onSearchKey }}" placeholder="Search the web…" style="flex:1;min-width:0;background:{{ t.bar }};border:1px solid {{ t.border }};border-radius:10px;padding:11px 12px;font:500 13px system-ui;color:{{ t.text }};outline:none">
+      <div style="font:600 9px system-ui;letter-spacing:.05em;text-transform:uppercase;color:{{ t.mut }};margin-bottom:7px">Library</div>
+      <div style="display:flex;gap:6px;overflow-x:auto;margin-bottom:10px">
+        <sc-for list="{{ shelfChips }}" as="sh" hint-placeholder-count="4">
+          <span onClick="{{ sh.pick }}" style="flex:none;display:flex;align-items:center;gap:5px;background:{{ sh.bg }};border:1px solid {{ sh.bd }};border-radius:16px;padding:6px 11px;font:700 11.5px system-ui;color:{{ sh.fg }};cursor:pointer"><i class="{{ sh.icon }}" style="font-size:13px"></i>{{ sh.label }}</span>
+        </sc-for>
+      </div>
+
+      <div style="display:flex;gap:8px;margin-bottom:9px">
+        <input type="text" key="{{ searchBoxKey }}" defaultValue="{{ searchQ }}" onInput="{{ onSearch }}" onKeyDown="{{ onSearchKey }}" placeholder="{{ searchPlaceholder }}" style="flex:1;min-width:0;background:{{ t.bar }};border:1px solid {{ t.border }};border-radius:10px;padding:11px 12px;font:500 13px system-ui;color:{{ t.text }};outline:none">
         <button onClick="{{ doSearch }}" style="flex:none;border:none;border-radius:10px;background:{{ t.accent }};color:#fff;font:600 13px system-ui;padding:0 16px;cursor:pointer">Search</button>
       </div>
-      <sc-if value="{{ searching }}"><div style="font:500 12.5px system-ui;color:{{ t.mut }};margin-bottom:10px">Searching the web…</div></sc-if>
+      <sc-if value="{{ hasExamples }}">
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
+          <sc-for list="{{ shelfExamples }}" as="ex" hint-placeholder-count="3">
+            <span onClick="{{ ex.pick }}" style="flex:none;font:600 11px system-ui;color:{{ t.accent }};background:{{ t.accentSoft }};border:1px solid {{ t.accentLine }};border-radius:14px;padding:4px 9px;cursor:pointer">{{ ex.label }}</span>
+          </sc-for>
+        </div>
+      </sc-if>
+      <sc-if value="{{ searching }}"><div style="font:500 12.5px system-ui;color:{{ t.mut }};margin-bottom:10px">{{ searchingLabel }}</div></sc-if>
+      <sc-if value="{{ isMediaShelf }}">{{ mediaGrid }}</sc-if>
       <sc-if value="{{ hasResults }}">
         <div style="max-height:230px;overflow-y:auto;margin-bottom:12px">
           <sc-for list="{{ searchResults }}" as="r" hint-placeholder-count="3">
@@ -487,6 +502,7 @@
               <div style="font:600 13px system-ui;color:{{ t.text }};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ r.title }}</div>
               <div style="font:600 10.5px 'IBM Plex Mono',monospace;color:{{ t.accent }};margin:2px 0 4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ r.host }}</div>
               <div style="font:400 12px/1.4 system-ui;color:{{ t.mut }}">{{ r.snippet }}</div>
+              <div style="font:700 10px system-ui;color:{{ t.accent }};margin-top:6px">{{ r.action }}</div>
             </div>
           </sc-for>
         </div>
@@ -535,6 +551,209 @@
 </div>
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:440,&quot;height&quot;:940},&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Light&quot;,&quot;Dark&quot;],&quot;default&quot;:&quot;Light&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Appearance&quot;},&quot;view&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Native&quot;,&quot;Native +&quot;,&quot;Reader&quot;],&quot;default&quot;:&quot;Reader&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Reader&quot;},&quot;candidates&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Reader&quot;}}">
+// ── book chapter detection (ported from eoreader4.2 reader-render.js) ──────────────────────────
+// A chapter is discovered by the FORM of a short line that RECURS and tiles the text — roman
+// numerals, "Chapter N", ALL-CAPS, a markdown # — never by a keyword list. This is what gives a
+// Gutenberg book (or any long, hard-wrapped text) a real table of contents instead of the crude
+// "standalone all-caps line" guess the general-purpose reader uses for arbitrary web pages.
+const BOOK_SECTION_WORD = /^(chapter|letter|part|book|canto|section|volume|stave|act|scene|epilogue|prologue|appendix|appendices)$/i;
+const BOOK_CANON_HEAD = /^(abstract|introduction|background|related work|prior work|methods?|methodology|materials and methods|experiments?|results|evaluation|analysis|discussion|conclusions?|future work|references|bibliography|acknowledge?ments?|appendix|appendices|notes|see also|external links|further reading|summary|overview|preface|foreword|epilogue|prologue|glossary|index|contents)(\s+[a-z0-9.]{1,12})?[.:]?$/i;
+const BOOK_BACKMATTER_HEAD = /^(references|bibliography|acknowledge?ments?|appendix|appendices|notes|see also|external links|further reading|glossary|index)(\s+[a-z0-9.]{1,12})?[.:]?$/i;
+const bookNorm = (s) => String(s || '').replace(/\s+/g, ' ').trim();
+const bookRoman = (r) => {
+  if (!/^[ivxlcdm]+$/i.test(r)) return null;
+  const m = { I: 1, V: 5, X: 10, L: 50, C: 100, D: 500, M: 1000 };
+  let n = 0; r = String(r).toUpperCase();
+  for (let i = 0; i < r.length; i++) { const a = m[r[i]], b = m[r[i + 1]]; if (b && a < b) { n += b - a; i++; } else n += a; }
+  return n;
+};
+const bookSentencey = (t) => /[.!?]["')”]?$/.test(t) && (t.match(/\b[a-z]{2,}\b/g) || []).length >= 2;
+const bookLineForm = (t) => {
+  t = bookNorm(t);
+  if (t.length < 1 || t.length > 100) return null;
+  const words = t.split(/\s+/);
+  if (words.length > 16) return null;
+  const md = t.match(/^(#{1,6})\s+(\S.*)$/);
+  if (md) return { fam: 'md' + md[1].length, kind: 'decl', level: md[1].length, label: md[2].replace(/\s*#+$/, '') };
+  let idx = -1, cls = null, depth = 1, val = null;
+  for (let k = 0; k < words.length; k++) {
+    const w = words[k].replace(/^[^\w#]+|[^\w]+$/g, '');
+    if (k === 0 && /^\d+(?:\.\d+)+$/.test(w) && w.split('.').every((x) => +x <= 400)) { idx = k; cls = 'D'; depth = w.split('.').length; break; }
+    if (/^\d{1,3}$/.test(w)) { idx = k; cls = 'N'; val = +w; break; }
+    const r = bookRoman(w); if (r != null) { idx = k; cls = 'R'; val = r; break; }
+  }
+  if (idx >= 0) {
+    const before = idx > 0 ? words[idx - 1].replace(/[^A-Za-z]/g, '').toLowerCase() : '';
+    const delim = /[.):\]]$/.test(words[idx]);
+    if (delim || BOOK_SECTION_WORD.test(before) || !bookSentencey(t)) {
+      const titleWords = words.slice(idx + 1);
+      const titled = titleWords.some((w) => /[A-Za-z]{2,}/.test(w));
+      const caps = titled && !/[a-z]/.test(titleWords.join(' ')) ? 'C' : '';
+      return cls === 'D' ? { fam: 'dec', kind: 'decl', level: depth, label: t }
+        : { fam: before + '|' + cls + '@' + idx + (titled ? 'T' : '') + caps, kind: 'num', level: 1, val, label: t };
+    }
+    return null;
+  }
+  if (bookSentencey(t)) return null;
+  if (words.length > 9 || t.length > 72) return null;
+  const caps = /[A-Z]/.test(t) && !/[a-z]/.test(t);
+  const titled = words.filter((w) => /^[“"(]?[A-Z]/.test(w)).length >= Math.max(1, Math.ceil(words.length * 0.6));
+  if (caps) return { fam: 'CAPS', kind: 'shape', label: t };
+  if (titled) return { fam: 'TITLE', kind: 'shape', label: t };
+  return null;
+};
+// detectBookStructure(paras, gaps) → [{paraIndex,label,level}] — one structural pass: a numeral/
+// marker form is strongest, then a canonical section name, then blank-line spacing (the only
+// signal a plain extract with sentence-case headings carries), a bare typographic shape last.
+const detectBookStructure = (paras, gaps = []) => {
+  const N = paras.length;
+  if (N < 2) return [];
+  let minGap = Infinity, maxGap = 1;
+  for (const g of gaps) { if (g < minGap) minGap = g; if (g > maxGap) maxGap = g; }
+  if (!isFinite(minGap)) minGap = 1;
+  const gapSignal = maxGap > minGap;
+  const cand = [];
+  const short = (s) => s.length >= 2 && s.length <= 80 && s.split(' ').length <= 12 && !bookSentencey(s) && !/[,;:]$/.test(s);
+  paras.forEach((t, i) => {
+    const f = bookLineForm(t);
+    const s = bookNorm(t);
+    if (f && (f.kind === 'num' || f.kind === 'decl')) cand.push({ ...f, i });
+    else if (short(s) && BOOK_CANON_HEAD.test(s)) cand.push({ fam: 'CANON', kind: 'canon', level: 1, label: s, i });
+    else if (short(s) && gapSignal && (gaps[i] || minGap) > minGap) cand.push({ fam: 'GAP', kind: 'gap', level: 1, label: s, i });
+    else if (f && f.kind === 'shape') cand.push({ ...f, i });
+  });
+  const firstBackAt = cand.reduce((m, c) => (c.kind === 'canon' && BOOK_BACKMATTER_HEAD.test(c.label) && c.i < m) ? c.i : m, Infinity);
+  const trimmed = isFinite(firstBackAt) ? cand.filter((c) => (c.kind !== 'shape' && c.kind !== 'gap') || c.i < firstBackAt) : cand;
+  const byFam = new Map();
+  trimmed.forEach((c) => { if (!byFam.has(c.fam)) byFam.set(c.fam, []); byFam.get(c.fam).push(c); });
+  const fams = [];
+  for (const [fam, M] of byFam) {
+    const idxs = M.map((c) => c.i), n = idxs.length;
+    const coverage = n < 2 ? 0 : (idxs[n - 1] - idxs[0]) / Math.max(1, N - 1);
+    const gg = []; for (let k = 1; k < n; k++) gg.push(idxs[k] - idxs[k - 1]);
+    const mean = gg.reduce((a, b) => a + b, 0) / (gg.length || 1);
+    const cov = gg.length ? Math.sqrt(gg.reduce((a, b) => a + (b - mean) * (b - mean), 0) / gg.length) / Math.max(1, mean) : 0;
+    const empty = /^\|[NR]@/.test(fam);
+    let gs = 1;
+    if (M[0].kind === 'num') { const v = M.map((c) => c.val); let g = 0; for (let k = 1; k < v.length; k++) { const s = v[k] - v[k - 1]; if (s === 1 || (s < 0 && v[k] <= 3)) g++; } gs = v.length > 1 ? g / (v.length - 1) : 0; }
+    fams.push({ fam, M, kind: M[0].kind, n, coverage, cov, density: n / N, empty, gs });
+  }
+  let acc = fams.filter((f) => f.kind === 'num'
+    ? (f.n >= 3 && f.coverage >= 0.3 && f.cov <= 1.0 && f.density <= 0.06 && f.gs >= (f.empty ? 0.8 : 0.7))
+    : f.kind === 'decl'
+      ? (/^md/.test(f.fam) ? f.n >= 1 : (f.n >= 3 && f.coverage >= 0.25 && f.cov <= 1.6))
+      : f.kind === 'canon'
+        ? (f.n >= 2 && f.density <= 0.12)
+        : false);
+  if (!acc.some((f) => f.kind === 'num' || f.kind === 'decl')) {
+    acc = acc.concat(fams.filter((f) => f.kind === 'gap' && f.n >= 3 && f.coverage >= 0.35 && f.density <= 0.35));
+  }
+  if (acc.some((f) => f.kind === 'num')) {
+    const taken = new Set(acc.map((f) => f.fam));
+    const spans = acc.filter((f) => f.kind !== 'decl').map((f) => { const ix = f.M.map((c) => c.i); return [ix[0], ix[ix.length - 1]]; });
+    for (const f of fams) {
+      if (f.kind !== 'num' || taken.has(f.fam) || f.n < 2 || f.density > 0.06) continue;
+      const v = f.M.map((c) => c.val);
+      if (!(v[0] <= 2 && v.every((x, k) => k === 0 || x === v[k - 1] + 1))) continue;
+      const ix = f.M.map((c) => c.i), lo = ix[0], hi = ix[ix.length - 1];
+      if (spans.some(([a, b]) => lo <= b && hi >= a)) continue;
+      f.sibling = true; acc.push(f); taken.add(f.fam); spans.push([lo, hi]);
+    }
+  }
+  if (!acc.some((f) => f.kind === 'num' || f.kind === 'decl' || f.kind === 'gap')) {
+    acc = acc.concat(fams.filter((f) => f.kind === 'shape' && f.n >= 3 && f.coverage >= 0.6 && f.cov <= 0.55 && f.density <= 0.08));
+  }
+  if (!acc.length) return [];
+  const infs = acc.filter((f) => f.kind === 'num' && !f.sibling).sort((a, b) => a.density - b.density);
+  const rank = new Map(); infs.forEach((f, r) => rank.set(f.fam, r + 1));
+  const secs = [];
+  for (const f of acc) for (const c of f.M) {
+    const level = f.kind === 'decl' ? (c.level || 1)
+      : (f.kind === 'num' && !f.sibling) ? (rank.get(f.fam) || 1)
+        : 1;
+    secs.push({ paraIndex: c.i, label: bookNorm(c.label).slice(0, 72), level });
+  }
+  secs.sort((a, b) => a.paraIndex - b.paraIndex);
+  const seen = new Set(), out = [];
+  for (const s of secs) { if (seen.has(s.paraIndex)) continue; seen.add(s.paraIndex); out.push(s); }
+  return out;
+};
+// The PG transcription markers: everything before START is host boilerplate, everything from END
+// on is the license in full. The labeled front-matter fields (Title/Author/…) are kept over the
+// cut — carried as the byline instead of drowned with the license text around them.
+const PG_START = /^\s*\*{3}\s*START OF (?:THE|THIS) PROJECT GUTENBERG EBOOK\b[^\n]*$/im;
+const PG_END = /^\s*\*{3}\s*END OF (?:THE|THIS) PROJECT GUTENBERG EBOOK\b[^\n]*$/im;
+const PG_FRONT_FIELD = /^(Title|Author|Editor|Translator|Illustrator|Release date|Language|Original publication|Credits)\s*:\s*(.+)$/i;
+const stripGutenbergBoilerplate = (raw) => {
+  const s = String(raw || '').replace(/\r\n?/g, '\n');
+  const start = PG_START.exec(s);
+  if (!start) return { body: s.trim(), front: {} };
+  const end = PG_END.exec(s);
+  const head = s.slice(0, start.index);
+  const body = s.slice(start.index + start[0].length, end ? end.index : undefined).trim();
+  const front = {};
+  head.split('\n').map((l) => l.trim()).forEach((l) => { const m = PG_FRONT_FIELD.exec(l); if (m && !front[m[1].toLowerCase()]) front[m[1].toLowerCase()] = bookNorm(m[2]); });
+  return { body, front };
+};
+// paragraphizeBook(body) → { paras, gaps } — a Gutenberg .txt is hard-wrapped at ~70 cols with a
+// blank line between paragraphs; split on the blank lines, join the hard wraps, and prose flows
+// again. gaps[i] is the count of blank lines before block i — the structural signal a heading set
+// off by extra spacing carries and nothing else does.
+const paragraphizeBook = (body) => {
+  const t = String(body || '').replace(/\r\n?/g, '\n');
+  const parts = t.split(/(\n[ \t]*(?:\n[ \t]*)+)/);
+  const paras = [], gaps = [];
+  for (let i = 0; i < parts.length; i += 2) {
+    const block = bookNorm(String(parts[i] || '').replace(/\s*\n\s*/g, ' '));
+    if (!block) continue;
+    const sep = i > 0 ? parts[i - 1] : '';
+    const blank = Math.max(1, (sep.match(/\n/g) || []).length - 1);
+    paras.push(block); gaps.push(i === 0 ? 1 : blank);
+  }
+  if (paras.length <= 1) return { paras: t.split(/\n/).map((s) => s.trim()).filter(Boolean), gaps: [] };
+  return { paras, gaps };
+};
+// trimBookFrontFurniture(paras, gaps, title) → the paragraphs with the book's own title page and
+// printed table of contents removed — left in, every chapter heading appears twice (once in the
+// printed list, once as the real heading), which doubles each family and makes the detector
+// reject the whole run. Form-only, never a keyword list of titles.
+const BOOK_TOC_MARKER = /\b(?:chapter|letter|part|book|canto|section|volume|stave|act|scene|epilogue|prologue)\b[ \t]+(?:[ivxlcdm]+|\d+|first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth)\b/gi;
+const bookTocMarkerCount = (s) => { const m = String(s || '').match(BOOK_TOC_MARKER); return m ? m.length : 0; };
+const isBookContentsHead = (s) => /^(?:contents|table of contents|table des mati[eè]res|[ií]ndice)\.?$/i.test(bookNorm(s));
+const bookCanonLine = (s) => bookNorm(s).toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+const trimBookFrontFurniture = (paras, gaps, title = '') => {
+  let ps = paras, gs = gaps;
+  const isEntry = (p) => p != null && (bookTocMarkerCount(p) >= 1 || bookLineForm(p) != null);
+  const scan = Math.min(ps.length, 60);
+  for (let i = 0; i < scan; i++) {
+    if (!isBookContentsHead(ps[i])) continue;
+    let j = i + 1;
+    while (j < ps.length && isEntry(ps[j]) && isEntry(ps[j + 1])) j++;
+    if (j - (i + 1) >= 6) { ps = ps.slice(0, i).concat(ps.slice(j)); gs = gs.slice(0, i).concat(gs.slice(j)); }
+    break;
+  }
+  const announcesToc = (p) => isBookContentsHead(p) || (bookTocMarkerCount(p) >= 4 && !bookSentencey(p));
+  const lead = Math.min(ps.length, 12);
+  let cAt = -1;
+  for (let k = 0; k < lead; k++) { if (announcesToc(ps[k])) { cAt = k; break; } }
+  if (cAt >= 0) {
+    let k = cAt + 1;
+    while (k < ps.length && k < cAt + 12 && (announcesToc(ps[k]) || (bookTocMarkerCount(ps[k]) >= 1 && bookLineForm(ps[k]) == null))) k++;
+    ps = ps.slice(k); gs = gs.slice(k);
+  }
+  const t = bookCanonLine(title);
+  const isTitleFrag = (p) => {
+    const c = bookCanonLine(p);
+    if (c.length < 4 || !t || bookNorm(p).split(' ').length > 12 || bookSentencey(p)) return false;
+    return t === c || t.startsWith(c + ' ') || t.endsWith(' ' + c) || t.includes(' ' + c + ' ');
+  };
+  const isByline = (p) => /^by\s+\S/i.test(bookNorm(p)) && bookNorm(p).split(' ').length <= 10 && !bookSentencey(p);
+  const furniture = (p) => isBookContentsHead(p) || bookTocMarkerCount(p) >= 3 || isTitleFrag(p) || isByline(p);
+  let k = 0;
+  while (k < ps.length && k < 12 && furniture(ps[k])) k++;
+  return { paras: ps.slice(k), gaps: gs.slice(k) };
+};
+
 // EO: a small egocentric orbital view of the entity graph — paradigms (the largest, most
 // salient referents) as planets around the document, plain entities as their moons. A click
 // on any body pivots the camera onto it right there: true motion never changes, only which
@@ -705,7 +924,7 @@ class Component extends DCLogic {
       src:{label:'npr.org',det:'Loading…',dot:'#5b9bd5'},
       spaces, spaceId, memoryBySpace,
       proxy, proxyOpen:false,
-      searchQ:'', searchResults:[], searching:false, searchMsg:'',
+      searchQ:'', searchResults:[], mediaResults:[], searching:false, searchMsg:'', libraryShelf:'web', _exTick:0,
       spaceEditOpen:false, spacePickerOpen:false, _sk:0
     };
     this.scrollRef=(el)=>{ if(el) this._scroll=el; };
@@ -724,6 +943,33 @@ class Component extends DCLogic {
   loadingDoc(url){
     return {kind:'loading', medium:'Webpage', title:'Loading npr.org…', byline:'', mode:'text', url,
       analysis:{paras:['Fetching npr.org…'], entById:{}, list:[], hi:[], tension:[], chapters:0, links:0, words:0, toc:[]}};
+  }
+  bookLoadingDoc(title){
+    return {kind:'loading', medium:'Book', title:'Loading '+(title||'book')+'…', byline:'', mode:'text',
+      analysis:{paras:['Fetching the whole book…'], entById:{}, list:[], hi:[], tension:[], chapters:0, links:0, words:0, toc:[]}};
+  }
+  articleLoadingDoc(title){
+    return {kind:'loading', medium:'Article', title:'Loading '+(title||'article')+'…', byline:'Wikipedia', mode:'text',
+      analysis:{paras:['Fetching the article…'], entById:{}, list:[], hi:[], tension:[], chapters:0, links:0, words:0, toc:[]}};
+  }
+  // buildBookDoc(text, meta) → { title, byline, analysis } — strip the PG transcription markers,
+  // reflow the hard-wrapped body into paragraphs, drop the book's own title-page/printed-contents
+  // furniture, and detect its chapters by FORM (never a keyword list). analyzeText still runs over
+  // the reflowed body for entity/highlight detection; only its toc/chapters are replaced with the
+  // structural detector's result, which reads a Gutenberg book's chapters far more reliably than
+  // the generic all-caps/keyword guess `detectToc` makes for arbitrary web pages.
+  buildBookDoc(text, meta){
+    const title=meta&&meta.title||'Untitled';
+    const {body, front}=stripGutenbergBoilerplate(text);
+    const {paras:rawParas, gaps:rawGaps}=paragraphizeBook(body);
+    const {paras, gaps}=rawGaps.length?trimBookFrontFurniture(rawParas, rawGaps, front.title||title):{paras:rawParas, gaps:rawGaps};
+    const whole=paras.length?paras.join('\n\n'):body;
+    const analysis=this.analyzeText(whole);
+    let toc=paras.length?detectBookStructure(paras, gaps).map(s=>({title:s.label, level:s.level, pi:s.paraIndex})):[];
+    if(toc.length && toc[0].pi>0) toc.unshift({title:'',level:0,pi:0,implicit:true});
+    analysis.toc=toc; analysis.chapters=toc.filter(e=>!e.implicit).length;
+    const author=front.author||(meta&&meta.author)||'';
+    return {title:front.title||title, byline:author?('by '+author):'', analysis};
   }
   engineBridge(){
     if(window.EOReader5 && (window.EOReader5.read||window.EOReader5.parse||window.EOReader5.createEOReaderEngine)) return window.EOReader5;
@@ -834,8 +1080,8 @@ class Component extends DCLogic {
     const map={pdf:'PDF',doc:'Document',docx:'Document',csv:'Spreadsheet',tsv:'Spreadsheet',xlsx:'Spreadsheet',xls:'Spreadsheet',mp3:'Audio',wav:'Audio',m4a:'Audio',flac:'Audio',ogg:'Audio',mp4:'Video',mov:'Video',webm:'Video',mkv:'Video',png:'Image',jpg:'Image',jpeg:'Image',gif:'Image',webp:'Image',svg:'Image',bmp:'Image',ppt:'Slides',pptx:'Slides',md:'Text',markdown:'Text',txt:'Text',rtf:'Text',log:'Text',html:'Webpage',htm:'Webpage',json:'Data',xml:'Data',yaml:'Data',yml:'Data',js:'Code',ts:'Code',py:'Code',css:'Code',java:'Code',go:'Code',rb:'Code',c:'Code',cpp:'Code'};
     return map[x]||'File';
   }
-  medColor(m){ const c={Webpage:'#5b9bd5',PDF:'#d0472e',Document:'#4f9a6b',Image:'#c77dba',Audio:'#8e6fb3',Video:'#c0662e',Spreadsheet:'#2f7a55',Slides:'#b0842f',Text:'#8a8578',Data:'#3fb0a0',Code:'#3fb0a0',File:'#8a8578'}; return c[m]||'#8a8578'; }
-  medCode(m){ const c={Webpage:'WEB',PDF:'PDF',Document:'DOC',Image:'IMG',Audio:'AUD',Video:'VID',Spreadsheet:'CSV',Slides:'PPT',Code:'SRC',Data:'DAT',Text:'TXT',File:'FIL'}; return c[m]||'FIL'; }
+  medColor(m){ const c={Webpage:'#5b9bd5',PDF:'#d0472e',Document:'#4f9a6b',Image:'#c77dba',Audio:'#8e6fb3',Video:'#c0662e',Spreadsheet:'#2f7a55',Slides:'#b0842f',Text:'#8a8578',Data:'#3fb0a0',Code:'#3fb0a0',File:'#8a8578',Book:'#8a6d3b',Article:'#3366cc'}; return c[m]||'#8a8578'; }
+  medCode(m){ const c={Webpage:'WEB',PDF:'PDF',Document:'DOC',Image:'IMG',Audio:'AUD',Video:'VID',Spreadsheet:'CSV',Slides:'PPT',Code:'SRC',Data:'DAT',Text:'TXT',File:'FIL',Book:'BK',Article:'ART'}; return c[m]||'FIL'; }
   fmtSize(b){ if(b<1024)return b+' B'; if(b<1048576)return (b/1024).toFixed(0)+' KB'; return (b/1048576).toFixed(1)+' MB'; }
   nf(n){ return (''+n).replace(/\B(?=(\d{3})+(?!\d))/g,','); }
   hostOf(u){ try{ return new URL(u).host.replace(/^www\./,''); }catch(_){ return (''+u).slice(0,40); } }
@@ -1002,11 +1248,11 @@ class Component extends DCLogic {
   }
 
   bucketOf(m){ const b={Webpage:'Web & news',PDF:'Documents',Document:'Documents',Slides:'Documents',Spreadsheet:'Data & sheets',Data:'Data & sheets',Code:'Code',Image:'Media',Audio:'Media',Video:'Media',Text:'Notes'}; return b[m]||'Other'; }
-  setDoc(d){
-    const det = d.mode==='text' ? (d.medium+' · '+this.nf(d.analysis.words)+' words') : (d.medium+' · imported');
-    this.setState({doc:d, importOpen:false, searchResults:[], searchMsg:'', sel:null, level:'prompt', chap:0, tab:'reader',
+  setDoc(d, opts){
+    const det = d.mode==='loading' ? 'Loading…' : (d.mode==='text' ? (d.medium+' · '+this.nf(d.analysis.words)+' words') : (d.medium+' · imported'));
+    this.setState({doc:d, importOpen:false, searchResults:[], mediaResults:[], searchMsg:'', sel:null, level:'prompt', chap:0, tab:'reader',
       searchProjection:'evidence', searchScope:'all', queryText:'', queryReading:null, queryWhy:null,
-      view:'native',
+      view:(opts&&opts.view)||'native',
       src:{label:d.name||d.title, det, dot:this.medColor(d.medium)}});
   }
   resetSample(){ this.setState({doc:this.demoDoc(), importOpen:false, sel:null, level:'prompt', chap:0, tab:'reader', view:'reader', src:{label:'theatlantic.com/…/the-quiet-collapse',det:'News · sample',dot:'#c0662e'}}); }
@@ -1035,15 +1281,89 @@ class Component extends DCLogic {
   setProxy(patch){ this.setState(s=>{ const proxy={...s.proxy,...patch}; this.save('eo5.proxy',proxy); return {proxy}; }); }
   proxied(u){ const p=this.state.proxy; if(!p||!p.on) return u; return p.fetch.replace('{urlenc}',encodeURIComponent(u)).replace('{url}',u); }
   searchUrl(q){ const p=this.state.proxy; return (p.search||'https://s.jina.ai/?q={q}').replace('{qenc}',encodeURIComponent(q)).replace('{q}',encodeURIComponent(q)); }
-  doSearch(){
-    const q=(this.state.searchQ||'').trim(); if(!q) return;
-    this.setState({searching:true, searchResults:[], searchMsg:''});
+  // ── the library shelf — Web, Project Gutenberg, Wikipedia, Wikimedia Commons ──
+  LIBRARY_SHELVES(){
+    return [
+      {id:'web', label:'Web', icon:'ph ph-globe',
+        placeholder:'Search the web…', examples:[]},
+      {id:'gutenberg', label:'Gutenberg', icon:'ph ph-books',
+        placeholder:'Search Project Gutenberg — a title, an author…',
+        examples:['Frankenstein','Jane Austen','Meditations Marcus Aurelius']},
+      {id:'wikipedia', label:'Wikipedia', icon:'ph ph-book-open-text',
+        placeholder:'Search Wikipedia — a person, a place, an idea…',
+        examples:['photosynthesis','Ada Lovelace','the Meiji Restoration']},
+      {id:'commons', label:'Commons', icon:'ph ph-image',
+        placeholder:'Search Wikimedia Commons — an image, a sound, a clip…',
+        examples:['sunflower','Saturn Cassini','steam locomotive']}
+    ];
+  }
+  curShelf(){ return this.LIBRARY_SHELVES().find(s=>s.id===this.state.libraryShelf)||this.LIBRARY_SHELVES()[0]; }
+  pickShelf(id){ this.setState(s=>({libraryShelf:id, searchQ:'', searchResults:[], mediaResults:[], searchMsg:'', _exTick:(s._exTick||0)+1})); }
+  runShelfSearch(q){
+    const shelf=this.state.libraryShelf||'web';
+    if(shelf==='gutenberg') return this.searchGutenberg(q);
+    if(shelf==='wikipedia') return this.searchWikipedia(q);
+    if(shelf==='commons') return this.searchCommons(q);
+    return this.searchWeb(q);
+  }
+  doSearch(){ const q=(this.state.searchQ||'').trim(); if(!q) return; this.runShelfSearch(q); }
+  pickExample(q){ this.setState(s=>({searchQ:q, _exTick:(s._exTick||0)+1})); this.runShelfSearch(q); }
+  searchWeb(q){
+    this.setState({searching:true, searchResults:[], mediaResults:[], searchMsg:''});
     fetch(this.searchUrl(q),{headers:{Accept:'application/json'}}).then(r=>r.text()).then(txt=>{
-      let results=[]; try{ const j=JSON.parse(txt); const data=j.data||j.results||j.hits||[]; results=(Array.isArray(data)?data:[]).map(d=>({title:d.title||d.name||d.url||d.link,url:d.url||d.link||d.href,snippet:d.description||d.snippet||d.content&&d.content.slice(0,180)||'',content:d.content||''})).filter(r=>r.url); }catch(_){ results=[]; }
+      let results=[]; try{ const j=JSON.parse(txt); const data=j.data||j.results||j.hits||[]; results=(Array.isArray(data)?data:[]).map(d=>({kind:'web',title:d.title||d.name||d.url||d.link,url:d.url||d.link||d.href,snippet:d.description||d.snippet||d.content&&d.content.slice(0,180)||'',content:d.content||'',action:'Open page'})).filter(r=>r.url); }catch(_){ results=[]; }
       this.setState({searching:false, searchResults:results.slice(0,10), searchMsg: results.length?'':'No results, or the proxy returned a shape I couldn’t read. Adjust routing below.'});
     }).catch(err=>this.setState({searching:false, searchMsg:'Search failed: '+err.message+'. Check the routing below (CORS / proxy URL).'}));
   }
+  stripTags(s){ return String(s||'').replace(/<[^>]+>/g,'').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&#39;|&apos;/g,"'").replace(/&nbsp;/g,' ').replace(/&amp;/g,'&').replace(/\s+/g,' ').trim(); }
+  searchGutenberg(q){
+    this.setState({searching:true, searchResults:[], mediaResults:[], searchMsg:''});
+    fetch('https://gutendex.com/books/?search='+encodeURIComponent(q)).then(r=>r.json()).then(j=>{
+      const results=(j&&j.results||[]).slice(0,12).map(b=>{
+        const authors=(b.authors||[]).map(a=>a&&a.name).filter(Boolean).join('; ');
+        const subjects=(b.subjects||[]).slice(0,5).join('; ');
+        const summary=String((b.summaries||[])[0]||'').trim();
+        return {kind:'book', title:b.title||('Gutenberg #'+b.id), host:authors||'Unknown author',
+          snippet:subjects||summary||'', action:'Read whole book →',
+          url:'https://www.gutenberg.org/ebooks/'+b.id, gutenbergId:b.id,
+          bookTitle:b.title, author:authors, formats:b.formats||{}};
+      });
+      this.setState({searching:false, searchResults:results, searchMsg: results.length?'':'No books found.'});
+    }).catch(err=>this.setState({searching:false, searchMsg:'Gutenberg search failed: '+err.message}));
+  }
+  searchWikipedia(q){
+    this.setState({searching:true, searchResults:[], mediaResults:[], searchMsg:''});
+    const url='https://en.wikipedia.org/w/api.php?action=query&list=search&format=json&origin=*&srlimit=12&srsearch='+encodeURIComponent(q);
+    fetch(url).then(r=>r.json()).then(j=>{
+      const hits=(j&&j.query&&j.query.search)||[];
+      const results=hits.map(h=>({kind:'article', title:h.title, host:'Wikipedia',
+        snippet:this.stripTags(h.snippet), action:'Read article →',
+        url:'https://en.wikipedia.org/wiki/'+encodeURIComponent(h.title.replace(/ /g,'_')), pageTitle:h.title}));
+      this.setState({searching:false, searchResults:results, searchMsg: results.length?'':'No articles found.'});
+    }).catch(err=>this.setState({searching:false, searchMsg:'Wikipedia search failed: '+err.message}));
+  }
+  searchCommons(q){
+    this.setState({searching:true, searchResults:[], mediaResults:[], searchMsg:''});
+    const url='https://commons.wikimedia.org/w/api.php?action=query&format=json&origin=*&generator=search&gsrsearch='+encodeURIComponent(q)+'&gsrnamespace=6&gsrlimit=24&prop=imageinfo&iiprop=url%7Csize%7Cmime%7Cextmetadata&iiurlwidth=320';
+    fetch(url).then(r=>r.json()).then(j=>{
+      const pages=Object.values((j&&j.query&&j.query.pages)||{});
+      pages.sort((a,b)=>(a.index||0)-(b.index||0));
+      const meta=(ext,key,cap)=>{ const v=ext&&ext[key]&&ext[key].value; if(v==null) return ''; const t=this.stripTags(String(v)); return (cap&&t.length>cap)?t.slice(0,cap-1).trimEnd()+'…':t; };
+      const results=pages.map(p=>{
+        const info=(p.imageinfo||[])[0]||{}; const ext=info.extmetadata||{};
+        const title=String(p.title||'').replace(/^File:/i,'');
+        return {title, thumb:info.thumburl||info.url, fullUrl:info.url, mime:info.mime||'',
+          width:info.width||null, height:info.height||null,
+          license:meta(ext,'LicenseShortName',60), artist:meta(ext,'Artist',120),
+          description:meta(ext,'ImageDescription',300),
+          url:info.descriptionurl||('https://commons.wikimedia.org/wiki/File:'+encodeURIComponent(title))};
+      }).filter(m=>m.thumb);
+      this.setState({searching:false, mediaResults:results, searchMsg: results.length?'':'No media found.'});
+    }).catch(err=>this.setState({searching:false, searchMsg:'Commons search failed: '+err.message}));
+  }
   openResult(r){
+    if(r.kind==='book') return this.openGutenbergBook(r);
+    if(r.kind==='article') return this.openWikipediaArticle(r);
     if(r.content && r.content.length>200){
       const j=this.parseJina(r.content); const body=this.cleanMarkdown(j?j.body:r.content);
       const linkMap=this.extractLinksFromMd(j?j.body:r.content);
@@ -1051,6 +1371,64 @@ class Component extends DCLogic {
       return;
     }
     this.readUrlValue(r.url, r.title);
+  }
+  // fetchRawText(url) → the bytes at url as text, direct-CORS first, the app's fetch proxy as
+  // fallback (Gutenberg's static text files carry no CORS headers, so most books need the hop).
+  async fetchRawText(u){
+    try{ const r=await fetch(u,{mode:'cors'}); if(r.ok){ const t=await r.text(); if(t) return t; } }catch(_){}
+    try{ const r=await fetch(this.proxied(u)); if(r.ok){ const t=await r.text(); if(t) return t; } }catch(_){}
+    return null;
+  }
+  gutenbergTextUrl(id){ return 'https://www.gutenberg.org/cache/epub/'+id+'/pg'+id+'.txt'; }
+  pickGutenbergTextFormat(formats){
+    const entries=Object.entries(formats||{}).filter(([mime,url])=>{
+      const u=String(url||''); return /^text\/plain/i.test(mime) && !/\.zip($|\?)/i.test(u) && !/\/ebooks\/\d+\.txt\b/i.test(u);
+    });
+    if(!entries.length) return null;
+    const utf8=entries.find(([mime])=>/utf-?8/i.test(mime));
+    return (utf8||entries[0])[1];
+  }
+  looksLikeBookText(t){ const s=String(t||'').replace(/^﻿/,'').trimStart(); return s.length>=200 && !/^<(?:!doctype|html|head|body|div|meta|title)\b/i.test(s); }
+  async openGutenbergBook(item){
+    this.setState({searching:false});
+    this.setDoc(this.bookLoadingDoc(item.bookTitle||item.title), {view:'reader'});
+    const id=item.gutenbergId;
+    const candidates=[this.pickGutenbergTextFormat(item.formats), this.gutenbergTextUrl(id)].filter(Boolean);
+    let text=null;
+    for(const u of candidates){
+      try{ const t=await this.fetchRawText(u); if(this.looksLikeBookText(t)){ text=t; break; } }catch(_){}
+    }
+    if(!text){
+      this.setDoc({name:item.url,url:item.url,title:item.bookTitle||item.title,medium:'Book',mode:'binary',size:'',
+        mime:'could not fetch this book’s text — open '+item.url+' directly, or try again'}, {view:'native'});
+      return;
+    }
+    const built=this.buildBookDoc(text, {title:item.bookTitle||item.title, author:item.author});
+    this.setDoc({name:item.url,url:item.url,medium:'Book',mode:'text',size:'', ...built}, {view:'reader'});
+  }
+  async openWikipediaArticle(item){
+    this.setState({searching:false});
+    this.setDoc(this.articleLoadingDoc(item.title), {view:'reader'});
+    const url='https://en.wikipedia.org/w/api.php?format=json&action=query&prop=extracts&explaintext=1&redirects=1&origin=*&titles='+encodeURIComponent(item.pageTitle||item.title);
+    let extract='';
+    try{
+      const r=await fetch(url); const j=await r.json();
+      const pages=(j&&j.query&&j.query.pages)||{};
+      const first=Object.values(pages)[0];
+      extract=String((first&&first.extract)||'').trim();
+    }catch(_){}
+    if(!extract){
+      this.setDoc({name:item.url,url:item.url,title:item.title,medium:'Article',mode:'binary',size:'',
+        mime:'could not fetch this article — open '+item.url+' directly, or try again'}, {view:'native'});
+      return;
+    }
+    this.setDoc({name:item.url,url:item.url,title:item.title,byline:'Wikipedia',medium:'Article',mode:'text',size:'',
+      analysis:this.analyzeText(extract)}, {view:'reader'});
+  }
+  openCommonsMedia(item){
+    const bits=[item.license?('License: '+item.license):'',item.artist?('Author: '+item.artist):''].filter(Boolean).join(' · ');
+    this.setDoc({name:item.title,url:item.fullUrl||item.thumb,title:item.title,medium:'Image',mode:'image',
+      size:bits||(item.width&&item.height?item.width+'×'+item.height:'')}, {view:'reader'});
   }
   readUrl(){ const u=(this.state.urlVal||'').trim(); if(!u) return; this.readUrlValue(this.normUrl(u)); }
   async fetchNative(u){
@@ -1060,7 +1438,7 @@ class Component extends DCLogic {
   }
   looksUrl(q){ if(/^https?:\/\//i.test(q)) return true; if(/\s/.test(q)) return false; return /^[\w-]+(\.[\w-]+)+(?:[:\/?#].*)?$/.test(q); }
   normUrl(q){ return /^https?:\/\//i.test(q)?q:('https://'+q); }
-  omni(){ const q=(this.state.searchQ||'').trim(); if(!q) return; if(this.looksUrl(q)){ this.readUrlValue(this.normUrl(q)); } else { this.setState({importOpen:true,spaceEditOpen:false}); this.doSearch(); } }
+  omni(){ const q=(this.state.searchQ||'').trim(); if(!q) return; if(this.looksUrl(q)){ this.readUrlValue(this.normUrl(q)); } else { this.setState({importOpen:true,spaceEditOpen:false,libraryShelf:'web'}); this.doSearch(); } }
   parseJina(txt){ const m=(txt||'').match(/^Title:\s*(.*)\n+URL Source:\s*(.*?)\n+(?:Published Time:.*\n+)?Markdown Content:\s*([\s\S]*)$/); return m?{title:m[1].trim(),body:m[3].trim()}:null; }
   cleanMarkdown(s){ return (s||'')
     .replace(/!\[[^\]]*\]\([^)]*\)/g,'')
@@ -1297,6 +1675,20 @@ class Component extends DCLogic {
         h('div',{key:3,style:{font:'600 13px/1.55 system-ui',color:t.t2}},'Current passage: high onset density · rising intensity · tonal center candidate (not asserted unless grounded).')
       ])
     ]);
+  }
+  // buildMediaGrid() → the Commons shelf's thumbnail grid, built as React elements (not raw
+  // template markup) so an empty/placeholder thumb src is never eagerly fetched by the browser
+  // before the shelf is even picked — the same reason buildDoc()'s image branch builds its <img>
+  // in JS rather than the static template.
+  buildMediaGrid(){
+    const t=this.theme(), h=React.createElement, items=this.state.mediaResults||[];
+    if(!items.length) return null;
+    return h('div',{style:{display:'flex',flexWrap:'wrap',gap:'6px',maxHeight:'280px',overflowY:'auto',marginBottom:'12px'}},
+      items.map((m,i)=>h('div',{key:i,onClick:()=>this.openCommonsMedia(m),style:{width:'calc(33.33% - 4px)',borderRadius:'10px',overflow:'hidden',border:'1px solid '+t.border,background:t.bar,cursor:'pointer'}},[
+        h('img',{key:'i',src:m.thumb,style:{width:'100%',height:'80px',objectFit:'cover',display:'block',background:t.card}}),
+        h('div',{key:'t',style:{padding:'5px 6px',font:'600 9.5px system-ui',color:t.t2,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}, m.title)
+      ]))
+    );
   }
 
   buildDoc(){
@@ -1549,8 +1941,17 @@ class Component extends DCLogic {
       onTopSearchKey:(e)=>{ if(e.key==='Enter') this.omni(); },
       doSearch:()=>this.doSearch(),
       searching:S.searching, searchMsg:S.searchMsg,
+      libraryShelf:S.libraryShelf,
+      shelfChips:this.LIBRARY_SHELVES().map(sh=>{ const on=sh.id===(S.libraryShelf||'web'); return {label:sh.label,icon:sh.icon,bg:on?t.accent:t.bar,bd:on?t.accent:t.border,fg:on?'#fff':t.t2,pick:()=>this.pickShelf(sh.id)}; }),
+      searchPlaceholder:this.curShelf().placeholder,
+      searchingLabel:'Searching '+(this.curShelf().id==='web'?'the web':this.curShelf().label)+'…',
+      hasExamples:!S.searching && !(S.searchResults&&S.searchResults.length) && !(S.mediaResults&&S.mediaResults.length) && (this.curShelf().examples||[]).length>0,
+      shelfExamples:(this.curShelf().examples||[]).map(ex=>({label:ex,pick:()=>this.pickExample(ex)})),
+      searchBoxKey:(S.libraryShelf||'web')+':'+(S._exTick||0),
+      isMediaShelf:(S.libraryShelf||'web')==='commons',
+      mediaGrid:this.buildMediaGrid(),
       hasResults:(S.searchResults||[]).length>0,
-      searchResults:(S.searchResults||[]).map(r=>({title:r.title||r.url,host:this.hostOf(r.url),snippet:r.snippet||'',view:()=>this.openResult(r)})),
+      searchResults:(S.searchResults||[]).map(r=>({title:r.title||r.url,host:r.host||this.hostOf(r.url),snippet:r.snippet||'',action:r.action||'Open page',view:()=>this.openResult(r)})),
       proxyOpen:S.proxyOpen, toggleProxyPanel:()=>this.setState(s=>({proxyOpen:!s.proxyOpen})),
       proxyLabel:proxyHost, proxyDot:(S.proxy&&S.proxy.on)?'#2f7a55':t.faint, proxyChev:S.proxyOpen?'▾':'▸',
       proxyTrack:(S.proxy&&S.proxy.on)?t.accent:t.bStrong, proxyKnob:(S.proxy&&S.proxy.on)?'16px':'2px',
