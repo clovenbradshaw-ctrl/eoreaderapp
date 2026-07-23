@@ -492,8 +492,8 @@ class Component extends DCLogic {
       layers:{hi:true,en:true,ch:true,ln:true,nw:props.candidates!==false},
       sel:null, linkSel:null, linkPeek:{status:'idle'}, level:'prompt', chap:0, tocOpen:false,
       structFilter:'all', structExp:{}, structRows:{}, structActive:{},
-      doc:this.demoDoc(),
-      src:{label:'theatlantic.com/…/the-quiet-collapse',det:'News · sample',dot:'#c0662e'},
+      doc:this.loadingDoc('https://www.npr.org'),
+      src:{label:'npr.org',det:'Loading…',dot:'#5b9bd5'},
       spaces, spaceId, memoryBySpace,
       proxy, proxyOpen:false,
       searchQ:'', searchResults:[], searching:false, searchMsg:'',
@@ -509,6 +509,11 @@ class Component extends DCLogic {
       window.addEventListener('eo5:ready', set);
       window.addEventListener('eo:ready', set);
     }
+    this.readUrlValue('https://www.npr.org','NPR').then(()=>this.setState({view:'reader'}));
+  }
+  loadingDoc(url){
+    return {kind:'loading', medium:'Webpage', title:'Loading npr.org…', byline:'', mode:'text', url,
+      analysis:{paras:['Fetching npr.org…'], entById:{}, list:[], hi:[], tension:[], chapters:0, links:0, words:0, toc:[]}};
   }
   engineBridge(){
     if(window.EOReader5 && (window.EOReader5.read||window.EOReader5.parse||window.EOReader5.createEOReaderEngine)) return window.EOReader5;
@@ -774,7 +779,7 @@ class Component extends DCLogic {
     .replace(/\*\*/g,'').replace(/\n{3,}/g,'\n\n').trim(); }
   readUrlValue(u,title){
     this.setState({importOpen:false, searchResults:[], searchMsg:''});
-    fetch(this.proxied(u)).then(r=>{ if(!r.ok) throw new Error('HTTP '+r.status); return r.text(); }).then(txt=>{
+    return fetch(this.proxied(u)).then(r=>{ if(!r.ok) throw new Error('HTTP '+r.status); return r.text(); }).then(txt=>{
       let clean=txt, t=title||u, rawHtml=null, linkMap={};
       const j=this.parseJina(txt);
       if(j){ clean=this.cleanMarkdown(j.body); t=title||j.title||u; linkMap=this.extractLinksFromMd(j.body); }
