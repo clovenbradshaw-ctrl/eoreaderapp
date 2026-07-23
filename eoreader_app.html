@@ -48,16 +48,23 @@
   </div>
 
   <div style="flex:none;padding:5px 14px 0">
-    <div style="display:flex;align-items:center;gap:8px">
-      <span onClick="{{ openSpacePicker }}" style="flex:none;width:34px;height:34px;border-radius:10px;background:{{ t.bar }};border:1px solid {{ t.border }};display:flex;align-items:center;justify-content:center;cursor:pointer">
-        <span style="width:11px;height:11px;border-radius:50%;background:{{ t.accent }}"></span>
+    <div style="display:flex;align-items:center;gap:6px">
+      <span onClick="{{ openSpacePicker }}" title="Spaces" style="flex:none;width:34px;height:34px;border-radius:10px;background:{{ t.bar }};border:1px solid {{ t.border }};display:flex;align-items:center;justify-content:center;cursor:pointer">
+        <i class="ph ph-book-open" style="font-size:16px;color:{{ t.accent }}"></i>
+      </span>
+      <span onClick="{{ openLayers }}" title="Reading layers" style="flex:none;width:34px;height:34px;border-radius:10px;background:{{ t.bar }};border:1px solid {{ t.border }};display:flex;align-items:center;justify-content:center;cursor:pointer">
+        <i class="ph ph-books" style="font-size:16px;color:{{ t.t2 }}"></i>
       </span>
       <div style="flex:1;min-width:0;display:flex;align-items:center;gap:7px;background:{{ t.bar }};border:1px solid {{ t.border }};border-radius:10px;padding:7px 11px">
         <span style="width:7px;height:7px;border-radius:50%;background:{{ srcDot }};flex:none"></span>
         <input key="{{ srcLabel }}" defaultValue="{{ srcLabel }}" onFocus="{{ onOmniFocus }}" onInput="{{ onSearch }}" onKeyDown="{{ onTopSearchKey }}" placeholder="Search or paste a URL…" style="flex:1;min-width:0;background:transparent;border:none;outline:none;font:500 12.5px system-ui;color:{{ t.t2 }}">
-        <span onClick="{{ openImport }}" style="flex:none;font-size:15px;line-height:1;color:{{ t.mut }};cursor:pointer">⊕</span>
+        <span onClick="{{ openImport }}" title="Open URL" style="flex:none;display:flex;align-items:center;color:{{ t.mut }};cursor:pointer">
+          <i class="ph ph-plus-circle" style="font-size:16px"></i>
+        </span>
       </div>
-      <span onClick="{{ toggleMemBtn }}" style="width:34px;height:34px;flex:none;display:flex;align-items:center;justify-content:center;border-radius:10px;font:600 16px system-ui;cursor:pointer;border:1px solid {{ memBorder }};color:{{ memColor }};background:{{ memBg }}">{{ memGlyph }}</span>
+      <span onClick="{{ toggleMemBtn }}" title="{{ memTitle }}" style="width:34px;height:34px;flex:none;display:flex;align-items:center;justify-content:center;border-radius:10px;cursor:pointer;border:1px solid {{ memBorder }};color:{{ memColor }};background:{{ memBg }}">
+        <i class="{{ memIconClass }}" style="font-size:17px"></i>
+      </span>
     </div>
 
     <div style="position:relative;display:flex;align-items:center;gap:4px;flex-wrap:nowrap;margin:9px 0 8px;overflow-x:auto">
@@ -69,7 +76,9 @@
           <span onClick="{{ cycleView }}" style="font:600 11px system-ui;color:{{ t.accent }};cursor:pointer;white-space:nowrap">{{ viewLabel }}</span>
         </div>
       </sc-if>
-      <span onClick="{{ openSettings }}" style="flex:none;margin-left:auto;display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:{{ t.bar }};border:1px solid {{ t.border }};font-size:13px;cursor:pointer;color:{{ t.t2 }}">⚙</span>
+      <span onClick="{{ openSettings }}" title="Settings" style="flex:none;margin-left:auto;display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:50%;background:{{ t.bar }};border:1px solid {{ t.border }};cursor:pointer;color:{{ t.text }}">
+        <i class="ph ph-gear-six" style="font-size:18px"></i>
+      </span>
     </div>
   </div>
 
@@ -1154,7 +1163,9 @@ class Component extends DCLogic {
       activeSrcCount:act.length, totalSrcCount:raw.length,
       memCount:memList.length, memEmpty:memList.length===0, memHas:memList.length>0, spaceName:sp?sp.name:'',
       t, themeGlyph:dark?'☾':'☀', flipDark:()=>this.setState({dark:!dark}),
-      memColor:memIn?'#2f7a55':t.accent, memBg:memIn?'rgba(47,122,85,.10)':t.accentSoft, memBorder:memIn?'#2f7a55':t.accentLine, memGlyph:memIn?'✓':'+', toggleMemBtn:()=>{ if(d) this.toggleMemory(d); },
+      memColor:memIn?'#2f7a55':t.accent, memBg:memIn?'rgba(47,122,85,.10)':t.accentSoft, memBorder:memIn?'#2f7a55':t.accentLine,
+      memIconClass:memIn?'ph-fill ph-bookmark-simple':'ph ph-bookmark-simple', memTitle:memIn?'Saved to space — tap to remove':'Save to space',
+      toggleMemBtn:()=>{ if(d) this.toggleMemory(d); },
       isReader:S.tab==='reader', isSearch:S.tab==='search',
       setReader:()=>this.setState({tab:'reader'}), setCross:()=>this.setState({tab:'search'}),
       tabRB:S.tab==='reader'?activeBg:'transparent', tabRC:S.tab==='reader'?activeC:t.mut,
