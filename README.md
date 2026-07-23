@@ -60,3 +60,17 @@ node --test tests/contracts/dependency-rules.test.mjs
 ```
 
 It asserts that engine package imports are isolated to `src/engine/`, prior resolution is isolated to `src/priors/`, sense organs do not import output organs, output organs do not implement discovery algorithms, and EOReader5 adapter code cannot import legacy compatibility code.
+
+## EOReader5 readiness for the app shell
+
+The current app shell can run end-to-end without a published EOReader5 browser bundle by using its local entity finder. When an EOReader5 runtime is present on `window.EOReader5`, the shell marks the bridge as live; it also recognizes the older `window.EO.parse` compatibility surface.
+
+For `https://github.com/clovenbradshaw-ctrl/eoreader5` to replace the local finder fully, it should expose one public browser/API surface (no deep imports) that provides:
+
+- `window.EOReader5.read(input)` or `window.EOReader5.parse(input)` for direct browser use, plus an `eo5:ready` event after initialization.
+- The package entry point `@eoreader/engine` with `createEOReaderEngine({ protocolVersion: 1 })` for the module adapter.
+- Protocol events matching `src/engine/protocol.js`: `progress`, `semantic-event`, `reading-snapshot`, `projection-bundle`, `paused`, `complete`, and `error`.
+- Entity/anchor projections that can be converted to the app analysis shape: paragraphs, entities, counts, context snippets, connections, highlights, sections, links, and exact anchors.
+- Deterministic event-count progress (`completedEvents` and `totalEvents`) and no mutable engine singleton outside the explicit browser bridge.
+
+Until those are available, web search/open, files, PDFs, memory, structure, cross-source entities, and entity inspection continue to function through the app-local neutral reader.
