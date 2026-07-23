@@ -876,43 +876,25 @@ class Component extends DCLogic {
         h('div',{key:'badge',style:{background:'rgba(17,17,17,.72)',color:'#fff',borderRadius:'999px',padding:'7px 10px',font:'800 10px system-ui',letterSpacing:'.05em',boxShadow:'0 8px 20px rgba(0,0,0,.20)',backdropFilter:'blur(7px)',whiteSpace:'nowrap'}},'NATIVE +')
       ]);
     };
-    if(view==='annotated' && d.medium==='Webpage' && d.rawHtml){
-      return h('div',{style:{padding:'0',display:'flex',flexDirection:'column',minHeight:'100%',position:'relative',background:'#fff'}},[
-        h('iframe',{key:'f',srcDoc:d.rawHtml,sandbox:'allow-same-origin allow-popups',title:d.title,style:{flex:1,minHeight:'700px',border:'none',width:'100%',background:'#fff'}}),
-        nativePlusOverlay()
-      ]);
+    const nativeWrap=(children,bg)=>h('div',{style:{padding:'0',display:'flex',flexDirection:'column',minHeight:'100%',position:'relative',background:bg||'transparent'}}, view==='annotated'?[...children,nativePlusOverlay()]:children);
+    if((view==='native'||view==='annotated') && d.medium==='PDF' && d.pdfUrl){
+      return nativeWrap([h('iframe',{key:'f',src:d.pdfUrl,title:d.name,style:{flex:1,minHeight:'640px',border:'none',width:'100%',background:'#525659'}})], '#525659');
     }
-    if(view==='annotated' && d.medium==='PDF' && d.pdfUrl){
-      return h('div',{style:{padding:'0',display:'flex',flexDirection:'column',minHeight:'100%',position:'relative',background:'#525659'}},[
-        h('iframe',{key:'f',src:d.pdfUrl,title:d.name,style:{flex:1,minHeight:'640px',border:'none',width:'100%',background:'#525659'}}),
-        nativePlusOverlay()
-      ]);
+    if((view==='native'||view==='annotated') && d.medium==='Webpage' && d.rawHtml){
+      return nativeWrap([h('iframe',{key:'f',srcDoc:d.rawHtml,sandbox:'allow-same-origin allow-popups',title:d.title,style:{flex:1,minHeight:'700px',border:'none',width:'100%',background:'#fff'}})], '#fff');
     }
-
-    if(view==='native'){
-      if(d.medium==='PDF' && d.pdfUrl){
-        return h('div',{style:{padding:'0',display:'flex',flexDirection:'column',minHeight:'100%'}},[
-          h('div',{key:'k',style:{padding:'14px 20px 10px'}}, kicker),
-          h('iframe',{key:'f',src:d.pdfUrl,title:d.name,style:{flex:1,minHeight:'640px',border:'none',width:'100%',background:'#525659'}})]);
-      }
-      if(d.medium==='Webpage' && d.rawHtml){
-        return h('div',{style:{padding:'0',display:'flex',flexDirection:'column',minHeight:'100%'}},[
-          h('div',{key:'k',style:{padding:'14px 20px 10px'}}, kicker),
-          h('iframe',{key:'f',srcDoc:d.rawHtml,sandbox:'allow-same-origin allow-popups',title:d.title,style:{flex:1,minHeight:'700px',border:'none',width:'100%',background:'#fff'}})]);
-      }
-      if((d.medium==='Text'||d.medium==='Code'||d.medium==='Data') && d.rawText){
-        return h('div',{style:pad},[kicker,
-          h('pre',{key:'pre',style:{margin:0,font:"13px/1.6 'IBM Plex Mono',ui-monospace,monospace",color:t.text,whiteSpace:'pre-wrap',wordBreak:'break-word'}}, d.rawText)]);
-      }
+    if((view==='native'||view==='annotated') && (d.medium==='Text'||d.medium==='Code'||d.medium==='Data') && d.rawText){
+      return nativeWrap([h('div',{key:'txt',style:pad},[kicker,
+        h('pre',{key:'pre',style:{margin:0,font:"13px/1.6 'IBM Plex Mono',ui-monospace,monospace",color:t.text,whiteSpace:'pre-wrap',wordBreak:'break-word'}}, d.rawText)])]);
     }
 
-    const marks=view!=='native', reader=view==='reader';
+    const marks=view==='reader', reader=view==='reader';
     const prep = this.prepMarks(a, marks);
     const mono = (d.medium==='Code'||d.medium==='Data');
     const fam = mono ? "'IBM Plex Mono',ui-monospace,monospace" : "'Source Serif 4',Georgia,serif";
     const toc=a.toc||[], chapterMode=toc.filter(e=>!e.implicit).length>=3;
     const body=[kicker];
-    if(view==='native'){
+    if(view==='native'||view==='annotated'){
       body.push(h('div',{key:'nn',style:{font:'500 12px/1.5 system-ui',color:t.mut,background:t.bar,border:'1px solid '+t.border,borderRadius:'10px',padding:'10px 12px',margin:'2px 0 18px'}}, 'The original couldn’t be preserved for this source — showing extracted text, unmarked.'));
     }
     let lo=0, hiIdx=a.paras.length, title=d.title, ci=0;
@@ -928,7 +910,7 @@ class Component extends DCLogic {
     if(chapterMode) body.push(h('div',{key:'nav',style:{display:'flex',gap:'10px',marginTop:'26px'}},[
       h('button',{key:0,onClick:()=>this.gotoChap(ci-1),style:{flex:1,padding:'12px',borderRadius:'11px',border:'1px solid '+t.border,background:t.card,color:ci<=0?t.faint:t.text,font:'600 13px system-ui',cursor:'pointer'}},'‹ Previous'),
       h('button',{key:1,onClick:()=>this.gotoChap(ci+1),style:{flex:1,padding:'12px',borderRadius:'11px',border:'none',background:ci>=toc.length-1?t.bStrong:t.accent,color:'#fff',font:'600 13px system-ui',cursor:'pointer'}},'Next ›')]));
-    return h('div',{style:pad}, body);
+    return view==='annotated' ? nativeWrap([h('div',{style:pad}, body)]) : h('div',{style:pad}, body);
   }
 
   renderVals(){
