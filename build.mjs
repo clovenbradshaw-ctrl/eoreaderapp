@@ -13,6 +13,7 @@
 //
 // Usage: node build.mjs
 import { readFileSync, writeFileSync } from 'node:fs';
+import { execSync } from 'node:child_process';
 
 const SRC = 'eoreader_app.html';
 const OUT = 'index.html';
@@ -23,4 +24,18 @@ if (!/src="\.\/support\.js"/.test(src)) {
   process.exit(1);
 }
 writeFileSync(OUT, src);
+writeFileSync('.nojekyll', '');
+const git = (args) => {
+  try { return execSync(`git ${args}`, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim(); }
+  catch { return null; }
+};
+const metadata = {
+  source: SRC,
+  output: OUT,
+  commit: git('rev-parse --short=12 HEAD'),
+  branch: git('rev-parse --abbrev-ref HEAD'),
+  builtAt: new Date().toISOString(),
+};
+writeFileSync('app-build.json', `${JSON.stringify(metadata, null, 2)}\n`);
 console.log(`Regenerated ${OUT} from ${SRC} (${src.length} bytes).`);
+console.log(`Wrote app-build.json for ${metadata.commit || 'unknown commit'}.`);
