@@ -63,6 +63,9 @@
     .eo-screen.eo-panel-docked .eo-chrome{margin-right:min(440px,40vw)!important}
     /* Sources are integrated inline in the left rail on desktop — the overlay drawer and its trigger are mobile-only. */
     .eo-sources-sheet, .eo-src-toolbtn{display:none!important}
+    /* The bottom-fade scrim exists to soften the floating mobile nav over scrolling text; the
+       desktop nav is a fixed left sidebar with no such overlap, so the scrim is unneeded there. */
+    .eo-bottom-scrim{display:none!important}
   }
   @keyframes eoRecPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.3;transform:scale(.62)}}
   .eo-rec-pulse{animation:eoRecPulse 1.4s ease-in-out infinite}
@@ -736,6 +739,7 @@
     </sc-if>
   </div>
 
+  <div class="eo-bottom-scrim" style="position:absolute;left:0;right:0;bottom:0;height:132px;z-index:24;pointer-events:none;background:linear-gradient(to bottom, transparent, {{ t.screen }} 60%);opacity:{{ chromeBottomOp }};transition:opacity .22s ease"></div>
 
   <div class="eo-nav" style="position:absolute;left:14px;right:14px;bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:25;background:{{ t.sheet }};--eo-nav-bg:{{ t.bg }};border:1px solid {{ t.border }};box-shadow:0 10px 30px rgba(0,0,0,.16);border-radius:22px;padding:6px;display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;font-family:system-ui;transform:{{ chromeBottomT }};opacity:{{ chromeBottomOp }};pointer-events:{{ chromeBottomPE }};transition:transform .3s cubic-bezier(.4,0,.2,1),opacity .22s ease">
     <div class="eo-spaces-rail" style="display:none;flex-direction:column;gap:2px;margin-bottom:10px">
