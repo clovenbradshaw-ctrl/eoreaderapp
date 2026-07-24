@@ -20,7 +20,7 @@
 <script>if(window.pdfjsLib){pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';}</script>
 <style>
   *{box-sizing:border-box}
-  body{margin:0;background:#fafaf8;-webkit-font-smoothing:antialiased}
+  body{margin:0;background:#fbfbfa;-webkit-font-smoothing:antialiased}
   a{color:inherit;text-decoration:none}a:hover{text-decoration:underline}
   /* Native/annotated source views fill the full reading area rather than the capped reader column. */
   .eo-native-fill{max-width:none!important;width:100%!important;height:100%}
@@ -34,7 +34,7 @@
      removed here so the deployed product reads as an application rather than
      a mockup. The mobile-first component hierarchy is retained — the column
      is simply capped for readable line lengths and centered on wide screens. */
-  .eo-shell{min-height:100svh!important;padding:0!important;align-items:stretch;justify-content:center;background:#fafaf8}
+  .eo-shell{min-height:100svh!important;padding:0!important;align-items:stretch;justify-content:center;background:#fbfbfa}
   .eo-device{width:100%!important;min-height:100svh!important;padding:0!important;border-radius:0!important;box-shadow:none!important;background:transparent!important}
   .eo-screen{width:100%!important;height:100svh!important;min-height:100svh!important;border-radius:0!important}
   /* Phone-width band: keep the original single-column reader capped for line length. */
@@ -2634,11 +2634,11 @@ class Component extends DCLogic {
   resetCustomColors(){ this.save('eo5.customBg', null); this.save('eo5.customText', null); this.setState({customBg:null, customText:null}); }
 
   theme(){
-    const light={bg:'#fafaf8',screen:'#fdfaf4',bar:'#f4f1ea',border:'#e7e3d9',bStrong:'#d3cec2',text:'#1e1c19',t2:'#5c574d',mut:'#9a9385',faint:'#b0a99a',card:'#ffffff',sheet:'#ffffff'};
+    const light={bg:'#fbfbfa',screen:'#ffffff',bar:'#f3f3f2',border:'#e4e4e2',bStrong:'#cfcfcb',text:'#1e1e1c',t2:'#5c5c58',mut:'#96968f',faint:'#adada6',card:'#ffffff',sheet:'#ffffff'};
     const night={bg:'#05060c',screen:'#0e1322',bar:'#171d30',border:'#242e4a',bStrong:'#333d5c',text:'#eef1fb',t2:'#b8c0da',mut:'#828bab',faint:'#68719a',card:'#161d31',sheet:'#151b2c'};
     const themed=this.state.dark?night:light;
     const base={...themed, bg:this.state.customBg||themed.bg, screen:this.state.customBg||themed.screen, text:this.state.customText||themed.text};
-    const sp=this.curSpace(); const acc=(sp&&sp.accent)||'#c0662e'; const rgb=this.hexRgb(acc);
+    const sp=this.curSpace(); const acc=(sp&&sp.accent)||'#8a8a83'; const rgb=this.hexRgb(acc);
     return {...base, accent:acc,
       accentSoft:`rgba(${rgb},.12)`, accentWash:`rgba(${rgb},.07)`, accentLine:`rgba(${rgb},.34)`,
       accentTop:this.mix(acc, base.screen, this.state.dark?0.16:0.10)};
