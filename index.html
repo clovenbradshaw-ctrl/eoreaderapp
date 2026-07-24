@@ -246,11 +246,172 @@
 
     </div>
     </sc-if>
+    <sc-if value="{{ isOverview }}">
+    <div style="padding:14px 14px 40px;font-family:system-ui">
+
+      <sc-if value="{{ ovBackShown }}">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">
+        <span onClick="{{ ovBack }}" style="font-size:19px;color:{{ t.mut }};cursor:pointer;flex:none;line-height:1">‹</span>
+        <div style="flex:1;min-width:0;font:600 12.5px system-ui;color:{{ t.mut }};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ ovBackLabel }}</div>
+      </div>
+      </sc-if>
+
+      <sc-if value="{{ ovIsFrame }}">
+        <div style="font:800 10px system-ui;letter-spacing:.08em;text-transform:uppercase;color:{{ t.mut }};margin-bottom:10px">{{ ovFrameKicker }}</div>
+        <div style="font:700 21px/1.28 'Source Serif 4',Georgia,serif;color:{{ t.text }};margin-bottom:8px">{{ ovTitle }}</div>
+        <div style="font:500 12.5px system-ui;color:{{ t.mut }};margin-bottom:20px">{{ ovMeta }}</div>
+
+        <sc-for list="{{ ovFrameRungs }}" as="r" hint-placeholder-count="2">
+          <div onClick="{{ r.pick }}" style="display:flex;align-items:center;gap:11px;background:{{ t.card }};border:1px solid {{ t.border }};border-radius:14px;padding:13px 14px;margin-bottom:10px;cursor:pointer">
+            <div style="flex:1;min-width:0">
+              <div style="font:700 15px system-ui;color:{{ t.text }}">{{ r.count }} {{ r.label }}</div>
+              <div style="font:500 12px system-ui;color:{{ t.mut }};margin-top:2px">{{ r.sub }}</div>
+            </div>
+            <span style="color:{{ t.faint }};font-size:16px;flex:none">›</span>
+          </div>
+        </sc-for>
+
+        <sc-for list="{{ ovFrameAbsences }}" as="ab" hint-placeholder-count="1">
+          <div style="display:flex;gap:9px;align-items:flex-start;padding:8px 2px">
+            <span style="font-size:13px;flex:none;color:{{ t.faint }};line-height:1.5">○</span>
+            <div style="flex:1;font:500 13px/1.5 system-ui;color:{{ t.mut }}">{{ ab.text }}</div>
+          </div>
+        </sc-for>
+      </sc-if>
+
+      <sc-if value="{{ ovIsList }}">
+        <div style="font:800 10px system-ui;letter-spacing:.08em;text-transform:uppercase;color:{{ t.mut }};margin-bottom:12px">{{ ovListHeader }}</div>
+        <sc-if value="{{ ovListIsClaims }}">
+        <sc-for list="{{ ovClaimRows }}" as="row" hint-placeholder-count="3">
+          <div onClick="{{ row.pick }}" style="background:{{ t.card }};border:1px solid {{ t.border }};border-radius:14px;padding:13px 14px;margin-bottom:10px;cursor:pointer">
+            <div style="display:flex;align-items:center;margin-bottom:8px">
+              <span style="font:700 11px 'IBM Plex Mono',monospace;color:{{ t.faint }}">{{ row.idxLabel }}</span>
+              <span style="margin-left:auto;display:flex;align-items:center;gap:6px;font:600 11px 'IBM Plex Mono',monospace;color:{{ t.mut }}">{{ row.anchorLabel }}<span style="color:{{ t.faint }};font-size:13px">›</span></span>
+            </div>
+            <div style="font:400 14.5px/1.5 'Source Serif 4',Georgia,serif;color:{{ t.text }};margin-bottom:8px">{{ row.text }}</div>
+            <sc-if value="{{ row.hasEnts }}">
+            <div style="display:flex;flex-wrap:wrap;gap:9px">
+              <sc-for list="{{ row.ents }}" as="e" hint-placeholder-count="2">
+                <span style="display:flex;align-items:center;gap:5px;font:600 11.5px system-ui;color:{{ t.t2 }}"><span style="width:7px;height:7px;border-radius:50%;background:{{ e.c }};flex:none"></span>{{ e.n }}</span>
+              </sc-for>
+            </div>
+            </sc-if>
+          </div>
+        </sc-for>
+        </sc-if>
+        <sc-if value="{{ ovListIsActors }}">
+        <sc-for list="{{ ovActorRows }}" as="row" hint-placeholder-count="3">
+          <div onClick="{{ row.pick }}" style="display:flex;align-items:center;gap:11px;background:{{ t.card }};border:1px solid {{ t.border }};border-radius:14px;padding:12px 13px;margin-bottom:9px;cursor:pointer">
+            <span style="width:10px;height:10px;border-radius:50%;background:{{ row.color }};flex:none"></span>
+            <div style="flex:1;min-width:0">
+              <div style="font:700 14.5px system-ui;color:{{ t.text }};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ row.name }}</div>
+              <div style="font:500 12px system-ui;color:{{ t.mut }};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ row.role }}</div>
+            </div>
+            <span style="font:600 10.5px 'IBM Plex Mono',monospace;color:{{ t.mut }};flex:none">{{ row.count }}×</span>
+            <span style="color:{{ t.faint }};font-size:16px;flex:none">›</span>
+          </div>
+        </sc-for>
+        </sc-if>
+        <sc-if value="{{ ovListEmpty }}">
+          <div style="display:flex;gap:9px;align-items:flex-start;padding:8px 2px">
+            <span style="font-size:13px;flex:none;color:{{ t.faint }};line-height:1.5">○</span>
+            <div style="flex:1;font:500 13px/1.5 system-ui;color:{{ t.mut }}">nothing detected here yet</div>
+          </div>
+        </sc-if>
+      </sc-if>
+
+      <sc-if value="{{ ovIsUnit }}">
+        <div style="font:800 10px system-ui;letter-spacing:.08em;text-transform:uppercase;color:{{ t.mut }};margin-bottom:12px">{{ ovUnitKicker }}</div>
+        <div style="font:400 17px/1.55 'Source Serif 4',Georgia,serif;color:{{ t.text }};margin-bottom:18px">{{ ovUnitText }}</div>
+        <div style="height:1px;background:{{ t.border }};margin-bottom:16px"></div>
+
+        <div style="font:800 9px system-ui;letter-spacing:.08em;text-transform:uppercase;color:{{ t.mut }};margin-bottom:8px">In source</div>
+        <sc-if value="{{ ovUnitHasAnchor }}">
+          <div onClick="{{ ovUnitJump }}" style="display:flex;align-items:center;gap:7px;font:600 12.5px system-ui;color:{{ t.accent }};cursor:pointer;margin-bottom:20px">{{ ovUnitAnchorLabel }} · Native <span style="font-size:11px">↗</span></div>
+        </sc-if>
+        <sc-if value="{{ ovUnitNoAnchor }}">
+          <div style="display:flex;gap:9px;align-items:flex-start;margin-bottom:20px">
+            <span style="font-size:13px;flex:none;color:{{ t.faint }};line-height:1.5">○</span>
+            <div style="flex:1;font:500 13px/1.5 system-ui;color:{{ t.mut }}">no exact paragraph match — this couldn’t be re-anchored to the source text</div>
+          </div>
+        </sc-if>
+
+        <div style="font:800 9px system-ui;letter-spacing:.08em;text-transform:uppercase;color:{{ t.mut }};margin-bottom:8px">Named here</div>
+        <sc-if value="{{ ovUnitHasEnts }}">
+        <div>
+          <sc-for list="{{ ovUnitEnts }}" as="e" hint-placeholder-count="2">
+            <div onClick="{{ e.pick }}" style="display:flex;align-items:center;gap:9px;padding:9px 0;border-top:1px solid {{ t.border }};cursor:pointer">
+              <span style="width:9px;height:9px;border-radius:50%;background:{{ e.c }};flex:none"></span>
+              <span style="flex:1;font:600 13.5px system-ui;color:{{ t.text }}">{{ e.n }}</span>
+              <span style="font:600 10.5px 'IBM Plex Mono',monospace;color:{{ t.mut }}">{{ e.count }}×</span>
+              <span style="color:{{ t.faint }};font-size:14px;flex:none">›</span>
+            </div>
+          </sc-for>
+        </div>
+        </sc-if>
+        <sc-if value="{{ ovUnitNoEnts }}">
+          <div style="display:flex;gap:9px;align-items:flex-start">
+            <span style="font-size:13px;flex:none;color:{{ t.faint }};line-height:1.5">○</span>
+            <div style="flex:1;font:500 13px/1.5 system-ui;color:{{ t.mut }}">no detected entities named in this passage</div>
+          </div>
+        </sc-if>
+      </sc-if>
+
+      <sc-if value="{{ ovIsReferent }}">
+        <div style="display:flex;align-items:center;gap:11px;margin-bottom:6px">
+          <span style="width:15px;height:15px;border-radius:4px;flex:none;background:{{ ovRefColor }}"></span>
+          <div style="font:700 18px system-ui;color:{{ t.text }}">{{ ovRefName }}</div>
+        </div>
+        <div style="font:500 12.5px system-ui;color:{{ t.mut }};margin-bottom:20px">{{ ovRefSub }}</div>
+
+        <div style="font:800 9px system-ui;letter-spacing:.08em;text-transform:uppercase;color:{{ t.mut }};margin-bottom:8px">Appears in</div>
+        <sc-if value="{{ ovRefHasAppear }}">
+        <div style="margin-bottom:18px">
+          <sc-for list="{{ ovRefAppear }}" as="row" hint-placeholder-count="2">
+            <div onClick="{{ row.pick }}" style="display:flex;align-items:center;gap:9px;padding:10px 0;border-top:1px solid {{ t.border }};cursor:pointer">
+              <span style="flex:1;font:500 13px system-ui;color:{{ t.t2 }};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ row.label }}</span>
+              <span style="color:{{ t.faint }};font-size:14px;flex:none">›</span>
+            </div>
+          </sc-for>
+        </div>
+        </sc-if>
+        <sc-if value="{{ ovRefNoAppear }}">
+          <div style="display:flex;gap:9px;align-items:flex-start;margin-bottom:18px">
+            <span style="font-size:13px;flex:none;color:{{ t.faint }};line-height:1.5">○</span>
+            <div style="flex:1;font:500 13px/1.5 system-ui;color:{{ t.mut }}">not named in any detected {{ ovClaimsLower }}</div>
+          </div>
+        </sc-if>
+
+        <div style="font:800 9px system-ui;letter-spacing:.08em;text-transform:uppercase;color:{{ t.mut }};margin-bottom:8px">With</div>
+        <sc-if value="{{ ovRefHasWith }}">
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:18px">
+          <sc-for list="{{ ovRefWith }}" as="w" hint-placeholder-count="2">
+            <span onClick="{{ w.pick }}" style="display:flex;align-items:center;gap:6px;background:{{ t.bar }};border:1px solid {{ t.border }};border-radius:16px;padding:5px 10px;font:600 12px system-ui;color:{{ t.t2 }};cursor:pointer"><span style="width:8px;height:8px;border-radius:3px;background:{{ w.c }}"></span>{{ w.n }}</span>
+          </sc-for>
+        </div>
+        </sc-if>
+        <sc-if value="{{ ovRefNoWith }}">
+          <div style="display:flex;gap:9px;align-items:flex-start;margin-bottom:18px">
+            <span style="font-size:13px;flex:none;color:{{ t.faint }};line-height:1.5">○</span>
+            <div style="flex:1;font:500 13px/1.5 system-ui;color:{{ t.mut }}">no co-occurring entities detected</div>
+          </div>
+        </sc-if>
+
+        <div style="font:800 9px system-ui;letter-spacing:.08em;text-transform:uppercase;color:{{ t.mut }};margin-bottom:8px">Surface forms</div>
+        <div style="display:flex;gap:9px;align-items:flex-start">
+          <span style="font-size:13px;flex:none;color:{{ t.faint }};line-height:1.5">○</span>
+          <div style="flex:1;font:500 13px/1.5 system-ui;color:{{ t.mut }}">not tracked — this build treats each detected string as one name</div>
+        </div>
+      </sc-if>
+
+    </div>
+    </sc-if>
   </div>
 
 
   <div style="position:absolute;left:14px;right:14px;bottom:12px;z-index:25;background:{{ t.sheet }};border:1px solid {{ t.border }};box-shadow:0 10px 30px rgba(0,0,0,.16);border-radius:22px;padding:6px;display:flex;gap:6px;font-family:system-ui;transform:{{ chromeBottomT }};opacity:{{ chromeBottomOp }};pointer-events:{{ chromeBottomPE }};transition:transform .3s cubic-bezier(.4,0,.2,1),opacity .22s ease">
     <button onClick="{{ setReader }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;background:{{ tabRB }};color:{{ tabRC }};font:800 12px system-ui;cursor:pointer">Source</button>
+    <button onClick="{{ setOverview }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;background:{{ tabOB }};color:{{ tabOC }};font:800 12px system-ui;cursor:pointer">Overview</button>
     <button onClick="{{ setStruct }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;background:{{ tabSB }};color:{{ tabSC }};font:800 12px system-ui;cursor:pointer">Structure</button>
     <button onClick="{{ setCross }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;background:{{ tabCB }};color:{{ tabCC }};font:800 12px system-ui;cursor:pointer">Search</button>
   </div>
@@ -920,6 +1081,7 @@ class Component extends DCLogic {
       layersOpen:false, settingsOpen:false, importOpen:false, urlVal:'', engineLive:false,
       layers:{hi:true,en:true,ch:true,ln:true,nw:props.candidates!==false},
       sel:null, linkSel:null, linkPeek:{status:'idle'}, level:'prompt', chap:0, tocOpen:false, explore:null,
+      overview:{stack:['frame'],rung:null,unitIdx:null,entId:null},
       structFilter:'all', structExp:{}, structRows:{}, structActive:{},
       doc:this.loadingDoc('https://www.npr.org'),
       src:{label:'npr.org',det:'Loading…',dot:'#5b9bd5'},
@@ -1217,6 +1379,14 @@ class Component extends DCLogic {
   exploreBack(){ this.setState(s=>({explore:{...s.explore,terrain:null}})); }
   closeExplore(){ this.setState({explore:null, sel:null, linkSel:null, level:'prompt'}); }
   jumpChapter(i){ this.gotoChap(i); this.setState({explore:null, sel:null, linkSel:null, level:'prompt'}); }
+
+  // ── overview: Frame → Units → Unit → Referent ladder for the current document ──
+  ovPush(screen, patch){ this.setState(s=>({overview:{...s.overview, ...(patch||{}), stack:[...(s.overview.stack||['frame']), screen]}})); }
+  ovOpenRung(rung){ this.ovPush('list', {rung}); }
+  ovOpenUnit(idx){ this.ovPush('unit', {unitIdx:idx}); }
+  ovOpenReferent(entId){ this.ovPush('referent', {entId}); }
+  ovBack(){ this.setState(s=>{ const st=s.overview.stack||['frame']; if(st.length<=1) return {}; return {overview:{...s.overview, stack:st.slice(0,-1)}}; }); }
+  ovJump(pi){ this.setState({tab:'reader'}); requestAnimationFrame(()=>{ const el=document.getElementById('eo-p'+pi); if(el&&el.scrollIntoView) el.scrollIntoView({block:'center'}); }); }
 
   // ── the entity graph as paradigms (largest mass) orbited by entities (smallest mass) ──
   // Reuses the same salience form as the eoreader4.2 perceiver (log(1+mass)+log(1+coupling)),
@@ -1911,19 +2081,17 @@ class Component extends DCLogic {
     if((view==='native'||view==='annotated') && d.medium==='PDF' && d.pdfUrl){
       return nativeWrap([h('iframe',{key:'f',src:d.pdfUrl,title:d.name,style:{flex:1,minHeight:'640px',border:'none',width:'100%',background:'#525659'}})], '#525659');
     }
-    // Native + (annotated): the clean, reader-shaped article rebuilt as real HTML, with EO
-    // structure painted onto it in the iframe. A live site stripped of its own JavaScript and
-    // (in a sandboxed frame) most of its CSS renders as a mess of nav junk and broken images —
-    // ugly and unreadable — so Native+ injects structure into a clean reconstruction instead of
-    // the raw page. The untouched real page is still one dot away, under plain "Native" below.
+    // Native / Native+: the page's own fetched markup rendered like the real site (nativePageHtml
+    // recovery) — real fonts, layout, images. Native+ additionally paints EO entity/quote marks
+    // onto it in the iframe (via onWebIframeLoad/syncWebMarks); plain Native shows it unmarked.
+    if((view==='native'||view==='annotated') && d.medium==='Webpage' && d.rawHtml){
+      return nativeWrap([h('iframe',{key:'f',srcDoc:this.nativePageHtml(d.rawHtml, d.url),sandbox:'allow-same-origin allow-popups',title:d.title,onLoad:e=>this.onWebIframeLoad(e),style:{flex:1,minHeight:'700px',border:'none',width:'100%',background:'#fff'}})], '#fff');
+    }
+    // No raw markup was fetched: rebuild a clean reader-shaped article from extracted text so
+    // Native+ still has real HTML to paint structure onto instead of a JSX-rendered stand-in.
     if(view==='annotated' && d.medium==='Webpage' && a && a.paras && a.paras.length){
       const synHtml=this.buildSyntheticWebHtml(d);
       return nativeWrap([h('iframe',{key:'f',srcDoc:synHtml,sandbox:'allow-same-origin allow-popups',title:d.title,onLoad:e=>this.onWebIframeLoad(e),style:{flex:1,minHeight:'700px',border:'none',width:'100%',background:'#fff'}})], '#fff');
-    }
-    // Native: the page's own markup rendered like the real site (nativePageHtml recovery). No EO
-    // marks — this is the file as-fetched. Native+ with no extractable prose also lands here.
-    if((view==='native'||view==='annotated') && d.medium==='Webpage' && d.rawHtml){
-      return nativeWrap([h('iframe',{key:'f',srcDoc:this.nativePageHtml(d.rawHtml, d.url),sandbox:'allow-same-origin allow-popups',title:d.title,onLoad:e=>this.onWebIframeLoad(e),style:{flex:1,minHeight:'700px',border:'none',width:'100%',background:'#fff'}})], '#fff');
     }
     if(d.medium==='Spreadsheet' && d.rawText){ const csvEl=this.buildCsvSource(d,t,h,pad); if(csvEl) return csvEl; }
     if((view==='native'||view==='annotated') && (d.medium==='Text'||d.medium==='Code'||d.medium==='Data') && d.rawText){
@@ -1949,7 +2117,7 @@ class Component extends DCLogic {
     for(let i=lo;i<hiIdx;i++){ const p=a.paras[i]; if(!p)continue;
       const hd=p.match(/^#{1,6}\s+(.*)/);
       if(hd){ body.push((reader||(marks&&this.state.layers.ch))?this.chapDiv(hd[1],i):h('p',{key:i,style:{font:'700 15px '+fam,margin:'18px 0 8px',color:t.text}}, hd[1])); continue; }
-      body.push(h('p',{key:i,style:{fontFamily:fam,fontSize:reader?'18px':(mono?'13px':'16.5px'),lineHeight:reader?1.8:1.68,margin:'0 0 16px',color:t.text,whiteSpace:mono?'pre-wrap':'normal'}}, this.spans(p,prep,'p'+i))); }
+      body.push(h('p',{key:i,id:'eo-p'+i,style:{fontFamily:fam,fontSize:reader?'18px':(mono?'13px':'16.5px'),lineHeight:reader?1.8:1.68,margin:'0 0 16px',color:t.text,whiteSpace:mono?'pre-wrap':'normal'}}, this.spans(p,prep,'p'+i))); }
     if(chapterMode) body.push(h('div',{key:'nav',style:{display:'flex',gap:'10px',marginTop:'26px'}},[
       h('button',{key:0,onClick:()=>this.gotoChap(ci-1),style:{flex:1,padding:'12px',borderRadius:'11px',border:'1px solid '+t.border,background:t.card,color:ci<=0?t.faint:t.text,font:'600 13px system-ui',cursor:'pointer'}},'‹ Previous'),
       h('button',{key:1,onClick:()=>this.gotoChap(ci+1),style:{flex:1,padding:'12px',borderRadius:'11px',border:'none',background:ci>=toc.length-1?t.bStrong:t.accent,color:'#fff',font:'600 13px system-ui',cursor:'pointer'}},'Next ›')]));
@@ -2080,11 +2248,95 @@ class Component extends DCLogic {
     const explChapterRows=toc.map((c,i)=>({id:'ch'+i,title:c.implicit?(d&&d.title||'Opening'):c.title,sub:'Section '+(i+1)+' of '+toc.length,pick:()=>this.jumpChapter(i)}));
     const explTitle = explKind==='top' ? 'Explore this document' : (explKind==='quotes'?'Quotes':(explKind==='structure'?'Structure':(curTerrain?curTerrain.label:'')));
 
+    // ── overview: Frame → Units → Unit → Referent ladder, article terrain ──
+    const overview = S.overview || {stack:['frame']};
+    const ovStack = (overview.stack&&overview.stack.length) ? overview.stack : ['frame'];
+    const ovScreen = ovStack[ovStack.length-1];
+    const ovPrevScreen = ovStack.length>1 ? ovStack[ovStack.length-2] : null;
+
+    const ovTensionRaw = a.tension||[];
+    const ovHasClaims = ovTensionRaw.length>0;
+    const ovClaimsLabel = ovHasClaims ? 'Claims' : 'Passages';
+    const ovEscRe = s=>String(s).replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+    const ovEntsInText = (text)=>{
+      if(!text || !(a.list&&a.list.length)) return [];
+      const low=' '+String(text).toLowerCase()+' ';
+      return a.list.filter(e=>{
+        const re=new RegExp('(^|[^a-z0-9])'+ovEscRe(e.name.toLowerCase())+'([^a-z0-9]|$)','i');
+        return re.test(low);
+      }).slice(0,6);
+    };
+    const ovFindPara = (text)=>{ const paras=a.paras||[]; for(let i=0;i<paras.length;i++){ if(paras[i] && String(paras[i]).indexOf(text)>=0) return i; } return -1; };
+    const ovIsHeading = p=>/^#{1,6}\s+/.test(String(p||'').trim());
+    const ovParaCandidates=(a.paras||[]).map((p,i)=>({pi:i,text:p})).filter(x=>x.text && x.text.trim() && !ovIsHeading(x.text));
+    const ovClaimUnits = ovHasClaims
+      ? ovTensionRaw.map((x,i)=>({idx:i,text:x.text,pi:ovFindPara(x.text),ents:ovEntsInText(x.text)}))
+      : ovParaCandidates.slice(0,200).map((x,i)=>({idx:i,text:x.text,pi:x.pi,ents:ovEntsInText(x.text)}));
+    const ovActorUnits = (a.list||[]).slice(0,60);
+    const ovDivisionsCount = toc.filter(e=>!e.implicit).length;
+    const ovHasDivisions = ovDivisionsCount>=3;
+
+    const ovFrameRungs=[], ovFrameAbsences=[];
+    if(ovClaimUnits.length>0) ovFrameRungs.push({count:ovClaimUnits.length,label:ovClaimsLabel,sub:ovHasClaims?'what this story asserts':'paragraphs in this piece',pick:()=>this.ovOpenRung('claims')});
+    else ovFrameAbsences.push({text:'no '+ovClaimsLabel.toLowerCase()+' — nothing extracted from this source yet'});
+    if(ovActorUnits.length>0) ovFrameRungs.push({count:ovActorUnits.length,label:'Actors',sub:'who it names',pick:()=>this.ovOpenRung('actors')});
+    else ovFrameAbsences.push({text:'no actors — no named entities detected'});
+    if(ovHasDivisions) ovFrameRungs.push({count:ovDivisionsCount,label:'Sections',sub:'how it’s divided',pick:()=>this.setState({tab:'reader'})});
+    else ovFrameAbsences.push({text:'no sections — this story is one continuous piece'});
+
+    const ovFrameKicker = d ? String((d.medium==='Webpage'||d.medium==='Article')?'Story':(d.medium||'Document')).toUpperCase() : 'STORY';
+    const ovDomain = d&&d.url ? this.hostOf(d.url) : '';
+    const ovMeta = [ovDomain, d&&d.medium, (a.words||0)+' words'].filter(Boolean).join(' · ');
+
+    const ovListRung = overview.rung;
+    const ovClaimRows = ovClaimUnits.map(u=>({
+      id:'u'+u.idx, idxLabel:String(u.idx+1).padStart(2,'0'),
+      anchorLabel:u.pi>=0?('¶'+(u.pi+1)):'—',
+      text:u.text.length>240?u.text.slice(0,240)+'…':u.text,
+      ents:u.ents.map(e=>({n:e.name,c:e.color})), hasEnts:u.ents.length>0,
+      pick:()=>this.ovOpenUnit(u.idx)
+    }));
+    const ovActorRows = ovActorUnits.map(e=>({
+      id:e.id, name:e.name, color:e.color, role:e.role||'', count:e.count,
+      pick:()=>this.ovOpenReferent(e.id)
+    }));
+    const ovListIsClaims = ovScreen==='list' && ovListRung!=='actors';
+    const ovListIsActors = ovScreen==='list' && ovListRung==='actors';
+    const ovListHeader = ovListRung==='actors' ? ('ACTORS · '+ovActorRows.length) : (ovClaimsLabel.toUpperCase()+' · '+ovClaimRows.length);
+    const ovListEmpty = ovListRung==='actors' ? ovActorRows.length===0 : ovClaimRows.length===0;
+
+    const ovUnitIdx = overview.unitIdx;
+    const ovUnitData = (ovUnitIdx!=null) ? ovClaimUnits[ovUnitIdx] : null;
+    const ovUnitKicker = (ovHasClaims?'CLAIM ':'PASSAGE ')+String((ovUnitIdx||0)+1).padStart(2,'0');
+    const ovUnitText = ovUnitData ? ovUnitData.text : '';
+    const ovUnitHasAnchor = !!(ovUnitData && ovUnitData.pi>=0);
+    const ovUnitNoAnchor = !!ovUnitData && !ovUnitHasAnchor;
+    const ovUnitAnchorLabel = ovUnitHasAnchor ? ('¶'+(ovUnitData.pi+1)) : '';
+    const ovUnitEnts = ovUnitData ? ovUnitData.ents.map(e=>({n:e.name,c:e.color,count:e.count,pick:()=>this.ovOpenReferent(e.id)})) : [];
+    const ovUnitHasEnts = ovUnitEnts.length>0;
+    const ovUnitNoEnts = !!ovUnitData && !ovUnitHasEnts;
+
+    const ovEntId = overview.entId;
+    const ovRefEnt = ovEntId ? this.entMap()[ovEntId] : null;
+    const ovRefAppear = ovRefEnt ? ovClaimUnits.filter(u=>u.ents.some(e=>e.id===ovRefEnt.id)).slice(0,10).map(u=>({
+      label:(ovHasClaims?'Claim ':'Passage ')+String(u.idx+1).padStart(2,'0')+'   '+(u.text.length>36?u.text.slice(0,36)+'…':u.text),
+      pick:()=>this.ovOpenUnit(u.idx)
+    })) : [];
+    const ovRefWith = ovRefEnt ? (ovRefEnt.conns||[]).filter(c=>c.id).slice(0,6).map(c=>({n:c.t,c:c.c,pick:()=>this.ovOpenReferent(c.id)})) : [];
+
+    const ovBackLabel = (()=>{
+      if(!ovPrevScreen) return '';
+      if(ovPrevScreen==='frame') return ovFrameKicker.charAt(0)+ovFrameKicker.slice(1).toLowerCase();
+      if(ovPrevScreen==='list') return ovListRung==='actors' ? 'Actors' : ovClaimsLabel;
+      if(ovPrevScreen==='unit') return (ovHasClaims?'Claim ':'Passage ')+String((ovUnitIdx||0)+1).padStart(2,'0');
+      return '';
+    })();
+
     return {
       isStructure:S.tab==='structure', notStructure:S.tab!=='structure',
       setStruct:()=>this.setState({tab:'structure'}),
       tabSB:S.tab==='structure'?activeBg:'transparent', tabSC:S.tab==='structure'?activeC:t.mut,
-      sheetDisp:(S.tab==='structure'||S.tab==='search'||(!sel&&!linkSel&&!explore))?'none':'flex',
+      sheetDisp:(S.tab==='structure'||S.tab==='search'||S.tab==='overview'||(!sel&&!linkSel&&!explore))?'none':'flex',
       structSources, corpusStats, sharedEnts, hasShared:sharedEnts.length>0, mediumFilters, crossInsights, crossSources,
       hasCross:crossInsights.length>0, noCross:crossInsights.length===0,
       queryText, onQueryInput:(e)=>this.setState({queryText:e.target.value}), onQueryKey:(e)=>{ if(e.key==='Enter') this.runLocalSearch(e.target.value); }, clearQuery:()=>this.runLocalSearch(''),
@@ -2097,6 +2349,20 @@ class Component extends DCLogic {
       memIconClass:memIn?'ph-fill ph-bookmark-simple':'ph ph-bookmark-simple', memTitle:memIn?'Saved to space — tap to remove':'Save to space',
       toggleMemBtn:()=>{ if(d) this.toggleMemory(d); },
       isReader:S.tab==='reader', isSearch:S.tab==='search',
+      isOverview:S.tab==='overview', setOverview:()=>this.setState({tab:'overview'}),
+      tabOB:S.tab==='overview'?activeBg:'transparent', tabOC:S.tab==='overview'?activeC:t.mut,
+      ovBackShown:ovStack.length>1, ovBackLabel, ovBack:()=>this.ovBack(),
+      ovIsFrame:ovScreen==='frame', ovFrameKicker, ovTitle:d?d.title:'', ovMeta, ovFrameRungs, ovFrameAbsences,
+      ovIsList:ovScreen==='list', ovListHeader, ovListIsClaims, ovListIsActors, ovClaimRows, ovActorRows, ovListEmpty,
+      ovClaimsLower:ovHasClaims?'claim':'passage',
+      ovIsUnit:ovScreen==='unit', ovUnitKicker, ovUnitText,
+      ovUnitHasAnchor, ovUnitNoAnchor, ovUnitAnchorLabel, ovUnitJump:()=>{ if(ovUnitData&&ovUnitData.pi>=0) this.ovJump(ovUnitData.pi); },
+      ovUnitHasEnts, ovUnitNoEnts, ovUnitEnts,
+      ovIsReferent:ovScreen==='referent',
+      ovRefName:ovRefEnt?ovRefEnt.name:'', ovRefColor:ovRefEnt?ovRefEnt.color:t.mut,
+      ovRefSub:ovRefEnt?('Detected entity · '+ovRefEnt.count+' mention'+(ovRefEnt.count===1?'':'s')):'',
+      ovRefHasAppear:ovRefAppear.length>0, ovRefNoAppear:!!ovRefEnt&&ovRefAppear.length===0, ovRefAppear,
+      ovRefHasWith:ovRefWith.length>0, ovRefNoWith:!!ovRefEnt&&ovRefWith.length===0, ovRefWith,
       scrollRef:this.scrollRef,
       chromeMaxH:chromeCollapsed?'0px':'150px', chromePadT:chromeCollapsed?'0px':'5px',
       chromeOpacity:chromeCollapsed?0:1, chromePE:chromeCollapsed?'none':'auto',
