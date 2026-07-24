@@ -152,7 +152,7 @@
           <div style="margin:14px 0 2px;font:500 12.5px system-ui;color:{{ t.mut }};display:flex;align-items:center;gap:7px"><i class="ph ph-book-open-text" style="font-size:15px"></i>Looking up Wikipedia…</div>
         </sc-if>
         <sc-if value="{{ selHasWiki }}">
-          <a href="{{ selWikiUrl }}" target="_blank" rel="noopener" style="display:flex;align-items:stretch;margin:14px 0 2px;background:{{ t.bar }};border:1px solid {{ t.border }};border-radius:13px;overflow:hidden;text-decoration:none">
+          <a href="{{ selWikiUrl }}" style="display:flex;align-items:stretch;margin:14px 0 2px;background:{{ t.bar }};border:1px solid {{ t.border }};border-radius:13px;overflow:hidden;text-decoration:none">
             <sc-if value="{{ selHasWikiImage }}">
               <img src="{{ selWikiImage }}" alt="{{ selWikiTitle }}" loading="lazy" referrerpolicy="no-referrer" style="flex:none;width:190px;align-self:stretch;min-height:150px;object-fit:cover">
             </sc-if>
@@ -871,7 +871,7 @@
           <div style="margin:14px 0 2px;font:500 12.5px system-ui;color:{{ t.mut }};display:flex;align-items:center;gap:7px"><i class="ph ph-book-open-text" style="font-size:15px"></i>Looking up Wikipedia…</div>
         </sc-if>
         <sc-if value="{{ selHasWiki }}">
-          <a href="{{ selWikiUrl }}" target="_blank" rel="noopener" style="display:flex;align-items:stretch;margin:14px 0 2px;background:{{ t.bar }};border:1px solid {{ t.border }};border-radius:13px;overflow:hidden;text-decoration:none">
+          <a href="{{ selWikiUrl }}" style="display:flex;align-items:stretch;margin:14px 0 2px;background:{{ t.bar }};border:1px solid {{ t.border }};border-radius:13px;overflow:hidden;text-decoration:none">
             <sc-if value="{{ selHasWikiImage }}">
               <img src="{{ selWikiImage }}" alt="{{ selWikiTitle }}" loading="lazy" referrerpolicy="no-referrer" style="flex:none;width:120px;align-self:stretch;min-height:120px;object-fit:cover">
             </sc-if>
@@ -3143,7 +3143,15 @@ class Component extends DCLogic {
         this.armLink(url, el.textContent||'', armFrom(el));
       });
       doc.addEventListener('pointermove', ev=>{ if(this._armed && (Math.abs(ev.clientX-sx)>8||Math.abs(ev.clientY-sy)>8)) this.cancelLink(); });
-      doc.addEventListener('pointerup', ()=>this.releaseLink());
+      doc.addEventListener('pointerup', ()=>{
+        if(this._armed && !this._holdFired) {
+          const a = this._armed;
+          this.releaseLink();
+          this.readUrlValue(a.url, a.text);
+        } else {
+          this.releaseLink();
+        }
+      });
       doc.addEventListener('pointercancel', ()=>this.cancelLink());
       doc.addEventListener('pointerleave', ()=>this.cancelLink());
       doc.addEventListener('click', ev=>{
@@ -3254,7 +3262,7 @@ class Component extends DCLogic {
       .replace(/<meta[^>]+http-equiv\s*=\s*["']?refresh["']?[^>]*>/gi,'')
       .replace(/<base\b[^>]*>/gi,'');
     doc=revealLazyImages(doc).replace(/<\/?noscript\b[^>]*>/gi,'');
-    const head='<base href="'+escAttr(baseUrl||'')+'" target="_blank">'
+    const head='<base href="'+escAttr(baseUrl||'')+'">'
       +'<meta name="referrer" content="no-referrer">'
       +'<meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">';
     if(/<head[^>]*>/i.test(doc)) doc=doc.replace(/<head([^>]*)>/i,'<head$1>'+head);
@@ -4298,7 +4306,7 @@ class Component extends DCLogic {
     while((m=prep.re.exec(p))){ if(m.index>last)out.push(p.slice(last,m.index)); const k=prep.kind[m[0]];
       if(k.type==='ent') out.push(h('span',{key:kb+'e'+i,onClick:()=>this.pick(k.id),style:{borderBottom:'2px solid '+k.color,fontWeight:600,cursor:'pointer'}},m[0]));
       else if(k.type==='hi') out.push(h('span',{key:kb+'h'+i,style:{background:'rgba(232,176,74,.42)',borderRadius:'3px',padding:'0 2px'}},m[0]));
-      else if(k.type==='link') out.push(h('a',{key:kb+'l'+i,href:k.url,target:'_blank',rel:'noopener',onClick:(ev)=>this.openLinkClick(ev,k.url,m[0]),onPointerDown:()=>this.armLink(k.url,m[0],p),onPointerUp:()=>this.releaseLink(),onPointerLeave:()=>this.cancelLink(),onPointerCancel:()=>this.cancelLink(),style:{color:t.accent,textDecoration:'underline',textDecorationStyle:'dotted',textUnderlineOffset:'3px',cursor:'pointer',fontWeight:600}},[m[0],h('span',{key:'ic',style:{fontSize:'11px',marginLeft:'1px'}},'↗')]));
+      else if(k.type==='link') out.push(h('a',{key:kb+'l'+i,href:k.url,onClick:(ev)=>this.openLinkClick(ev,k.url,m[0]),onPointerDown:()=>this.armLink(k.url,m[0],p),onPointerUp:()=>this.releaseLink(),onPointerLeave:()=>this.cancelLink(),onPointerCancel:()=>this.cancelLink(),style:{color:t.accent,textDecoration:'underline',textDecorationStyle:'dotted',textUnderlineOffset:'3px',cursor:'pointer',fontWeight:600}},[m[0],h('span',{key:'ic',style:{fontSize:'11px',marginLeft:'1px'}},'↗')]));
       else out.push(h('span',{key:kb+'t'+i,style:{background:'rgba(208,71,46,.18)',boxShadow:'inset 0 -2px #d0472e',borderRadius:'2px',padding:'0 2px'}},m[0]));
       last=m.index+m[0].length; i++; if(!m[0].length)prep.re.lastIndex++; }
     if(last<p.length)out.push(p.slice(last));
