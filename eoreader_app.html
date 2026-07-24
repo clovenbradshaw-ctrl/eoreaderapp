@@ -435,7 +435,7 @@
       <div style="padding:2px 20px;display:flex;align-items:center;gap:9px;color:{{ t.mut }};font:500 13px system-ui;white-space:nowrap;overflow:hidden"><span style="font-size:15px;color:{{ t.faint }};flex:none">☞</span><span style="overflow:hidden;text-overflow:ellipsis">Tap a name or link to inspect</span></div>
     </sc-if>
     <sc-if value="{{ hasSel }}">
-    <div style="flex:1;min-height:0;overflow-y:auto;padding:0 18px 22px">
+    <div style="flex:1;min-height:0;overflow-y:auto;padding:0 18px {{ sheetScrollPadB }}">
       <sc-if value="{{ isEntSel }}">
       <div style="display:flex;align-items:center;gap:11px">
         <span style="width:15px;height:15px;border-radius:4px;flex:none;background:{{ sel.color }}"></span>
@@ -519,7 +519,7 @@
       <div style="flex:1;min-width:0;font:700 16px system-ui;color:{{ t.text }};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ explTitle }}</div>
       <span onClick="{{ explClose }}" style="flex:none;width:28px;height:28px;border-radius:50%;background:{{ t.bar }};display:flex;align-items:center;justify-content:center;color:{{ t.mut }};font-size:13px;cursor:pointer">✕</span>
     </div>
-    <div style="flex:1;min-height:0;overflow-y:auto;padding:0 18px 22px">
+    <div style="flex:1;min-height:0;overflow-y:auto;padding:0 18px {{ sheetScrollPadB }}">
       <sc-if value="{{ explTop }}" hint-placeholder-val="{{ true }}">
         <div style="font:500 12px/1.5 system-ui;color:{{ t.mut }};margin-bottom:14px">Grouped by what actually appears together in this text — not a fixed category list.</div>
         <sc-if value="{{ explTopEmpty }}">
@@ -2758,6 +2758,7 @@ class Component extends DCLogic {
       chromeOpacity:chromeCollapsed?0:1, chromePE:chromeCollapsed?'none':'auto',
       chromeBottomT:chromeCollapsed?'translateY(96px)':'translateY(0)',
       chromeBottomOp:chromeCollapsed?0:1, chromeBottomPE:chromeCollapsed?'none':'auto',
+      sheetScrollPadB:chromeCollapsed?'22px':'calc(80px + env(safe-area-inset-bottom,0px))',
       setReader:()=>this.setState({tab:'reader'}), setCross:()=>this.setState({tab:'search'}),
       tabRB:S.tab==='reader'?activeBg:'transparent', tabRC:S.tab==='reader'?activeC:t.mut,
       tabCB:S.tab==='search'?activeBg:'transparent', tabCC:S.tab==='search'?activeC:t.mut,
