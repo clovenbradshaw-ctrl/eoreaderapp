@@ -1989,7 +1989,7 @@ class Component extends DCLogic {
       searchQ:'', searchResults:[], mediaResults:[], searching:false, searchMsg:'', libraryShelf:'web', _exTick:0,
       spaceEditOpen:false, spacePickerOpen:false, _sk:0,
       sourcesOpen:false, srcQuery:'', srcExpand:null, recPulse:0,
-      chromeHidden:false, webFrameActiveIds:[]
+      chromeHidden:false, webFrameActiveIds:[], readPct:0
     };
     this.scrollRef=(el)=>{
       if(!el) return;
@@ -2005,6 +2005,7 @@ class Component extends DCLogic {
           const y=el.scrollTop, dy=y-lastY;
           lastY=y;
           const reading=this.state.tab==='reader';
+          if(reading) this.updateReadingProgress();
           if(reading && y>56 && dy>4){ if(!this.state.chromeHidden) this.setState({chromeHidden:true}); }
           else if(!reading || dy<-4 || y<40){ if(this.state.chromeHidden) this.setState({chromeHidden:false}); }
         });
@@ -2189,7 +2190,27 @@ class Component extends DCLogic {
     if(toc.length && toc[0].pi>0) toc.unshift({title:'',level:0,pi:0,implicit:true});
     return toc;
   }
-  gotoChap(i){ const toc=(this.state.doc&&this.state.doc.analysis&&this.state.doc.analysis.toc)||[]; const n=toc.length||1; const ci=Math.max(0,Math.min(i,n-1)); this.setState({chap:ci,tocOpen:false}); requestAnimationFrame(()=>{ if(this._scroll) this._scroll.scrollTop=0; }); }
+  updateReadingProgress(){
+    const el=this._scroll; if(!el) return;
+    const max=Math.max(1, el.scrollHeight-el.clientHeight);
+    const local=Math.max(0,Math.min(1,el.scrollTop/max));
+    const d=this.state.doc, a=(d&&d.analysis)||{}, toc=a.toc||[];
+    const chapterMode=(d&&d.medium!=='Webpage')&&toc.filter(e=>!e.implicit).length>=3;
+    const pct=chapterMode&&toc.length ? ((Math.max(0,Math.min(this.state.chap,toc.length-1))+local)/toc.length*100) : (local*100);
+    const rounded=Math.max(0,Math.min(100,Math.round(pct)));
+    if(rounded!==this.state.readPct) this.setState({readPct:rounded});
+  }
+  gotoChap(i){ const toc=(this.state.doc&&this.state.doc.analysis&&this.state.doc.analysis.toc)||[]; const n=toc.length||1; const ci=Math.max(0,Math.min(i,n-1)); this.setState({chap:ci,tocOpen:false,readPct:n?Math.round(ci/n*100):0}); requestAnimationFrame(()=>{ if(this._scroll) this._scroll.scrollTop=0; this.updateReadingProgress(); }); }
+  jumpSegment(seg){
+    if(!seg) return;
+    const d=this.state.doc, toc=(d&&d.analysis&&d.analysis.toc)||[];
+    const chapterMode=(d&&d.medium!=='Webpage')&&toc.filter(e=>!e.implicit).length>=3;
+    if(chapterMode) return this.gotoChap(seg.i);
+    this.setState({tocOpen:false,tab:'reader'},()=>requestAnimationFrame(()=>{
+      anchorJump({type:'para',pi:seg.pi}, this.state.view);
+      this.updateReadingProgress();
+    }));
+  }
   analyzeText(raw, linkMap, images){
     const text=(raw||'').replace(/\r/g,'').slice(0,3000000);
     let paras=text.split(/\n{2,}/).map(s=>s.trim()).filter(Boolean);
@@ -2580,7 +2601,7 @@ class Component extends DCLogic {
     this.setState(s=>{
       const next={doc:d, importOpen:false, searchResults:[], mediaResults:[], searchMsg:'', sel:null, level:'prompt', chap:0, tab:'reader',
         searchProjection:'evidence', searchScope:'all', queryText:'', queryReading:null, queryWhy:null,
-        view:(opts&&opts.view)||this.load('eo5.readerType','native'), webFrameActiveIds:[], cardPath:[], lensByRung:{},
+        view:(opts&&opts.view)||this.load('eo5.readerType','native'), webFrameActiveIds:[], cardPath:[], lensByRung:{}, readPct:0, tocOpen:false,
         src:{label:d.name||d.title, det, dot:this.medColor(d.medium)}};
       if(!autoRecord) return next;
       const key=this.docKey(d);
@@ -3402,8 +3423,27 @@ class Component extends DCLogic {
     if(chapterMode){ ci=Math.max(0,Math.min(this.state.chap,toc.length-1)); const en=toc[ci]; title=en.implicit?(d.title||'Opening'):en.title; lo=en.implicit?en.pi:en.pi+1; hiIdx=(ci+1<toc.length)?toc[ci+1].pi:a.paras.length; }
     body.push(h('h1',{key:'t',style:{font:(reader?'700 27px':'600 22px')+'/1.26 '+fam,margin:'2px 0 8px',color:t.text,letterSpacing:'-.01em'}}, title));
     if((!chapterMode||toc[ci].implicit) && d.byline) body.push(h('div',{key:'by',style:{font:'500 12.5px system-ui',color:t.mut,marginBottom:reader?'22px':'16px'}}, d.byline));
-    if(chapterMode) body.push(h('div',{key:'loc',style:{font:'500 12px system-ui',color:t.mut,marginBottom:reader?'22px':'16px'}}, 'Chapter '+(ci+1)+' of '+toc.length));
-    else if(reader) body.push(h('div',{key:'st',style:{font:'500 12px system-ui',color:t.mut,marginBottom:'20px'}}, a.words+' words'+(plain?'':' · '+a.list.length+' entities')));
+    const segments=toc.map((c,i)=>({i,pi:c.pi,title:c.implicit?(d.title||'Opening'):c.title}));
+    const pct=Math.max(0,Math.min(100,Number.isFinite(this.state.readPct)?this.state.readPct:0));
+    const curSeg=chapterMode ? segments[ci] : segments.slice().reverse().find(x=>{
+      if(!this._scroll) return false; const el=document.getElementById('eo-p'+x.pi); return el && el.getBoundingClientRect().top<160;
+    }) || segments[0];
+    if(chapterMode) body.push(h('div',{key:'loc',style:{font:'500 12px system-ui',color:t.mut,marginBottom:reader?'10px':'10px'}}, 'Chapter '+(ci+1)+' of '+toc.length));
+    else if(reader) body.push(h('div',{key:'st',style:{font:'500 12px system-ui',color:t.mut,marginBottom:'10px'}}, a.words+' words'+(plain?'':' · '+a.list.length+' entities')));
+    if(reader) body.push(h('div',{key:'where',style:{position:'sticky',top:'0',zIndex:3,background:'linear-gradient(180deg,'+t.screen+' 72%,rgba(0,0,0,0))',padding:'0 0 14px',margin:'0 0 14px'}},[
+      h('div',{key:'card',style:{background:t.bar,border:'1px solid '+t.border,borderRadius:'14px',boxShadow:'0 8px 22px rgba(0,0,0,.05)',overflow:'hidden'}},[
+        h('div',{key:'row',onClick:()=>segments.length?this.setState({tocOpen:!this.state.tocOpen}):null,style:{display:'flex',alignItems:'center',gap:'10px',padding:'10px 12px',cursor:segments.length?'pointer':'default'}},[
+          h('div',{key:'pct',style:{font:"800 11px 'IBM Plex Mono',monospace",color:t.accent,minWidth:'38px'}}, pct+'%'),
+          h('div',{key:'txt',style:{flex:1,minWidth:0}},[
+            h('div',{key:'a',style:{font:'800 9px system-ui',letterSpacing:'.08em',textTransform:'uppercase',color:t.mut}},'You are here'),
+            h('div',{key:'b',style:{font:'700 12.5px system-ui',color:t.text,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}, curSeg?curSeg.title:'Continuous source')
+          ]),
+          segments.length?h('i',{key:'ic',className:'ph ph-list-bullets',style:{fontSize:'16px',color:t.mut}}):null
+        ]),
+        h('div',{key:'bar',style:{height:'3px',background:t.bStrong}}, h('div',{style:{height:'100%',width:pct+'%',background:t.accent,transition:'width .18s ease'}}))
+      ]),
+      (this.state.tocOpen&&segments.length)?h('div',{key:'toc',style:{display:'flex',gap:'7px',overflowX:'auto',padding:'9px 1px 1px'}},segments.map((s,i)=>h('button',{key:s.i,onClick:()=>this.jumpSegment(s),style:{flex:'0 0 auto',maxWidth:'240px',border:'1px solid '+(curSeg&&curSeg.i===s.i?t.accentLine:t.border),background:curSeg&&curSeg.i===s.i?t.accentSoft:t.card,color:t.text,borderRadius:'999px',padding:'7px 10px',font:'700 11px system-ui',cursor:'pointer',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}},(i+1)+'. '+s.title))):null
+    ]));
     const isFeed=d.medium==='Webpage';
     const _lm=a.linkMap||{}; const _lmNorm={};
     Object.keys(_lm).forEach(k=>{ _lmNorm[k.toLowerCase().replace(/\s+/g,' ').replace(/[\s.,:;!?]+$/,'').trim()]=_lm[k]; });
