@@ -2923,18 +2923,22 @@ class Component extends DCLogic {
   }
   ingestAudio(f,name,size){
     const url=URL.createObjectURL(f);
-    this.setDoc({name,title:name,medium:'Audio',mode:'media',mtype:'audio',url,size,waveformPeaks:null});
+    this.setDoc({name,title:name,medium:'Audio',mode:'media',mtype:'audio',url,size,waveformPeaks:null,audioBuffer:null});
     const AC=window.AudioContext||window.webkitAudioContext;
     if(!AC) return;
     const reader=new FileReader();
     reader.onload=()=>{
       const ctx=new AC();
-      const done=(peaks,duration)=>{
-        this.setState(s=>(s.doc&&s.doc.url===url)?{doc:{...s.doc,waveformPeaks:peaks||[],duration:duration||0}}:{});
+      // Retain the decoded AudioBuffer (omnimodal perception spec §3/§10) instead
+      // of letting it fall out of scope once peaks are computed — field-vector
+      // extraction (chroma/timbre/moments, src/senses/audio/) needs the PCM this
+      // buffer still holds, and previously nothing kept a reference to it.
+      const done=(peaks,duration,buf)=>{
+        this.setState(s=>(s.doc&&s.doc.url===url)?{doc:{...s.doc,waveformPeaks:peaks||[],duration:duration||0,audioBuffer:buf||null}}:{});
         ctx.close();
       };
-      const onDecoded=(buf)=>done(this.computeWaveformPeaks(buf,240),buf.duration);
-      const onErr=()=>done([],0);
+      const onDecoded=(buf)=>done(this.computeWaveformPeaks(buf,240),buf.duration,buf);
+      const onErr=()=>done([],0,null);
       try{
         const p=ctx.decodeAudioData(reader.result.slice(0),onDecoded,onErr);
         if(p&&p.then) p.then(onDecoded,onErr);
