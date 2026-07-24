@@ -4433,10 +4433,26 @@ class Component extends DCLogic {
 
     const OPS=['NUL','SIG','INS','SEG','CON','SYN','DEF','EVA','REC'];
     const TERR=['Void','Field','Atmos','Entity','Kind','Relation','Frame','Division','Paradigm'];
-    const STANCE=['pointed','cultivate','argument','compose'];
+    // Mirrors the canonical src/core/cube.js STANCES registry for this bundled page.
+    const STANCES=[
+      {id:'clearing',mode:'differentiating',object:'condition',label:'Clearing'},
+      {id:'dissecting',mode:'differentiating',object:'entity',label:'Dissecting'},
+      {id:'unraveling',mode:'differentiating',object:'pattern',label:'Unraveling'},
+      {id:'tending',mode:'relating',object:'condition',label:'Tending'},
+      {id:'binding',mode:'relating',object:'entity',label:'Binding'},
+      {id:'tracing',mode:'relating',object:'pattern',label:'Tracing'},
+      {id:'cultivating',mode:'generating',object:'condition',label:'Cultivating'},
+      {id:'making',mode:'generating',object:'entity',label:'Making'},
+      {id:'composing',mode:'generating',object:'pattern',label:'Composing'}
+    ];
+    if(STANCES.length!==9) throw new Error('Canonical stance registry must contain 9 entries');
+    const reportMissingStance=(id)=>{ throw new Error('Missing canonical stance distribution entry: '+id); };
+    const stanceLabels=STANCES.map(s=>s.label);
     const operators= primary? [['NUL',3],['SIG',17],['INS',13],['SEG',11],['CON',16],['SYN',9],['DEF',14],['EVA',10],['REC',7]] : this._distFrom(rnd,OPS);
     const terrain= primary? [['Void',7],['Field',18],['Atmos',6],['Entity',24],['Kind',12],['Relation',15],['Frame',9],['Division',5],['Paradigm',4]] : this._distFrom(rnd,TERR);
-    const stance= primary? [['pointed',22],['cultivate',34],['argument',31],['compose',13]] : this._distFrom(rnd,STANCE);
+    const stanceMass= primary? {clearing:10.4,dissecting:13.0,unraveling:8.0,tending:14.0,binding:19.0,tracing:12.0,cultivating:0.6,making:12.0,composing:11.0} : Object.fromEntries(this._distFrom(rnd,stanceLabels).map(([label,pct])=>[STANCES.find(s=>s.label===label).id,pct]));
+    for(const stanceDef of STANCES){ if(!(stanceDef.id in stanceMass)) reportMissingStance(stanceDef.id); }
+    const stance=STANCES.map(stanceDef=>[stanceDef.label,stanceMass[stanceDef.id],stanceDef]);
 
     const n=27, GLYPHS='▁▂▃▄▅▆▇█';
     const mkTrace=(peaks)=>Array.from({length:n},(_,i)=>{ let v=0.6; for(const [c,hh,w] of peaks) v+=hh*Math.exp(-((i-c)*(i-c))/(2*w*w)); return Math.max(0,Math.min(7,Math.round(v))); });
@@ -4645,10 +4661,28 @@ class Component extends DCLogic {
         h('span',{key:'p',style:{width:'28px',flex:'none',textAlign:'right',font:"700 10px 'IBM Plex Mono',monospace",color:t.mut}},pct+'%')
       ]))
     ]);
+    const stanceMatrix=(rows)=>{
+      const modeOrder=['differentiating','relating','generating'], objectOrder=['condition','entity','pattern'];
+      const byCoord=new Map(rows.map(([label,pct,meta])=>[meta.mode+'/'+meta.object,{label,pct}]));
+      return h('div',{key:'stanceMatrix',style:{flex:'1 1 340px',minWidth:'300px'}},[
+        h('div',{key:'h',style:{font:"800 9px 'IBM Plex Mono',monospace",letterSpacing:'.06em',color:t.mut,marginBottom:'7px'}},'9 STANCES · RESOLUTION FACE'),
+        h('div',{key:'g',style:{display:'grid',gridTemplateColumns:'102px repeat(3,minmax(76px,1fr))',gap:'5px 8px',alignItems:'baseline'}},[
+          h('span',{key:'corner'}),...objectOrder.map(o=>h('span',{key:o,style:{font:"800 8.5px 'IBM Plex Mono',monospace",color:t.mut,textTransform:'uppercase'}},o)),
+          ...modeOrder.flatMap(mode=>[
+            h('span',{key:mode,style:{font:"800 8.5px 'IBM Plex Mono',monospace",color:t.mut,textTransform:'uppercase'}},mode),
+            ...objectOrder.map(object=>{ const cell=byCoord.get(mode+'/'+object); return h('span',{key:mode+object,title:cell.label+' · '+cell.pct+'%',style:{font:'700 10px system-ui',color:t.text,whiteSpace:'nowrap'}},cell.label+' '+cell.pct+'%'); })
+          ])
+        ])
+      ]);
+    };
     const folds=h('div',{style:{background:t.card,border:'1px solid '+t.border,borderRadius:'14px',padding:'13px',marginBottom:'12px'}},[
-      h('div',{key:'h',style:{font:"800 9px 'IBM Plex Mono',monospace",letterSpacing:'.08em',color:t.mut,marginBottom:'10px'}},'FOLD DISTRIBUTION'),
-      h('div',{key:'r',style:{display:'flex',gap:'16px',flexWrap:'wrap'}},[distCol('OPERATOR MASS',detail.operators), distCol('TERRAIN',detail.terrain), distCol('STANCE',detail.stance)]),
-      h('div',{key:'f',style:{marginTop:'8px',font:'600 10.5px system-ui',color:t.mut}},'⃠ SYN·Cultivate 0.0% — forbidden cell, expected')
+      h('div',{key:'h',style:{font:"800 9px 'IBM Plex Mono',monospace",letterSpacing:'.08em',color:t.mut,marginBottom:'10px'}},'FOLD DISTRIBUTION · 9 OPERATORS · 9 TERRAINS · 9 STANCES'),
+      h('div',{key:'r',style:{display:'flex',gap:'16px',flexWrap:'wrap'}},[distCol('9 OPERATORS',detail.operators), distCol('9 TERRAINS',detail.terrain), stanceMatrix(detail.stance)]),
+      h('div',{key:'f',style:{marginTop:'10px',padding:'9px 10px',background:t.bar,border:'1px solid '+t.border,borderRadius:'10px',font:'600 10.5px/1.5 system-ui',color:t.mut}},[
+        h('b',{key:'b',style:{display:'block',color:t.text,font:'800 10px system-ui',letterSpacing:'.06em'}},'DESERT CELL'),
+        'Generation × Condition is empirically sparse. Cultivating may arrange conditions but cannot fabricate the emergence.',
+        h('div',{key:'m',style:{marginTop:'4px',font:"700 10px 'IBM Plex Mono',monospace",color:t.mut}},'Instruction legality: forbidden · Observed corpus mass: 0.6% · Current fold mass: 0.6%')
+      ])
     ]);
 
     const traceRow=(label,arr)=>h('div',{key:label,style:{display:'flex',alignItems:'baseline',gap:'8px'}},[
