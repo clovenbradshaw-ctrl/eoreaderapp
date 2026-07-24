@@ -80,7 +80,7 @@
     </div>
   </div>
 
-  <div ref="{{ scrollRef }}" style="flex:1;min-height:0;overflow-y:auto;position:relative;padding-bottom:calc(88px + env(safe-area-inset-bottom,0px))">
+  <div ref="{{ scrollRef }}" style="flex:1;min-height:0;overflow-y:auto;position:relative;padding-bottom:{{ scrollPadB }}">
     <sc-if value="{{ isReader }}" hint-placeholder-val="{{ true }}">
       <div style="position:relative;min-height:100%">{{ docEl }}</div>
     </sc-if>
@@ -2762,6 +2762,7 @@ class Component extends DCLogic {
       tabRB:S.tab==='reader'?activeBg:'transparent', tabRC:S.tab==='reader'?activeC:t.mut,
       tabCB:S.tab==='search'?activeBg:'transparent', tabCC:S.tab==='search'?activeC:t.mut,
       view:S.view, viewLabel:vlabel[S.view], progW:((vi+1)/3*100).toFixed(0)+'%',
+      scrollPadB:(S.tab==='reader'&&S.view==='annotated')?'calc(66px + env(safe-area-inset-bottom,0px))':'calc(88px + env(safe-area-inset-bottom,0px))',
       dot0:vi>=0?dotOn:dotOff, dot1:vi>=1?dotOn:dotOff, dot2:vi>=2?dotOn:dotOff,
       setV0:()=>{ this.save('eo5.readerType','native'); this.setState({view:'native'}); },
       setV1:()=>{ this.save('eo5.readerType','annotated'); this.setState({view:'annotated'}); },
