@@ -2200,7 +2200,7 @@ class Component extends DCLogic {
     const suffix=/\b(Inc|Corp|Corporation|Company|Co|LLC|Ltd|Limited|University|Institute|Foundation|Ministry|Department|Agency|Committee|Council|Bank|Labs|Systems|Technologies|Group|Holdings)\.?$/;
     const pal=['#c77dba','#5b9bd5','#6bbf8a','#e0a94c','#c0662e','#8e6fb3','#4f9a6b','#2a78d6','#b0842f','#d0472e','#3fb0a0','#a0708a'];
     const freq={}, surfaces={};
-    const add=(name, weight)=>{ name=(''+name).replace(/\s+/g,' ').replace(/['’]s$/,'').replace(/['’]$/,'').replace(/[.,;:!?)]$/,'').trim(); if(!name||name.length<2||name.length>90)return; const parts=name.split(' '); if(parts.length===1 && stop.has(name))return; if(name.toUpperCase()===name && name.length>6)return; const key=name.toLowerCase(); freq[key]=(freq[key]||0)+(weight||1); if(!surfaces[key]||name.length>surfaces[key].length)surfaces[key]=name; };
+    const add=(name, weight)=>{ name=(''+name).replace(/\s+/g,' ').replace(/['’]s$/,'').replace(/['’]$/,'').replace(/[.,;:!?)]$/,'').trim(); if(!name||name.length<2||name.length>90)return null; const parts=name.split(' '); if(parts.length===1 && stop.has(name))return null; if(name.toUpperCase()===name && name.length>6)return null; const key=name.toLowerCase(); freq[key]=(freq[key]||0)+(weight||1); if(!surfaces[key]||name.length>surfaces[key].length)surfaces[key]=name; return key; };
     // Prose-anchored harvesting: a real named entity is embedded in running prose —
     // a sentence with lowercase context and end punctuation — whereas page chrome
     // ("Listen", "Download Embed", "Transcript Toggle", "Getty Images") surfaces only
@@ -2209,13 +2209,18 @@ class Component extends DCLogic {
     const isProse=(p)=>{ const s=(''+p).trim(); if(s.length<50) return false; if(!/[.!?]/.test(s)) return false; if((s.match(/[a-z]/g)||[]).length<20) return false; return s.split(/\s+/).filter(Boolean).length>=10; };
     const proseParas=paras.filter(isProse);
     const entSrc=(proseParas.length>=1?proseParas.join('\n\n'):whole);
+    // A single-token candidate is kept only if it appears capitalized MID-sentence at
+    // least once. A proper noun ("Margaret", "Geneva") does; a sentence-initial function
+    // word ("There", "My", "Do", "Its", "Oh", "Six") is capitalized solely because it
+    // opens a sentence and never occurs capitalized mid-sentence, so it is dropped below.
+    const midCap={};
     const cap=/\b([A-Z][a-zA-Z0-9&.'’-]*(?:\s+(?:of|the|and|for|de|du|van|von|[A-Z][a-zA-Z0-9&.'’-]*)){0,5})\b/g; let m;
-    while((m=cap.exec(entSrc))) add(m[1],1);
+    while((m=cap.exec(entSrc))){ const key=add(m[1],1); if(!key)continue; if(m[1].indexOf(' ')>=0){ midCap[key]=true; continue; } const pre=entSrc.slice(Math.max(0,m.index-24),m.index).replace(/[\s"'“”‘’(\[]+$/,''); if(pre!=='' && !/[.?!:;\n–—]$/.test(pre)) midCap[key]=true; }
     const emails=whole.match(/[\w.+-]+@[\w.-]+\.[a-z]{2,}/gi)||[]; emails.forEach(x=>add(x,3));
     const urls=whole.match(/https?:\/\/[^\s)]+/gi)||[]; urls.forEach(x=>{ try{ add(new URL(x).host.replace(/^www\./,''),3); }catch(_){}});
     const money=whole.match(/(?:[$€£]\s?\d[\d,.]*(?:\s?(?:million|billion|trillion|m|bn))?|\b\d[\d,.]*\s?(?:million|billion|trillion|percent|%)\b)/gi)||[]; money.forEach(x=>add(x,2));
     const dates=whole.match(/\b(?:20\d{2}|19\d{2}|Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\s+\d{1,2}(?:,\s*\d{4})?|\b\d{1,2}\/\d{1,2}\/\d{2,4}\b/g)||[]; dates.forEach(x=>add(x,2));
-    let ents=Object.keys(freq).map(k=>({key:k,name:surfaces[k],count:freq[k]})).filter(e=>(e.count>=2||e.name.includes(' ')||suffix.test(e.name)||/@|\.|\d/.test(e.name))&&!/^\d+$/.test(e.name)).sort((a,b)=>b.count-a.count||b.name.length-a.name.length);
+    let ents=Object.keys(freq).map(k=>({key:k,name:surfaces[k],count:freq[k]})).filter(e=>{ if(/^\d+$/.test(e.name))return false; if(!e.name.includes(' ') && /^[A-Za-z][A-Za-z'’-]*$/.test(e.name) && !midCap[e.key])return false; return e.count>=2||e.name.includes(' ')||suffix.test(e.name)||/@|\.|\d/.test(e.name); }).sort((a,b)=>b.count-a.count||b.name.length-a.name.length);
     const entById={},list=[];
     ents.slice(0,240).forEach((e,i)=>{ const id='e'+i,color=pal[i%pal.length],ctx=[];
       const er=new RegExp('(^|\\b)'+e.name.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'(\\b|$)','i');
@@ -2877,7 +2882,7 @@ class Component extends DCLogic {
   wikiKey(name){ return String(name||'').toLowerCase().replace(/\s+/g,' ').trim(); }
   wikiToks(s){ return String(s||'').toLowerCase().split(/[^a-z0-9]+/).filter(t=>t.length>1 && !this.WIKI_GENERIC().has(t)); }
   clipExtract(s,max){ const t=String(s||'').replace(/\s+/g,' ').trim(); if(t.length<=max) return t; const cut=t.slice(0,max); const dot=cut.lastIndexOf('. '); return dot>max*0.5 ? cut.slice(0,dot+1) : cut.replace(/\s+\S*$/,'')+'…'; }
-  async fetchEntityWiki(name, ctxNames){
+  async fetchEntityWiki(name, ctxNames, ctxText){
     const q=String(name||'').trim(); if(!q) return null;
     const url='https://en.wikipedia.org/w/api.php?action=query&format=json&origin=*&redirects=1'
       +'&generator=search&gsrlimit=5&gsrsearch='+encodeURIComponent(q)
@@ -2887,20 +2892,37 @@ class Component extends DCLogic {
     const pages=Object.values((j&&j.query&&j.query.pages)||{})
       .filter(p=>p&&p.extract&&(!p.pageprops||p.pageprops.disambiguation===undefined));
     if(!pages.length) return null;
-    const nameToks=this.wikiToks(q);
-    const ctxToks=new Set(); (ctxNames||[]).forEach(n=>this.wikiToks(n).forEach(t=>{ if(t.length>=4) ctxToks.add(t); }));
+    const nameToks=this.wikiToks(q), nameSet=new Set(nameToks);
+    // Grounding vocabulary for this entity in THIS source: names of co-occurring
+    // entities plus distinctive words from the sentences that mention it. The entity's
+    // own name tokens are excluded — otherwise a bare name would self-corroborate
+    // (e.g. "Margaret" appears in the "Margaret Thatcher" summary, proving nothing).
+    const ctxToks=new Set();
+    (ctxNames||[]).forEach(n=>this.wikiToks(n).forEach(t=>{ if(t.length>=4 && !nameSet.has(t)) ctxToks.add(t); }));
+    this.wikiToks(ctxText||'').forEach(t=>{ if(t.length>=5 && !nameSet.has(t)) ctxToks.add(t); });
     const scored=pages.map(p=>{
       const titleToks=this.wikiToks(p.title);
       const overlap=nameToks.filter(t=>titleToks.indexOf(t)>=0).length;
-      const affinity=nameToks.length?overlap/nameToks.length:0;
+      const affinity=nameToks.length?overlap/nameToks.length:0;       // share of the NAME the title covers
+      const titleCover=titleToks.length?overlap/titleToks.length:0;   // share of the TITLE the name covers
       const ex=(p.extract||'').toLowerCase();
       let coref=0; ctxToks.forEach(t=>{ if(ex.indexOf(t)>=0) coref++; });
-      return {p,affinity,coref,score:affinity*2+coref};
+      return {p,affinity,titleCover,coref,score:affinity*2+coref*2};
     }).sort((a,b)=>b.score-a.score);
-    const best=scored[0], p=best.p, multiTok=nameToks.length>=2;
-    // Confirm on a near-exact title match, or a decent lexical match that is either a
-    // multi-word proper name or corroborated by a shared context name from this source.
-    const confirmed = best.affinity>=0.99 || (best.affinity>=0.5 && (multiTok || best.coref>=1));
+    const best=scored[0], p=best.p;
+    // Confirmation gate (the honesty rule): matching the article to the entity's NAME
+    // alone is not evidence they are the same referent. A bare first name like
+    // "Margaret" perfectly covers the title "Margaret Thatcher", yet is almost never
+    // her. Two ways to confirm:
+    //  1. The title IS the name — nearly the same string in both directions (e.g.
+    //     "London" → "London", "Victor Frankenstein" → "Victor Frankenstein"). The page
+    //     is definitionally about the named thing.
+    //  2. The name only partially matches the title, so demand corroboration: the
+    //     article's summary must share distinctive vocabulary with how this source talks
+    //     about the entity (co-occurring names / surrounding words), not just the name.
+    const titleIsName = best.affinity>=0.99 && best.titleCover>=0.75;
+    const partialMatch = best.affinity>=0.5 && !titleIsName;
+    const confirmed = titleIsName || (partialMatch && best.coref>=1);
     return {
       title:p.title,
       description:p.description||'',
@@ -2919,7 +2941,8 @@ class Component extends DCLogic {
     if(cache[key]!==undefined) return; // busy, resolved, or known-absent already
     this.setState(s=>({wiki:{...(s.wiki||{}),[key]:{busy:true}}}));
     const ctxNames=(ent.related||[]).map(r=>r.n).concat((ent.conns||[]).map(c=>c.t));
-    this.fetchEntityWiki(ent.name, ctxNames).then(res=>{
+    const ctxText=(ent.ctx||[]).slice(0,12).join(' ');
+    this.fetchEntityWiki(ent.name, ctxNames, ctxText).then(res=>{
       const val=(res&&res.confirmed)?res:{none:true};
       this.setState(s=>{ const w={...(s.wiki||{}),[key]:val}; this.saveWikiCache(w); return {wiki:w}; });
     }).catch(()=>this.setState(s=>({wiki:{...(s.wiki||{}),[key]:{none:true}}})));
