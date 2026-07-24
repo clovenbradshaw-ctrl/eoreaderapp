@@ -20,7 +20,7 @@
 <script>if(window.pdfjsLib){pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';}</script>
 <style>
   *{box-sizing:border-box}
-  body{margin:0;background:#dcd9d2;-webkit-font-smoothing:antialiased}
+  body{margin:0;background:#f7f3ea;-webkit-font-smoothing:antialiased}
   a{color:inherit;text-decoration:none}a:hover{text-decoration:underline}
   /* Native/annotated source views fill the full reading area rather than the capped reader column. */
   .eo-native-fill{max-width:none!important;width:100%!important;height:100%}
@@ -34,7 +34,7 @@
      removed here so the deployed product reads as an application rather than
      a mockup. The mobile-first component hierarchy is retained — the column
      is simply capped for readable line lengths and centered on wide screens. */
-  .eo-shell{min-height:100svh!important;padding:0!important;align-items:stretch;justify-content:center;background:#dcd9d2}
+  .eo-shell{min-height:100svh!important;padding:0!important;align-items:stretch;justify-content:center;background:#f7f3ea}
   .eo-device{width:100%!important;min-height:100svh!important;padding:0!important;border-radius:0!important;box-shadow:none!important;background:transparent!important}
   .eo-screen{width:100%!important;height:100svh!important;min-height:100svh!important;border-radius:0!important}
   /* Phone-width band: keep the original single-column reader capped for line length. */
@@ -1025,6 +1025,9 @@
       <div style="width:40px;height:5px;border-radius:3px;background:{{ t.bStrong }};margin:0 auto 14px"></div>
       <div style="display:flex;align-items:center;margin-bottom:14px"><div style="font:700 16px system-ui;color:{{ t.text }}">Settings</div><span onClick="{{ closeSettings }}" style="margin-left:auto;color:{{ t.accent }};font:600 13px system-ui;cursor:pointer">Done</span></div>
       <div style="display:flex;align-items:center;gap:9px;padding:7px 0"><span style="font:500 14px system-ui;color:{{ t.text }}">Appearance</span><span style="margin-left:auto;font:500 12.5px system-ui;color:{{ t.mut }}">{{ themeGlyph }}</span><span onClick="{{ flipDark }}" style="width:32px;height:18px;border-radius:20px;background:{{ appearTrack }};position:relative;flex:none;transition:background .2s;cursor:pointer"><span style="position:absolute;top:2px;left:{{ appearKnob }};width:14px;height:14px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25);transition:left .2s"></span></span></div>
+      <div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-top:1px solid {{ t.border }}"><label style="flex:1;font:500 14px system-ui;color:{{ t.text }}">Background color</label><input type="color" value="{{ customBg }}" onInput="{{ onCustomBg }}" style="width:44px;height:32px;border:1px solid {{ t.border }};border-radius:8px;background:{{ t.bar }};padding:3px;cursor:pointer"></div>
+      <div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-top:1px solid {{ t.border }}"><label style="flex:1;font:500 14px system-ui;color:{{ t.text }}">Text color</label><input type="color" value="{{ customText }}" onInput="{{ onCustomText }}" style="width:44px;height:32px;border:1px solid {{ t.border }};border-radius:8px;background:{{ t.bar }};padding:3px;cursor:pointer"></div>
+      <div onClick="{{ resetCustomColors }}" style="display:flex;align-items:center;gap:9px;padding:10px 0;border-top:1px solid {{ t.border }};cursor:pointer"><span style="font:600 13px system-ui;color:{{ t.accent }}">Reset to calm off-white</span></div>
       <div onClick="{{ openLayersFromSettings }}" style="display:flex;align-items:center;gap:9px;padding:11px 0 0;margin-top:4px;border-top:1px solid {{ t.border }};cursor:pointer"><span style="font:500 14px system-ui;color:{{ t.text }}">Reading layers</span><span style="margin-left:auto;color:{{ t.faint }};font-size:15px">›</span></div>
     </div>
   </sc-if>
@@ -2474,6 +2477,7 @@ class Component extends DCLogic {
     if(!proxy||!proxy.fetch) proxy={on:true,fetch:'https://n8n.intelechia.com/webhook/feed?url={urlenc}',search:'https://s.jina.ai/?q={q}'};
     this.state = {
       dark:(props.theme||'Light')==='Dark',
+      customBg:this.colorValue(this.load('eo5.customBg','#f7f3ea'),'#f7f3ea'), customText:this.colorValue(this.load('eo5.customText','#1e1c19'),'#1e1c19'),
       tab:'reader',
       betaPrompt:'', betaOrgans:{text:true,image:true,audio:true,video:false,math:false}, betaTurn:null,
       searchProjection:'evidence', searchScope:'all', queryText:'', queryReading:null, queryWhy:null,
@@ -2601,11 +2605,14 @@ class Component extends DCLogic {
   addSpace(){ this.setState(s=>{ const used=new Set(s.spaces.map(x=>x.accent)); const acc=this.PALETTE.find(c=>!used.has(c))||this.PALETTE[s.spaces.length%this.PALETTE.length]; const id='sp'+Date.now().toString(36); const spaces=[...s.spaces,{id,name:'New space',accent:acc}]; this.save('eo5.spaces',spaces); this.save('eo5.space',id); return {spaces,spaceId:id,spaceEditOpen:true,tab:'reader',sel:null,_sk:s._sk+1}; }); }
   setSpaceField(patch){ this.setState(s=>{ const spaces=s.spaces.map(x=>x.id===s.spaceId?{...x,...patch}:x); this.save('eo5.spaces',spaces); return {spaces}; }); }
   deleteSpace(){ this.setState(s=>{ if(s.spaces.length<=1) return {}; const spaces=s.spaces.filter(x=>x.id!==s.spaceId); const memoryBySpace={...s.memoryBySpace}; delete memoryBySpace[s.spaceId]; this.save('eo5.spaces',spaces); this.save('eo5.memBySpace',memoryBySpace); this.save('eo5.space',spaces[0].id); return {spaces,memoryBySpace,spaceId:spaces[0].id,spaceEditOpen:false}; }); }
+  colorValue(v, fallback){ const s=String(v||'').trim(); return /^#[0-9a-fA-F]{6}$/.test(s)?s:fallback; }
+  setCustomColor(key, storageKey, value, fallback){ const color=this.colorValue(value, fallback); this.save(storageKey, color); this.setState({[key]:color}); }
+  resetCustomColors(){ const customBg='#f7f3ea', customText='#1e1c19'; this.save('eo5.customBg', customBg); this.save('eo5.customText', customText); this.setState({customBg, customText}); }
 
   theme(){
-    const light={bg:'#dcd9d2',screen:'#fbfaf7',bar:'#f4f1ea',border:'#e7e3d9',bStrong:'#d3cec2',text:'#1e1c19',t2:'#5c574d',mut:'#9a9385',faint:'#b0a99a',card:'#ffffff',sheet:'#ffffff'};
+    const light={bg:'#f7f3ea',screen:'#fdfaf4',bar:'#f4f1ea',border:'#e7e3d9',bStrong:'#d3cec2',text:'#1e1c19',t2:'#5c574d',mut:'#9a9385',faint:'#b0a99a',card:'#ffffff',sheet:'#ffffff'};
     const night={bg:'#05060c',screen:'#0e1322',bar:'#171d30',border:'#242e4a',bStrong:'#333d5c',text:'#eef1fb',t2:'#b8c0da',mut:'#828bab',faint:'#68719a',card:'#161d31',sheet:'#151b2c'};
-    const base=this.state.dark?night:light;
+    const base={...(this.state.dark?night:light), bg:this.state.customBg||light.bg, screen:this.state.customBg||light.screen, text:this.state.customText||light.text};
     const sp=this.curSpace(); const acc=(sp&&sp.accent)||'#c0662e'; const rgb=this.hexRgb(acc);
     return {...base, accent:acc,
       accentSoft:`rgba(${rgb},.12)`, accentWash:`rgba(${rgb},.07)`, accentLine:`rgba(${rgb},.34)`,
@@ -5387,6 +5394,10 @@ class Component extends DCLogic {
       recordNew:()=>this.setState({sourcesOpen:false,importOpen:true}),
       memCount:memList.length, memEmpty:memList.length===0, memHas:memList.length>0, spaceName:sp?sp.name:'',
       t, themeGlyph:dark?'☾':'☀', flipDark:()=>this.setState({dark:!dark}),
+      customBg:S.customBg||'#f7f3ea', customText:S.customText||'#1e1c19',
+      onCustomBg:(e)=>this.setCustomColor('customBg','eo5.customBg',e.target.value,'#f7f3ea'),
+      onCustomText:(e)=>this.setCustomColor('customText','eo5.customText',e.target.value,'#1e1c19'),
+      resetCustomColors:()=>this.resetCustomColors(),
       memColor:memIn?'#2f7a55':t.accent, memBg:memIn?'rgba(47,122,85,.10)':t.accentSoft, memBorder:memIn?'#2f7a55':t.accentLine,
       memIconClass:memIn?'ph-fill ph-bookmark-simple':'ph ph-bookmark-simple', memTitle:memIn?'Recorded in memory — tap to exclude':'Excluded from memory — tap to record',
       toggleMemBtn:()=>{ if(d) this.toggleMemory(d); },
