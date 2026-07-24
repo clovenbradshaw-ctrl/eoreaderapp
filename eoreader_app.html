@@ -208,7 +208,7 @@
         <div style="text-align:center;padding:48px 22px;color:{{ t.mut }}">
           <div style="font-size:30px;margin-bottom:12px;color:{{ t.faint }}">◍</div>
           <div style="font:700 15px system-ui;color:{{ t.text }};margin-bottom:7px">{{ spaceName }} has no memory yet</div>
-          <div style="font:400 13px/1.55 system-ui">Read anything, then <b style="color:{{ t.accent }}">Add to memory</b>. What you keep becomes this space's corpus — the structure across it shows up here.</div>
+          <div style="font:400 13px/1.55 system-ui">Pages you visit are <b style="color:{{ t.accent }}">recorded automatically</b>. Excluded pages stay out of this space's corpus — the structure across it shows up here.</div>
         </div>
       </sc-if>
 
@@ -1934,7 +1934,7 @@ class Component extends DCLogic {
       structFilter:'all', structExp:{}, structRows:{}, structActive:{},
       doc:this.loadingDoc('https://www.npr.org'),
       src:{label:'npr.org',det:'Loading…',dot:'#5b9bd5'},
-      spaces, spaceId, memoryBySpace,
+      spaces, spaceId, memoryBySpace, memoryExclusions:this.load('eo5.memExclusions',{}),
       proxy, proxyOpen:false,
       searchQ:'', searchResults:[], mediaResults:[], searching:false, searchMsg:'', libraryShelf:'web', _exTick:0,
       spaceEditOpen:false, spacePickerOpen:false, _sk:0,
@@ -2517,11 +2517,28 @@ class Component extends DCLogic {
   bucketOf(m){ const b={Webpage:'Web & news',PDF:'Documents',Document:'Documents',Slides:'Documents',Spreadsheet:'Data & sheets',Data:'Data & sheets',Code:'Code',Image:'Media',Audio:'Media',Video:'Media',Text:'Notes'}; return b[m]||'Other'; }
   setDoc(d, opts){
     const det = d.mode==='loading' ? 'Loading…' : (d.mode==='text' ? (d.medium+' · '+this.nf(d.analysis.words)+' words') : (d.medium+' · imported'));
+    const autoRecord = !(opts&&opts.skipRecord) && d && d.kind!=='loading' && d.mode!=='loading';
     this._webFrameDoc=null; this._webFrameCleanHTML=null; this._webFrameClickBound=false; this._webFrameActiveIds=[];
-    this.setState({doc:d, importOpen:false, searchResults:[], mediaResults:[], searchMsg:'', sel:null, level:'prompt', chap:0, tab:'reader',
-      searchProjection:'evidence', searchScope:'all', queryText:'', queryReading:null, queryWhy:null,
-      view:(opts&&opts.view)||this.load('eo5.readerType','native'), webFrameActiveIds:[], cardPath:[], lensByRung:{},
-      src:{label:d.name||d.title, det, dot:this.medColor(d.medium)}});
+    this.setState(s=>{
+      const next={doc:d, importOpen:false, searchResults:[], mediaResults:[], searchMsg:'', sel:null, level:'prompt', chap:0, tab:'reader',
+        searchProjection:'evidence', searchScope:'all', queryText:'', queryReading:null, queryWhy:null,
+        view:(opts&&opts.view)||this.load('eo5.readerType','native'), webFrameActiveIds:[], cardPath:[], lensByRung:{},
+        src:{label:d.name||d.title, det, dot:this.medColor(d.medium)}};
+      if(!autoRecord) return next;
+      const key=this.docKey(d);
+      const excluded=(s.memoryExclusions&&s.memoryExclusions[s.spaceId]||[]).includes(key);
+      if(excluded) return next;
+      const item=this.memoryItemForDoc(d,{recording:true,proactive:true});
+      const cur=(s.memoryBySpace[s.spaceId]||[]);
+      const prior=cur.find(m=>m.key===item.key);
+      const merged=prior?{...prior,...item,id:prior.id,addedAt:prior.addedAt||item.addedAt,recording:prior.recording!==false,lastUpdate:Date.now(),proactive:true}:item;
+      const list=[merged,...cur.filter(m=>m.key!==item.key)];
+      const memoryBySpace={...s.memoryBySpace,[s.spaceId]:list};
+      this.save('eo5.memBySpace',memoryBySpace);
+      next.memoryBySpace=memoryBySpace;
+      next.structActive={...s.structActive,[merged.id]:true};
+      return next;
+    });
   }
   resetSample(){ this.setState({doc:this.demoDoc(), importOpen:false, sel:null, level:'prompt', chap:0, tab:'reader', view:'reader', cardPath:[], lensByRung:{}, src:{label:'theatlantic.com/…/the-quiet-collapse',det:'News · sample',dot:'#c0662e'}}); }
 
@@ -2529,21 +2546,34 @@ class Component extends DCLogic {
   mem(){ return (this.state.memoryBySpace||{})[this.state.spaceId]||[]; }
   docKey(d){ return d.url||d.name||d.title||'doc'; }
   inMemory(d){ const k=this.docKey(d); return this.mem().some(m=>m.key===k); }
-  toggleMemory(d){ if(this.inMemory(d)) this.removeFromMemory(this.docKey(d)); else this.addToMemory(d); }
-  addToMemory(d){
+  toggleMemory(d){ if(this.inMemory(d)) this.excludeFromMemory(this.docKey(d)); else this.addToMemory(d); }
+  memoryItemForDoc(d, opts){
     const a=d.analysis;
     const ents=(a&&a.list?a.list:[]).slice(0,40).map(e=>({name:e.name,count:e.count,color:e.color,links:e.links||0,related:(e.related||[]).slice(0,3)}));
-    const item={ key:this.docKey(d), id:'mem'+Date.now().toString(36),
+    return { key:this.docKey(d), id:'mem'+Date.now().toString(36),
       title:d.title||d.name||'Untitled', source:d.name||d.url||'', medium:d.medium, addedAt:Date.now(),
-      words:a?a.words:0, links:a?a.links:0, ents,
+      words:a?a.words:0, links:a?a.links:0, ents, recording:!!(opts&&opts.recording),
+      lastUpdate:Date.now(), newCount:0, proactive:!!(opts&&opts.proactive),
       highlights:(a&&a.hi?a.hi:[]).slice(0,20),
       toc:(a&&a.toc?a.toc:[]).filter(x=>!x.implicit).map(x=>x.title).filter(Boolean).slice(0,14) };
+  }
+  addToMemory(d){
+    const item=this.memoryItemForDoc(d);
     this.setState(s=>{ const cur=(s.memoryBySpace[s.spaceId]||[]); const list=[item,...cur.filter(m=>m.key!==item.key)];
-      const memoryBySpace={...s.memoryBySpace,[s.spaceId]:list}; this.save('eo5.memBySpace',memoryBySpace);
-      return {memoryBySpace, structActive:{...s.structActive,[item.id]:true}}; });
+      const memoryBySpace={...s.memoryBySpace,[s.spaceId]:list};
+      const exCur=(s.memoryExclusions&&s.memoryExclusions[s.spaceId]||[]).filter(k=>k!==item.key);
+      const memoryExclusions={...(s.memoryExclusions||{}),[s.spaceId]:exCur};
+      this.save('eo5.memBySpace',memoryBySpace); this.save('eo5.memExclusions',memoryExclusions);
+      return {memoryBySpace, memoryExclusions, structActive:{...s.structActive,[item.id]:true}}; });
   }
   removeFromMemory(key){ this.setState(s=>{ const cur=(s.memoryBySpace[s.spaceId]||[]).filter(m=>m.key!==key);
     const memoryBySpace={...s.memoryBySpace,[s.spaceId]:cur}; this.save('eo5.memBySpace',memoryBySpace); return {memoryBySpace}; }); }
+  excludeFromMemory(key){ this.setState(s=>{ const cur=(s.memoryBySpace[s.spaceId]||[]).filter(m=>m.key!==key);
+    const memoryBySpace={...s.memoryBySpace,[s.spaceId]:cur};
+    const exCur=s.memoryExclusions&&s.memoryExclusions[s.spaceId]||[];
+    const memoryExclusions={...(s.memoryExclusions||{}),[s.spaceId]:exCur.includes(key)?exCur:[key,...exCur]};
+    this.save('eo5.memBySpace',memoryBySpace); this.save('eo5.memExclusions',memoryExclusions);
+    return {memoryBySpace,memoryExclusions}; }); }
 
   // ── seed: a few sources across spaces so recording/toggle/membership are visible on first run ──
   mkSeed(o){ return { key:o.key, id:o.id, title:o.title, source:o.source||o.key, medium:o.medium,
@@ -3569,7 +3599,7 @@ class Component extends DCLogic {
       memCount:memList.length, memEmpty:memList.length===0, memHas:memList.length>0, spaceName:sp?sp.name:'',
       t, themeGlyph:dark?'☾':'☀', flipDark:()=>this.setState({dark:!dark}),
       memColor:memIn?'#2f7a55':t.accent, memBg:memIn?'rgba(47,122,85,.10)':t.accentSoft, memBorder:memIn?'#2f7a55':t.accentLine,
-      memIconClass:memIn?'ph-fill ph-bookmark-simple':'ph ph-bookmark-simple', memTitle:memIn?'Saved to space — tap to remove':'Save to space',
+      memIconClass:memIn?'ph-fill ph-bookmark-simple':'ph ph-bookmark-simple', memTitle:memIn?'Recorded in memory — tap to exclude':'Excluded from memory — tap to record',
       toggleMemBtn:()=>{ if(d) this.toggleMemory(d); },
       isReader:S.tab==='reader', isSearch:S.tab==='search',
       isOverview:S.tab==='overview', setOverview:()=>this.setState({tab:'overview'}),
