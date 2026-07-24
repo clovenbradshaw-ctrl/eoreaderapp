@@ -177,6 +177,10 @@
         <sc-for list="{{ sel.ctx }}" as="x" hint-placeholder-count="3">
           <div style="display:flex;gap:9px;align-items:flex-start;padding:9px 0;border-top:1px solid {{ t.border }}"><span style="width:6px;height:6px;border-radius:50%;background:{{ sel.color }};margin-top:6px;flex:none"></span><div style="flex:1;font:400 13.5px/1.5 'Source Serif 4',Georgia,serif;color:{{ t.t2 }}">{{ x }}</div></div>
         </sc-for>
+        <div style="margin-top:14px;padding:10px 12px;background:{{ t.bar }};border:1px dashed {{ t.border }};border-radius:12px">
+          <div style="font:800 9px 'IBM Plex Mono',monospace;letter-spacing:.08em;text-transform:uppercase;color:{{ t.mut }}">Audit trail · behind this surface</div>
+          <div style="font:500 11.5px/1.5 system-ui;color:{{ t.mut }};margin-top:5px">{{ selAuditNote }}</div>
+        </div>
       </sc-if>
       <sc-if value="{{ profileNoSel }}">
         <div style="margin-top:16px;display:flex;gap:9px;align-items:flex-start;color:{{ t.mut }};font:500 13px/1.5 system-ui"><span style="font-size:15px;color:{{ t.faint }};flex:none">☞</span><span>Choose a canonical referent in the Map or Reader to inspect aliases, role, related claims, and evidence.</span></div>
@@ -4620,6 +4624,14 @@ class Component extends DCLogic {
       editName:sp?sp.name:'', onSpaceName:(e)=>this.setSpaceField({name:e.target.value||'Untitled'}),
       palette, canDelete:(S.spaces||[]).length>1, deleteSpace:()=>this.deleteSpace(),
       sel, hasSel:!!sel||!!linkSel, noSel:!sel&&!linkSel&&!explOpen, sheetH,
+      // Every entity here came from the local heuristic finder (entitiesIn: regex
+      // surface-form matching), not a live EOReader5 operator pipeline, and no
+      // PriorSnapshot is pinned locally — so the honest audit trail says exactly
+      // that instead of fabricating an operator/prior trace. Wiring point: once
+      // window.EOReader5 is live, drive this from surfaceAuditTrail() /
+      // localHeuristicAuditTrail() in src/audit/trail.js against the real
+      // referent's gate_result and derivation.
+      selAuditNote: sel ? 'Found by the local heuristic entity finder (regex surface-form match) — no live EOT operator trace or PriorSnapshot ran for this mention. Every mention above is an exact evidence anchor into the source text; nothing here was generated.' : '',
       hasMeaningMap:!!(a.list&&a.list.length), mapScopeLabel:'This source: '+((d&&d.title)||'Untitled'),
       solarKey:(d&&(d.url||d.title||d.name))||'doc',
       isProfile:S.tab==='profile', setProfile:()=>this.setState({tab:'profile'}),

@@ -37,6 +37,17 @@ No mutable engine singleton is exposed on `window`; the selected engine version 
 
 The resolver verifies schema version, snapshot hash, operator epoch, engine compatibility range, and pack hashes before use. Immutable snapshot bytes are cached by ID. Existing sessions are never silently upgraded; if a pinned snapshot is unavailable, the UI should offer cached use, explicit replacement, or no-empirical-prior mode.
 
+## Per-surface audit trail
+
+`src/audit/trail.js` builds the "what was it doing to get that" trace behind any rendered surface — a referent, claim, connection, or region. `surfaceAuditTrail(surface, { sessionRecord, priorSnapshot })` combines:
+
+- the operators applied (`operatorStepsForSurface`), validated against the nine reserved EOT operators in `src/app/eot-grammar.js` — an unrecognized operator in a trace is a hard error, not a silent pass-through;
+- the priors consulted (`priorActivationsForSurface`), normalized from either an explicit per-activation list (`gate_result.priors_consulted`, once the engine emits one) or the single pinned prior identity already carried on referents and snapshots (see `src/app/provenance-layer.js`) — an empty list is a valid, honest answer when no prior was consulted, not a placeholder;
+- the exact evidence anchors it rests on (`evidenceAnchorsForSurface`);
+- the gate's own stated reason and the session identity (engine, operator epoch, pinned prior snapshot, source/observation hashes) it was produced under, via the existing `sessionAudit()`.
+
+The app's local entity finder (`entitiesIn` in `eoreader_app.html`) runs ahead of any EOReader5 engine connection: it matches surface forms with regex, not the nine operators, and pins no PriorSnapshot. `localHeuristicAuditTrail(entity)` is the honest audit trail for that mode — no operators, no priors, just the real evidence anchors — rather than a fabricated trace. The Profile tab's entity sheet renders this note today; the wiring point for `surfaceAuditTrail()` against real `gate_result`/`derivation` data is once `window.EOReader5` is live.
+
 ## Local replay state
 
 `src/state/` defines an append-only event model for `SourceRecord`, `CustodyEvent`, `DecoderRun`, `ObservationArtifact`, `SessionRecord`, `EngineRun`, `SemanticEvent`, `EffectRun`, `ReadingPointer`, and `UserDelta`. Original source bytes are immutable, user edits are deltas, and derived projections are disposable caches.
