@@ -144,6 +144,30 @@
           <div style="flex:1;background:{{ t.bar }};border-radius:11px;padding:10px 11px"><div style="font:700 20px system-ui;color:{{ t.text }}">{{ sel.links }}</div><div style="font:600 9.5px system-ui;letter-spacing:.04em;text-transform:uppercase;color:{{ t.mut }}">Links</div></div>
           <div style="flex:1;background:{{ t.bar }};border-radius:11px;padding:10px 11px"><div style="font:700 20px system-ui;color:{{ flagColor }}">{{ sel.flags }}</div><div style="font:600 9.5px system-ui;letter-spacing:.04em;text-transform:uppercase;color:{{ t.mut }}">Flags</div></div>
         </div>
+        <sc-if value="{{ selWikiWait }}">
+          <div style="margin:14px 0 2px;font:500 12.5px system-ui;color:{{ t.mut }};display:flex;align-items:center;gap:7px"><i class="ph ph-book-open-text" style="font-size:15px"></i>Looking up Wikipedia…</div>
+        </sc-if>
+        <sc-if value="{{ selHasWiki }}">
+          <a href="{{ selWikiUrl }}" target="_blank" rel="noopener" style="display:block;margin:14px 0 2px;background:{{ t.bar }};border:1px solid {{ t.border }};border-radius:13px;overflow:hidden;text-decoration:none">
+            <sc-if value="{{ selHasWikiImage }}">
+              <img src="{{ selWikiImage }}" alt="{{ selWikiTitle }}" loading="lazy" referrerpolicy="no-referrer" style="display:block;width:100%;height:auto;max-height:220px;object-fit:cover">
+            </sc-if>
+            <div style="padding:11px 13px">
+              <div style="font:700 13px system-ui;color:{{ t.accent }}">{{ selWikiTitle }} ↗</div>
+              <sc-if value="{{ selHasWikiDesc }}"><div style="font:600 11px system-ui;color:{{ t.mut }};margin-top:2px">{{ selWikiDesc }}</div></sc-if>
+              <div style="font:400 12.5px/1.5 'Source Serif 4',Georgia,serif;color:{{ t.t2 }};margin-top:7px">{{ selWikiText }}</div>
+              <div style="font:600 9px system-ui;letter-spacing:.06em;text-transform:uppercase;color:{{ t.faint }};margin-top:9px">From Wikipedia</div>
+            </div>
+          </a>
+        </sc-if>
+        <sc-if value="{{ selHasRelImages }}">
+          <div style="font:600 10px system-ui;letter-spacing:.05em;text-transform:uppercase;color:{{ t.mut }};margin:18px 0 7px">Images from this source</div>
+          <div style="display:flex;gap:7px;flex-wrap:wrap">
+            <sc-for list="{{ selRelImages }}" as="im" hint-placeholder-count="3">
+              <img onClick="{{ im.open }}" src="{{ im.src }}" alt="{{ im.alt }}" loading="lazy" referrerpolicy="no-referrer" style="width:90px;height:90px;object-fit:cover;border-radius:10px;border:1px solid {{ t.border }};cursor:pointer">
+            </sc-for>
+          </div>
+        </sc-if>
         <div style="font:600 10px system-ui;letter-spacing:.05em;text-transform:uppercase;color:{{ t.mut }};margin:18px 0 2px">Mentions in context · {{ sel.count }}</div>
         <sc-for list="{{ sel.ctx }}" as="x" hint-placeholder-count="3">
           <div style="display:flex;gap:9px;align-items:flex-start;padding:9px 0;border-top:1px solid {{ t.border }}"><span style="width:6px;height:6px;border-radius:50%;background:{{ sel.color }};margin-top:6px;flex:none"></span><div style="flex:1;font:400 13.5px/1.5 'Source Serif 4',Georgia,serif;color:{{ t.t2 }}">{{ x }}</div></div>
@@ -591,6 +615,30 @@
         </sc-if>
         <sc-if value="{{ hasNote }}">
           <div style="margin-top:13px;background:rgba(208,71,46,.08);border:1px solid rgba(208,71,46,.28);border-radius:11px;padding:10px 12px;font:500 12.5px/1.45 system-ui;color:{{ t.t2 }}"><span style="color:#c0341a;font-weight:700">Noteworthy · </span>{{ sel.note }}</div>
+        </sc-if>
+        <sc-if value="{{ selWikiWait }}">
+          <div style="margin:14px 0 2px;font:500 12.5px system-ui;color:{{ t.mut }};display:flex;align-items:center;gap:7px"><i class="ph ph-book-open-text" style="font-size:15px"></i>Looking up Wikipedia…</div>
+        </sc-if>
+        <sc-if value="{{ selHasWiki }}">
+          <a href="{{ selWikiUrl }}" target="_blank" rel="noopener" style="display:block;margin:14px 0 2px;background:{{ t.bar }};border:1px solid {{ t.border }};border-radius:13px;overflow:hidden;text-decoration:none">
+            <sc-if value="{{ selHasWikiImage }}">
+              <img src="{{ selWikiImage }}" alt="{{ selWikiTitle }}" loading="lazy" referrerpolicy="no-referrer" style="display:block;width:100%;height:auto;max-height:200px;object-fit:cover">
+            </sc-if>
+            <div style="padding:11px 13px">
+              <div style="font:700 13px system-ui;color:{{ t.accent }}">{{ selWikiTitle }} ↗</div>
+              <sc-if value="{{ selHasWikiDesc }}"><div style="font:600 11px system-ui;color:{{ t.mut }};margin-top:2px">{{ selWikiDesc }}</div></sc-if>
+              <div style="font:400 12.5px/1.5 'Source Serif 4',Georgia,serif;color:{{ t.t2 }};margin-top:7px">{{ selWikiText }}</div>
+              <div style="font:600 9px system-ui;letter-spacing:.06em;text-transform:uppercase;color:{{ t.faint }};margin-top:9px">From Wikipedia</div>
+            </div>
+          </a>
+        </sc-if>
+        <sc-if value="{{ selHasRelImages }}">
+          <div style="font:600 10px system-ui;letter-spacing:.05em;text-transform:uppercase;color:{{ t.mut }};margin:18px 0 7px">Images from this source</div>
+          <div style="display:flex;gap:7px;flex-wrap:wrap">
+            <sc-for list="{{ selRelImages }}" as="im" hint-placeholder-count="3">
+              <img onClick="{{ im.open }}" src="{{ im.src }}" alt="{{ im.alt }}" loading="lazy" referrerpolicy="no-referrer" style="width:84px;height:84px;object-fit:cover;border-radius:10px;border:1px solid {{ t.border }};cursor:pointer">
+            </sc-for>
+          </div>
         </sc-if>
       </sc-if>
       <sc-if value="{{ showHalf }}">
@@ -1930,6 +1978,7 @@ class Component extends DCLogic {
       layersOpen:false, settingsOpen:false, importOpen:false, urlVal:'', engineLive:false,
       layers:{hi:true,en:true,ch:true,ln:true,nw:props.candidates!==false},
       sel:null, linkSel:null, linkPeek:{status:'idle'}, linkFromOpen:true, level:'prompt', chap:0, tocOpen:false, explore:null,
+      wiki:this.load('eo5.wikiCache',{}),
       cardPath:[], lensByRung:{},
       plain:this.load('eo5.readerPlain',false),
       structFilter:'all', structExp:{}, structRows:{}, structActive:{},
@@ -2354,6 +2403,7 @@ class Component extends DCLogic {
   componentDidUpdate(prevProps){
     const prevSel=this._prevSel, prevDoc=this._prevDoc, prevView=this._prevView, prevLayers=this._prevLayers;
     this._prevSel=this.state.sel; this._prevDoc=this.state.doc; this._prevView=this.state.view; this._prevLayers=this.state.layers;
+    if(prevSel!==this.state.sel && this.state.sel) this.ensureEntityWiki(this.state.sel);
     if(this._solars && prevSel!==this.state.sel && this.state.sel){
       for(const e of this._solars){ if(e.isConnected && e.__solar) e.__solar.focus(this.state.sel); }
     }
@@ -2815,6 +2865,82 @@ class Component extends DCLogic {
     const bits=[item.license?('License: '+item.license):'',item.artist?('Author: '+item.artist):''].filter(Boolean).join(' · ');
     this.setDoc({name:item.title,url:item.fullUrl||item.thumb,title:item.title,medium:'Image',mode:'image',
       size:bits||(item.width&&item.height?item.width+'×'+item.height:'')}, {view:'reader'});
+  }
+  // open a single image (from a profile's "images from this source" strip) as its own doc
+  openImage(src, alt){ if(!src) return; this.setDoc({name:alt||src,url:src,title:alt||'Image',medium:'Image',mode:'image',size:''}, {view:'reader'}); }
+  // ── Wikipedia referent for a selected entity (ported from eoreader4.2) ──
+  // One MediaWiki Action-API call does search + intro extract + short description +
+  // lead thumbnail + disambiguation flag at once (origin=* → direct CORS, no proxy).
+  // The result is only surfaced when it clears a confirmation gate, so an unrelated
+  // article never masquerades as the referent's page (the honesty rule from 4.2).
+  WIKI_GENERIC(){ return this._wikiGeneric||(this._wikiGeneric=new Set('the of and for de du van von inc corp company co llc ltd group holdings university institute foundation ministry department agency report memo chapter book part volume mr mrs ms dr monday tuesday wednesday thursday friday saturday sunday january february march april may june july august september october november december'.split(' '))); }
+  wikiKey(name){ return String(name||'').toLowerCase().replace(/\s+/g,' ').trim(); }
+  wikiToks(s){ return String(s||'').toLowerCase().split(/[^a-z0-9]+/).filter(t=>t.length>1 && !this.WIKI_GENERIC().has(t)); }
+  clipExtract(s,max){ const t=String(s||'').replace(/\s+/g,' ').trim(); if(t.length<=max) return t; const cut=t.slice(0,max); const dot=cut.lastIndexOf('. '); return dot>max*0.5 ? cut.slice(0,dot+1) : cut.replace(/\s+\S*$/,'')+'…'; }
+  async fetchEntityWiki(name, ctxNames){
+    const q=String(name||'').trim(); if(!q) return null;
+    const url='https://en.wikipedia.org/w/api.php?action=query&format=json&origin=*&redirects=1'
+      +'&generator=search&gsrlimit=5&gsrsearch='+encodeURIComponent(q)
+      +'&prop=extracts%7Cdescription%7Cpageprops%7Cpageimages&exintro=1&explaintext=1&exlimit=max'
+      +'&piprop=thumbnail&pithumbsize=360&ppprop=disambiguation';
+    const r=await fetch(url); const j=await r.json();
+    const pages=Object.values((j&&j.query&&j.query.pages)||{})
+      .filter(p=>p&&p.extract&&(!p.pageprops||p.pageprops.disambiguation===undefined));
+    if(!pages.length) return null;
+    const nameToks=this.wikiToks(q);
+    const ctxToks=new Set(); (ctxNames||[]).forEach(n=>this.wikiToks(n).forEach(t=>{ if(t.length>=4) ctxToks.add(t); }));
+    const scored=pages.map(p=>{
+      const titleToks=this.wikiToks(p.title);
+      const overlap=nameToks.filter(t=>titleToks.indexOf(t)>=0).length;
+      const affinity=nameToks.length?overlap/nameToks.length:0;
+      const ex=(p.extract||'').toLowerCase();
+      let coref=0; ctxToks.forEach(t=>{ if(ex.indexOf(t)>=0) coref++; });
+      return {p,affinity,coref,score:affinity*2+coref};
+    }).sort((a,b)=>b.score-a.score);
+    const best=scored[0], p=best.p, multiTok=nameToks.length>=2;
+    // Confirm on a near-exact title match, or a decent lexical match that is either a
+    // multi-word proper name or corroborated by a shared context name from this source.
+    const confirmed = best.affinity>=0.99 || (best.affinity>=0.5 && (multiTok || best.coref>=1));
+    return {
+      title:p.title,
+      description:p.description||'',
+      text:this.clipExtract(p.extract,320),
+      url:'https://en.wikipedia.org/wiki/'+encodeURIComponent(String(p.title).replace(/ /g,'_')),
+      image:(p.thumbnail&&p.thumbnail.source)||'',
+      confirmed
+    };
+  }
+  saveWikiCache(w){ try{ const out={},keys=Object.keys(w).filter(k=>w[k]&&!w[k].busy); for(const k of keys.slice(-300)) out[k]=w[k]; this.save('eo5.wikiCache',out); }catch(_){} }
+  // Kick a lookup for a selected entity, once, memoized by name across sources + sessions.
+  ensureEntityWiki(id){
+    const ent=this.entMap()[id]; if(!ent||!ent.name) return;
+    if(ent.kind==='date'||ent.kind==='value'||ent.kind==='contact') return; // not encyclopedia referents
+    const key=this.wikiKey(ent.name); const cache=this.state.wiki||{};
+    if(cache[key]!==undefined) return; // busy, resolved, or known-absent already
+    this.setState(s=>({wiki:{...(s.wiki||{}),[key]:{busy:true}}}));
+    const ctxNames=(ent.related||[]).map(r=>r.n).concat((ent.conns||[]).map(c=>c.t));
+    this.fetchEntityWiki(ent.name, ctxNames).then(res=>{
+      const val=(res&&res.confirmed)?res:{none:true};
+      this.setState(s=>{ const w={...(s.wiki||{}),[key]:val}; this.saveWikiCache(w); return {wiki:w}; });
+    }).catch(()=>this.setState(s=>({wiki:{...(s.wiki||{}),[key]:{none:true}}})));
+  }
+  // Related images from the source page: images whose alt names the entity, or that sit
+  // in/next to a paragraph that mentions it (image blocks are single-token paragraphs).
+  entityImages(ent){
+    const d=this.state.doc, a=d&&d.analysis; if(!a||!a.images||!a.images.length||!ent||!ent.name) return [];
+    const paras=a.paras||[];
+    const er=new RegExp('(^|\\b)'+ent.name.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'(\\b|$)','i');
+    const out=[],seen=new Set();
+    a.images.forEach((im,idx)=>{
+      if(!im||!im.src||seen.has(im.src)) return;
+      let related=!!(im.alt&&er.test(im.alt));
+      if(!related){
+        const tok=eoImgToken(idx), pi=paras.findIndex(pp=>pp.indexOf(tok)>=0);
+        if(pi>=0){ for(let k=Math.max(0,pi-1);k<=Math.min(paras.length-1,pi+1);k++){ if(er.test(paras[k])){ related=true; break; } } }
+      }
+      if(related){ seen.add(im.src); out.push({src:im.src, alt:im.alt||ent.name, open:()=>this.openImage(im.src, im.alt||ent.name)}); }
+    });
+    return out.slice(0,6);
   }
   readUrl(){ const u=(this.state.urlVal||'').trim(); if(!u) return; this.readUrlValue(this.normUrl(u)); }
   async fetchNative(u){
@@ -3720,6 +3846,14 @@ class Component extends DCLogic {
       solarRef:this.solarRef,
       relatedChips:sel?(sel.related||[]).map(r=>({n:r.n,c:r.c,pick:r.id?(()=>this.pick(r.id)):null})):[],
       flagColor:(sel&&sel.flags>0)?'#c0341a':t.text,
+      ...(()=>{ const wk=sel?(S.wiki||{})[this.wikiKey(sel.name)]:null; const ok=!!(wk&&!wk.busy&&!wk.none); const imgs=sel?this.entityImages(sel):[]; return {
+        selWikiWait:!!(wk&&wk.busy),
+        selHasWiki:ok,
+        selWikiTitle:ok?wk.title:'', selWikiUrl:ok?wk.url:'#', selWikiText:ok?wk.text:'',
+        selHasWikiDesc:!!(ok&&wk.description), selWikiDesc:ok?wk.description:'',
+        selHasWikiImage:!!(ok&&wk.image), selWikiImage:ok?wk.image:'',
+        selRelImages:imgs, selHasRelImages:imgs.length>0
+      }; })(),
       linkText:linkSel?linkSel.text:'', linkUrl:linkSel?linkSel.url:'#', linkHost:linkSel?this.hostOf(linkSel.url):'',
       hasLinkFrom:!!(linkSel&&linkSel.from), linkFromText:linkSel?(linkSel.from||''):'', linkFromOpen:S.linkFromOpen,
       linkFromCaret:S.linkFromOpen?'▾':'▸', toggleLinkFrom:()=>this.setState(s=>({linkFromOpen:!s.linkFromOpen})),
