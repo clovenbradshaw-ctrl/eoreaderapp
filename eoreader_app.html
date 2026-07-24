@@ -51,8 +51,6 @@
     .eo-nav button{flex:0 0 auto!important;text-align:left!important;padding:11px 15px!important;border-radius:11px!important;font:700 14px system-ui!important}
     .eo-nav{overflow-y:auto!important}
     .eo-spaces-rail{display:flex!important;min-height:0!important}
-    .eo-rail-sources{max-height:clamp(220px,42vh,430px)!important;overflow:hidden!important}
-    .eo-rail-source-list{flex:1 1 auto!important;min-height:0!important;overflow-y:auto!important;padding-right:2px!important}
     .eo-main > div{max-width:940px;margin-left:auto;margin-right:auto}
     .eo-main > div:has(> .eo-native-fill){max-width:none!important;margin:0!important}
     .eo-main > div:has(> .eo-reader-doc.eo-panel-open){max-width:none!important;margin:0!important;padding-right:min(460px,42vw)!important}
@@ -63,7 +61,6 @@
     .eo-screen.eo-panel-docked .eo-chrome{margin-right:min(440px,40vw)!important}
     /* Sources are integrated inline in the left rail on desktop — the overlay drawer and its trigger are mobile-only. */
     .eo-sources-sheet, .eo-src-toolbtn{display:none!important}
-    .eo-rail-sources{display:flex!important}
   }
   @keyframes eoRecPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.3;transform:scale(.62)}}
   .eo-rec-pulse{animation:eoRecPulse 1.4s ease-in-out infinite}
@@ -489,11 +486,34 @@
         </sc-if>
       </div>
 
-      <div style="font:600 9px system-ui;letter-spacing:.06em;text-transform:uppercase;color:{{ t.mut }};margin:0 2px 9px">By source</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 2px 9px">
+        <div>
+          <div style="font:600 9px system-ui;letter-spacing:.06em;text-transform:uppercase;color:{{ t.mut }}">Source management · virtualized</div>
+          <div style="font:500 11px system-ui;color:{{ t.mut }};margin-top:3px">Showing {{ evidenceWindowLabel }} of {{ evidenceFilteredCount }} filtered sources · {{ evidenceSelectedCount }} selected</div>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">
+          <span onClick="{{ bulkVisibleSelect }}" style="background:{{ t.bar }};border:1px solid {{ t.border }};border-radius:10px;padding:7px 9px;font:700 11px system-ui;color:{{ t.t2 }};cursor:pointer">Select visible</span>
+          <span onClick="{{ bulkSelectedOn }}" style="background:{{ t.accentSoft }};border:1px solid {{ t.accentLine }};border-radius:10px;padding:7px 9px;font:700 11px system-ui;color:{{ t.accent }};cursor:pointer">Focus selected</span>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:minmax(170px,1fr) repeat(3,minmax(120px,.6fr));gap:7px;margin-bottom:9px">
+        <input defaultValue="{{ srcQuery }}" onInput="{{ onSrcQuery }}" placeholder="Search title or URL…" style="background:{{ t.card }};border:1px solid {{ t.border }};border-radius:11px;padding:9px 10px;font:600 12px system-ui;color:{{ t.text }};outline:none">
+        <select value="{{ evidenceStatusFilter }}" onChange="{{ onEvidenceStatus }}" style="background:{{ t.card }};border:1px solid {{ t.border }};border-radius:11px;padding:9px 10px;font:700 12px system-ui;color:{{ t.t2 }}"><option value="all">All status</option><option value="recording">Recording</option><option value="static">Static</option><option value="new">New folds</option></select>
+        <select value="{{ evidenceSort }}" onChange="{{ onEvidenceSort }}" style="background:{{ t.card }};border:1px solid {{ t.border }};border-radius:11px;padding:9px 10px;font:700 12px system-ui;color:{{ t.t2 }}"><option value="active">Sort active</option><option value="title">Sort title</option><option value="status">Sort status</option><option value="recent">Sort recent</option><option value="words">Sort size</option></select>
+        <select value="{{ selectedSetId }}" onChange="{{ onSelectSet }}" style="background:{{ t.card }};border:1px solid {{ t.border }};border-radius:11px;padding:9px 10px;font:700 12px system-ui;color:{{ t.t2 }}"><option value="">Saved source sets</option><sc-for list="{{ savedSourceSetOptions }}" as="ss" hint-placeholder-count="2"><option value="{{ ss.id }}">{{ ss.label }}</option></sc-for></select>
+      </div>
+      <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:11px">
+        <span onClick="{{ saveSourceSet }}" style="background:{{ t.bar }};border:1px solid {{ t.border }};border-radius:18px;padding:6px 10px;font:700 11px system-ui;color:{{ t.t2 }};cursor:pointer">Save selected set</span>
+        <span onClick="{{ clearEvidenceSelection }}" style="background:{{ t.bar }};border:1px solid {{ t.border }};border-radius:18px;padding:6px 10px;font:700 11px system-ui;color:{{ t.mut }};cursor:pointer">Clear selection</span>
+        <span onClick="{{ bulkAllOn }}" style="background:{{ t.bar }};border:1px solid {{ t.border }};border-radius:18px;padding:6px 10px;font:700 11px system-ui;color:{{ t.accent }};cursor:pointer">All focused</span>
+        <span onClick="{{ bulkAllOff }}" style="background:{{ t.bar }};border:1px solid {{ t.border }};border-radius:18px;padding:6px 10px;font:700 11px system-ui;color:{{ t.mut }};cursor:pointer">All unfocused</span>
+      </div>
+      <div style="max-height:620px;overflow-y:auto;contain:content;padding-right:2px">
 
-      <sc-for list="{{ structSources }}" as="s" hint-placeholder-count="3">
+      <sc-for list="{{ structSources }}" as="s" hint-placeholder-count="12">
         <div style="background:{{ t.card }};border:1px solid {{ s.borderCol }};border-radius:14px;margin-bottom:11px;overflow:hidden;opacity:{{ s.op }};transition:opacity .2s">
           <div onClick="{{ s.toggleExpand }}" style="display:flex;align-items:center;gap:10px;padding:12px 13px;cursor:pointer">
+            <input type="checkbox" checked="{{ s.selected }}" onClick="{{ s.toggleSelected }}" title="Select for bulk actions" style="flex:none;width:16px;height:16px;accent-color:{{ t.accent }}">
             <span style="flex:none;font:700 9px 'IBM Plex Mono',monospace;letter-spacing:.04em;color:#fff;background:{{ s.dot }};border-radius:5px;padding:4px 6px">{{ s.code }}</span>
             <div style="flex:1;min-width:0">
               <div style="font:600 13.5px system-ui;color:{{ t.text }};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ s.title }}</div>
@@ -753,57 +773,6 @@
           <sc-if value="{{ sp.rec }}"><span class="eo-rec-pulse" style="width:6px;height:6px;border-radius:50%;background:#2f9e57;flex:none"></span></sc-if>
           <span style="font:700 10px 'IBM Plex Mono',monospace;color:{{ t.mut }};flex:none">{{ sp.count }}</span>
         </div>
-        <sc-if value="{{ sp.on }}">
-          <div class="eo-rail-sources" style="display:none;flex-direction:column;gap:3px;margin:1px 0 9px 5px;padding-left:9px;border-left:1.5px solid {{ t.border }}">
-            <div style="display:flex;align-items:center;gap:7px;padding:1px 3px 4px">
-              <span style="font:700 9px 'IBM Plex Mono',monospace;color:{{ t.mut }};letter-spacing:.04em">All evidence · {{ drawerOnCount }}/{{ drawerTotal }} active</span>
-              <span onClick="{{ bulkAllOn }}" style="font:700 10px system-ui;color:{{ t.accent }};cursor:pointer;margin-left:auto">All on</span>
-              <span onClick="{{ bulkAllOff }}" style="font:700 10px system-ui;color:{{ t.mut }};cursor:pointer">Off</span>
-              <span onClick="{{ startAllRec }}" title="Record every source" style="color:#2f9e57;cursor:pointer;display:flex;align-items:center"><i class="ph ph-record-fill" style="font-size:11px"></i></span>
-            </div>
-            <sc-if value="{{ noSources }}">
-              <div style="font:500 11px system-ui;color:{{ t.mut }};padding:1px 3px 6px">No sources in this space yet.</div>
-            </sc-if>
-            <div class="eo-rail-source-list" style="display:flex;flex-direction:column;gap:3px;min-height:0">
-            <sc-for list="{{ sourceRows }}" as="s" hint-placeholder-count="2">
-              <div style="flex:none;border-radius:9px;background:{{ s.rowBgFill }};opacity:{{ s.rowOp }};transition:opacity .2s">
-                <div style="display:flex;align-items:center;gap:7px;padding:5px 5px 5px 3px">
-                  <span style="flex:none;font:700 8px 'IBM Plex Mono',monospace;color:#fff;background:{{ s.dot }};border-radius:4px;padding:3px 4px">{{ s.code }}</span>
-                  <div onClick="{{ s.open }}" style="flex:1;min-width:0;cursor:pointer">
-                    <div style="display:flex;align-items:center;gap:5px">
-                      <div style="font:600 11.5px system-ui;color:{{ t.text }};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ s.title }}</div>
-                      <sc-if value="{{ s.hasNew }}"><span style="flex:none;font:800 8px 'IBM Plex Mono',monospace;color:#fff;background:#2f9e57;border-radius:9px;padding:1px 5px">+{{ s.newCount }}</span></sc-if>
-                    </div>
-                    <div style="display:flex;align-items:center;gap:5px;font:500 9.5px system-ui;color:{{ s.recColor }};margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
-                      <sc-if value="{{ s.recording }}"><span class="eo-rec-pulse" style="width:5px;height:5px;border-radius:50%;background:#2f9e57;flex:none"></span></sc-if>
-                      {{ s.recLabel }}
-                    </div>
-                  </div>
-                  <span onClick="{{ s.toggleOn }}" title="Focused for current questions" style="flex:none;width:30px;height:18px;border-radius:20px;background:{{ s.track }};position:relative;cursor:pointer;transition:background .18s"><span style="position:absolute;top:2px;left:{{ s.knobSm }};width:14px;height:14px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25);transition:left .18s"></span></span>
-                  <span onClick="{{ s.toggleExpand }}" style="flex:none;color:{{ t.faint }};font-size:10px;transform:rotate({{ s.chevron }});transition:transform .2s;cursor:pointer">▸</span>
-                </div>
-                <sc-if value="{{ s.expanded }}">
-                  <div style="padding:2px 5px 9px 3px">
-                    <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:9px">
-                      <span onClick="{{ s.toggleRec }}" style="display:flex;align-items:center;gap:4px;background:{{ s.recBtnBg }};border:1px solid {{ s.recBtnBd }};color:{{ s.recBtnFg }};border-radius:8px;padding:5px 8px;font:700 10px system-ui;cursor:pointer"><i class="ph ph-record-fill" style="font-size:10px"></i>{{ s.recBtnLabel }}</span>
-                      <span onClick="{{ s.remove }}" style="margin-left:auto;color:#c0341a;font:700 10px system-ui;cursor:pointer;padding:5px 4px">Remove</span>
-                    </div>
-                    <div style="font:700 8px 'IBM Plex Mono',monospace;letter-spacing:.05em;color:{{ t.mut }};margin-bottom:6px">IN WORKSPACES</div>
-                    <div style="display:flex;flex-wrap:wrap;gap:5px">
-                      <sc-for list="{{ s.spaces }}" as="sp2" hint-placeholder-count="3">
-                        <span onClick="{{ sp2.toggle }}" style="display:flex;align-items:center;gap:5px;background:{{ sp2.bg }};border:1px solid {{ sp2.bd }};border-radius:14px;padding:3px 8px;cursor:pointer;font:600 10px system-ui;color:{{ sp2.fg }}">
-                          <span style="width:7px;height:7px;border-radius:50%;background:{{ sp2.accent }};opacity:{{ sp2.dotOp }}"></span>{{ sp2.name }}
-                        </span>
-                      </sc-for>
-                    </div>
-                  </div>
-                </sc-if>
-              </div>
-            </sc-for>
-            </div>
-            <div onClick="{{ recordNew }}" style="flex:none;display:flex;align-items:center;gap:6px;padding:6px 4px;margin-top:2px;color:{{ t.accent }};font:700 10.5px system-ui;cursor:pointer"><i class="ph ph-plus-circle" style="font-size:13px"></i>Record a source</div>
-          </div>
-        </sc-if>
       </sc-for>
       <div onClick="{{ addSpace }}" style="display:flex;align-items:center;gap:8px;padding:8px 9px;border-radius:10px;cursor:pointer;color:{{ t.accent }};font:700 13px system-ui"><span style="width:9px;text-align:center;flex:none">+</span>New space</div>
       <div style="height:1px;background:{{ t.border }};margin:11px 6px 5px"></div>
@@ -2491,7 +2460,7 @@ class Component extends DCLogic {
       proxy, proxyOpen:false,
       searchQ:'', searchResults:[], mediaResults:[], searching:false, searchMsg:'', libraryShelf:'web', _exTick:0,
       spaceEditOpen:false, spacePickerOpen:false, _sk:0,
-      sourcesOpen:false, srcQuery:'', srcExpand:null, recPulse:0,
+      sourcesOpen:false, srcQuery:'', srcExpand:null, recPulse:0, evidenceStatusFilter:'all', evidenceSort:'active', evidenceSelected:{}, sourceSets:this.load('eo5.sourceSets',[]), selectedSetId:'',
       priorActive:this.load('eo5.priorActive',{}), priorExpand:null,
       userPriors:this.load('eo5.userPriors',[]), priorSaveOpen:false, priorSaveText:'', priorSaveTitle:'', priorSaveMsg:'',
       chromeHidden:false, webFrameActiveIds:[], readPct:0
@@ -5112,10 +5081,28 @@ class Component extends DCLogic {
     const fmap={all:null,web:'Webpage',pdf:'PDF',text:'Text',audio:'Audio',data:'Spreadsheet',video:'Video',doc:'Document',image:'Image'};
     const fl=S.structFilter;
     let flist=raw.filter(s=>fl==='all'||s.medium===fmap[fl]);
-    flist=flist.slice().sort((x,y)=>((active[y.id]!==false)?1:0)-((active[x.id]!==false)?1:0));
-    const structSources=flist.map(s=>{
+    const srcNeedle=(S.srcQuery||'').trim().toLowerCase();
+    if(srcNeedle) flist=flist.filter(s=>((s.title||'')+' '+(s.det||'')+' '+(s.id||'')).toLowerCase().includes(srcNeedle));
+    const statusFilter=S.evidenceStatusFilter||'all';
+    if(statusFilter!=='all') flist=flist.filter(s=>{ const m=memList.find(mm=>mm.id===s.id)||{}; return statusFilter==='recording'?!!m.recording:(statusFilter==='new'?(m.newCount||0)>0:!m.recording); });
+    const sort=S.evidenceSort||'active';
+    flist=flist.slice().sort((x,y)=>{
+      const mx=memList.find(m=>m.id===x.id)||{}, my=memList.find(m=>m.id===y.id)||{};
+      if(sort==='title') return String(x.title||'').localeCompare(String(y.title||''));
+      if(sort==='status') return ((my.recording?1:0)-(mx.recording?1:0)) || ((my.newCount||0)-(mx.newCount||0));
+      if(sort==='recent') return (my.lastUpdate||0)-(mx.lastUpdate||0);
+      if(sort==='words') return (my.words||0)-(mx.words||0);
+      return ((active[y.id]!==false)?1:0)-((active[x.id]!==false)?1:0);
+    });
+    const evidenceFilteredCount=flist.length;
+    const evidenceWindowSize=80;
+    const virtualList=flist.slice(0,evidenceWindowSize);
+    const evidenceWindowLabel=evidenceFilteredCount?('1–'+Math.min(evidenceWindowSize,evidenceFilteredCount)):'0';
+    const evidenceSelectedIds=Object.keys(S.evidenceSelected||{}).filter(k=>S.evidenceSelected[k]);
+    const evidenceSelectedCount=evidenceSelectedIds.length;
+    const structSources=virtualList.map(s=>{
       const isA=active[s.id]!==false, isE=isA&&!!exp[s.id];
-      return {id:s.id,code:s.code,dot:s.dot,title:s.title,det:s.det,
+      return {id:s.id,code:s.code,dot:s.dot,title:s.title,det:s.det,selected:!!(S.evidenceSelected&&S.evidenceSelected[s.id]),toggleSelected:(e)=>{ if(e&&e.stopPropagation)e.stopPropagation(); this.setState(st=>({evidenceSelected:{...(st.evidenceSelected||{}),[s.id]:!(st.evidenceSelected&&st.evidenceSelected[s.id])}})); },
         insightKind:s.insight.kind,insightColor:s.insight.color,insightText:s.insight.text,
         op:isA?'1':'.55',borderCol:isE?t.accentLine:t.border,
         track:isA?t.accent:t.bStrong,knob:isA?'16px':'2px',
@@ -5359,6 +5346,13 @@ class Component extends DCLogic {
       sheetDisp:(S.tab==='structure'||S.tab==='search'||S.tab==='beta'||S.tab==='priors'||S.tab==='inspector'||S.tab==='overview'||S.tab==='profile'||S.tab==='eot'||(!sel&&!linkSel&&!explore))?'none':'flex',
       panelOpenClass:(S.tab==='structure'||S.tab==='search'||S.tab==='beta'||S.tab==='priors'||S.tab==='inspector'||S.tab==='overview'||S.tab==='profile'||S.tab==='eot'||(!sel&&!linkSel&&!explore))?'':'eo-panel-docked',
       structSources, corpusStats, sharedEnts, hasShared:sharedEnts.length>0, mediumFilters, crossInsights, crossSources,
+      evidenceFilteredCount, evidenceWindowLabel, evidenceSelectedCount, evidenceStatusFilter:S.evidenceStatusFilter||'all', evidenceSort:S.evidenceSort||'active', selectedSetId:S.selectedSetId||'',
+      onEvidenceStatus:(e)=>this.setState({evidenceStatusFilter:e.target.value}), onEvidenceSort:(e)=>this.setState({evidenceSort:e.target.value}),
+      bulkVisibleSelect:()=>this.setState(st=>({evidenceSelected:{...(st.evidenceSelected||{}),...Object.fromEntries(virtualList.map(x=>[x.id,true]))}})), clearEvidenceSelection:()=>this.setState({evidenceSelected:{},selectedSetId:''}),
+      bulkSelectedOn:()=>this.setState(st=>({structActive:{...(st.structActive||{}),...Object.fromEntries(Object.keys(st.evidenceSelected||{}).filter(k=>st.evidenceSelected[k]).map(k=>[k,true]))}})),
+      savedSourceSetOptions:(S.sourceSets||[]).map(ss=>({id:ss.id,label:ss.name+' · '+ss.ids.length})),
+      saveSourceSet:()=>{ const ids=Object.keys(this.state.evidenceSelected||{}).filter(k=>this.state.evidenceSelected[k]); if(!ids.length) return; const set={id:'set_'+Date.now(),name:'Set '+((this.state.sourceSets||[]).length+1),ids}; const sourceSets=[...(this.state.sourceSets||[]),set]; this.save('eo5.sourceSets',sourceSets); this.setState({sourceSets,selectedSetId:set.id}); },
+      onSelectSet:(e)=>{ const id=e.target.value, set=(this.state.sourceSets||[]).find(x=>x.id===id); this.setState({selectedSetId:id,evidenceSelected:set?Object.fromEntries(set.ids.map(k=>[k,true])):{}}); },
       hasCross:crossInsights.length>0, noCross:crossInsights.length===0,
       queryText, onQueryInput:(e)=>this.setState({queryText:e.target.value}), onQueryKey:(e)=>{ if(e.key==='Enter') this.runLocalSearch(e.target.value); }, clearQuery:()=>this.runLocalSearch(''),
       searchBlankState:!submittedQuestion, coverageLabel:coverageText, coverageColor, searchPlaceholderMain:(searchScopeLabel==='This source'?('Search '+((d&&d.title)||'this source')+'…'):('Search '+(sp?sp.name:'workspace')+'…')), searchSources:(submittedQuestion?(reading.searched_scope.sources||[]).length:(memList.length?memList:[d].filter(Boolean)).length), searchPriorCount:priorActiveCount, searchPassages:(reading.core_evidence||[]).length+(reading.context_evidence||[]).length, searchContrasts:(reading.counterevidence||[]).length,
