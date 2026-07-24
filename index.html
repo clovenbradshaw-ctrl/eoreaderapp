@@ -208,7 +208,7 @@
         <div style="text-align:center;padding:48px 22px;color:{{ t.mut }}">
           <div style="font-size:30px;margin-bottom:12px;color:{{ t.faint }}">◍</div>
           <div style="font:700 15px system-ui;color:{{ t.text }};margin-bottom:7px">{{ spaceName }} has no memory yet</div>
-          <div style="font:400 13px/1.55 system-ui">Read anything, then <b style="color:{{ t.accent }}">Add to memory</b>. What you keep becomes this space's corpus — the structure across it shows up here.</div>
+          <div style="font:400 13px/1.55 system-ui">Open anything — pages are recorded here automatically. What you keep becomes this space's corpus; the structure across it shows up here. Exclude any page you don't want kept.</div>
         </div>
       </sc-if>
 
@@ -736,7 +736,17 @@
       <div style="width:40px;height:5px;border-radius:3px;background:{{ t.bStrong }};margin:0 auto 14px"></div>
       <div style="display:flex;align-items:center;margin-bottom:14px"><div style="font:700 16px system-ui;color:{{ t.text }}">Settings</div><span onClick="{{ closeSettings }}" style="margin-left:auto;color:{{ t.accent }};font:600 13px system-ui;cursor:pointer">Done</span></div>
       <div style="display:flex;align-items:center;gap:9px;padding:7px 0"><span style="font:500 14px system-ui;color:{{ t.text }}">Appearance</span><span style="margin-left:auto;font:500 12.5px system-ui;color:{{ t.mut }}">{{ themeGlyph }}</span><span onClick="{{ flipDark }}" style="width:32px;height:18px;border-radius:20px;background:{{ appearTrack }};position:relative;flex:none;transition:background .2s;cursor:pointer"><span style="position:absolute;top:2px;left:{{ appearKnob }};width:14px;height:14px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25);transition:left .2s"></span></span></div>
-      <div onClick="{{ openLayersFromSettings }}" style="display:flex;align-items:center;gap:9px;padding:11px 0 0;margin-top:4px;border-top:1px solid {{ t.border }};cursor:pointer"><span style="font:500 14px system-ui;color:{{ t.text }}">Reading layers</span><span style="margin-left:auto;color:{{ t.faint }};font-size:15px">›</span></div>
+      <div style="display:flex;align-items:center;gap:9px;padding:11px 0 0;margin-top:4px;border-top:1px solid {{ t.border }}">
+        <div style="min-width:0">
+          <div style="font:500 14px system-ui;color:{{ t.text }}">Record pages automatically</div>
+          <div style="font:400 11.5px/1.4 system-ui;color:{{ t.mut }};margin-top:2px">Every page you open is added to this space's memory. Excluded pages stay out.</div>
+        </div>
+        <span onClick="{{ toggleAutoCap }}" style="margin-left:auto;flex:none;width:32px;height:18px;border-radius:20px;background:{{ autoCapTrack }};position:relative;transition:background .2s;cursor:pointer"><span style="position:absolute;top:2px;left:{{ autoCapKnob }};width:14px;height:14px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25);transition:left .2s"></span></span>
+      </div>
+      <sc-if value="{{ hasExcluded }}">
+        <div onClick="{{ clearExcluded }}" style="display:flex;align-items:center;gap:9px;padding:11px 0 0;margin-top:8px;border-top:1px solid {{ t.border }};cursor:pointer"><span style="font:500 14px system-ui;color:{{ t.text }}">Excluded pages</span><span style="margin-left:auto;font:700 11px 'IBM Plex Mono',monospace;color:{{ t.mut }}">{{ excludedCount }}</span><span style="color:{{ t.accent }};font:600 12px system-ui;margin-left:10px">Clear</span></div>
+      </sc-if>
+      <div onClick="{{ openLayersFromSettings }}" style="display:flex;align-items:center;gap:9px;padding:11px 0 0;margin-top:8px;border-top:1px solid {{ t.border }};cursor:pointer"><span style="font:500 14px system-ui;color:{{ t.text }}">Reading layers</span><span style="margin-left:auto;color:{{ t.faint }};font-size:15px">›</span></div>
     </div>
   </sc-if>
 
@@ -833,6 +843,7 @@
               <div onClick="{{ s.open }}" style="flex:1;min-width:0;cursor:pointer">
                 <div style="display:flex;align-items:center;gap:6px">
                   <div style="font:600 13px system-ui;color:{{ t.text }};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ s.title }}</div>
+                  <sc-if value="{{ s.auto }}"><span title="Captured automatically when you opened it" style="flex:none;font:700 8.5px 'IBM Plex Mono',monospace;letter-spacing:.04em;color:{{ t.mut }};background:{{ t.bar }};border:1px solid {{ t.border }};border-radius:10px;padding:2px 6px">AUTO</span></sc-if>
                   <sc-if value="{{ s.hasNew }}"><span style="flex:none;font:800 9px 'IBM Plex Mono',monospace;color:#fff;background:#2f9e57;border-radius:10px;padding:2px 6px">+{{ s.newCount }}</span></sc-if>
                 </div>
                 <div style="display:flex;align-items:center;gap:6px;font:500 10.5px system-ui;color:{{ s.recColor }};margin-top:2px">
@@ -848,7 +859,7 @@
                 <div style="display:flex;gap:7px;margin-bottom:13px">
                   <span onClick="{{ s.toggleRec }}" style="display:flex;align-items:center;gap:6px;background:{{ s.recBtnBg }};border:1px solid {{ s.recBtnBd }};color:{{ s.recBtnFg }};border-radius:9px;padding:7px 11px;font:700 11.5px system-ui;cursor:pointer"><i class="ph ph-record-fill" style="font-size:12px"></i>{{ s.recBtnLabel }}</span>
                   <span onClick="{{ s.open }}" style="background:{{ t.bar }};border:1px solid {{ t.border }};color:{{ t.t2 }};border-radius:9px;padding:7px 11px;font:700 11.5px system-ui;cursor:pointer">Open</span>
-                  <span onClick="{{ s.remove }}" style="margin-left:auto;color:#c0341a;border:1px solid rgba(192,52,26,.3);border-radius:9px;padding:7px 11px;font:700 11.5px system-ui;cursor:pointer">Remove</span>
+                  <span onClick="{{ s.remove }}" title="Remove and keep out of memory on future visits" style="margin-left:auto;color:#c0341a;border:1px solid rgba(192,52,26,.3);border-radius:9px;padding:7px 11px;font:700 11.5px system-ui;cursor:pointer">Exclude</span>
                 </div>
                 <div style="font:600 9px system-ui;letter-spacing:.05em;text-transform:uppercase;color:{{ t.mut }};margin-bottom:8px">In workspaces · tap to add or remove</div>
                 <div style="display:flex;flex-wrap:wrap;gap:6px">
@@ -1921,6 +1932,13 @@ class Component extends DCLogic {
     if(!memoryBySpace||typeof memoryBySpace!=='object'){ memoryBySpace=this.seedMemory(spaces); this.save('eo5.memBySpace',memoryBySpace); }
     let proxy=this.load('eo5.proxy',null);
     if(!proxy||!proxy.fetch) proxy={on:true,fetch:'https://n8n.intelechia.com/webhook/feed?url={urlenc}',search:'https://s.jina.ai/?q={q}'};
+    // Proactive page capture: every page the app opens is recorded into the active
+    // space's memory unless the user has excluded it. excludedBySpace keeps a per-space
+    // set of doc keys the user has removed so auto-capture never re-adds them.
+    let excludedBySpace=this.load('eo5.excludedBySpace',null);
+    if(!excludedBySpace||typeof excludedBySpace!=='object') excludedBySpace={};
+    let autoCapture=this.load('eo5.autoCapture',null);
+    if(autoCapture===null||autoCapture===undefined) autoCapture=true;
     this.state = {
       dark:(props.theme||'Light')==='Dark',
       tab:'reader',
@@ -1934,7 +1952,7 @@ class Component extends DCLogic {
       structFilter:'all', structExp:{}, structRows:{}, structActive:{},
       doc:this.loadingDoc('https://www.npr.org'),
       src:{label:'npr.org',det:'Loading…',dot:'#5b9bd5'},
-      spaces, spaceId, memoryBySpace,
+      spaces, spaceId, memoryBySpace, excludedBySpace, autoCapture,
       proxy, proxyOpen:false,
       searchQ:'', searchResults:[], mediaResults:[], searching:false, searchMsg:'', libraryShelf:'web', _exTick:0,
       spaceEditOpen:false, spacePickerOpen:false, _sk:0,
@@ -2522,6 +2540,7 @@ class Component extends DCLogic {
       searchProjection:'evidence', searchScope:'all', queryText:'', queryReading:null, queryWhy:null,
       view:(opts&&opts.view)||this.load('eo5.readerType','native'), webFrameActiveIds:[], cardPath:[], lensByRung:{},
       src:{label:d.name||d.title, det, dot:this.medColor(d.medium)}});
+    this.captureVisit(d);
   }
   resetSample(){ this.setState({doc:this.demoDoc(), importOpen:false, sel:null, level:'prompt', chap:0, tab:'reader', view:'reader', cardPath:[], lensByRung:{}, src:{label:'theatlantic.com/…/the-quiet-collapse',det:'News · sample',dot:'#c0662e'}}); }
 
@@ -2529,21 +2548,52 @@ class Component extends DCLogic {
   mem(){ return (this.state.memoryBySpace||{})[this.state.spaceId]||[]; }
   docKey(d){ return d.url||d.name||d.title||'doc'; }
   inMemory(d){ const k=this.docKey(d); return this.mem().some(m=>m.key===k); }
-  toggleMemory(d){ if(this.inMemory(d)) this.removeFromMemory(this.docKey(d)); else this.addToMemory(d); }
-  addToMemory(d){
+  toggleMemory(d){ if(this.inMemory(d)) this.excludeFromMemory(this.docKey(d)); else this.addToMemory(d); }
+  addToMemory(d, opts){
     const a=d.analysis;
+    const auto=!!(opts&&opts.auto);
     const ents=(a&&a.list?a.list:[]).slice(0,40).map(e=>({name:e.name,count:e.count,color:e.color,links:e.links||0,related:(e.related||[]).slice(0,3)}));
     const item={ key:this.docKey(d), id:'mem'+Date.now().toString(36),
-      title:d.title||d.name||'Untitled', source:d.name||d.url||'', medium:d.medium, addedAt:Date.now(),
+      title:d.title||d.name||'Untitled', source:d.name||d.url||'', medium:d.medium, addedAt:Date.now(), auto,
       words:a?a.words:0, links:a?a.links:0, ents,
       highlights:(a&&a.hi?a.hi:[]).slice(0,20),
       toc:(a&&a.toc?a.toc:[]).filter(x=>!x.implicit).map(x=>x.title).filter(Boolean).slice(0,14) };
     this.setState(s=>{ const cur=(s.memoryBySpace[s.spaceId]||[]); const list=[item,...cur.filter(m=>m.key!==item.key)];
       const memoryBySpace={...s.memoryBySpace,[s.spaceId]:list}; this.save('eo5.memBySpace',memoryBySpace);
-      return {memoryBySpace, structActive:{...s.structActive,[item.id]:true}}; });
+      // A manual add un-excludes the key so proactive capture is welcome again.
+      const excludedBySpace=this.dropExcluded(s.excludedBySpace,s.spaceId,item.key);
+      return {memoryBySpace, excludedBySpace, structActive:{...s.structActive,[item.id]:true}}; });
   }
   removeFromMemory(key){ this.setState(s=>{ const cur=(s.memoryBySpace[s.spaceId]||[]).filter(m=>m.key!==key);
     const memoryBySpace={...s.memoryBySpace,[s.spaceId]:cur}; this.save('eo5.memBySpace',memoryBySpace); return {memoryBySpace}; }); }
+
+  // ── proactive-capture exclusions ──
+  // Excluding a page removes it from the current space's memory AND records its key so the
+  // proactive capture in setDoc will not silently pull it back in on the next visit.
+  excludedSet(){ return (this.state.excludedBySpace||{})[this.state.spaceId]||{}; }
+  isExcluded(key){ return !!this.excludedSet()[key]; }
+  dropExcluded(ebs,sid,key){ const cur={...((ebs||{})[sid]||{})}; delete cur[key];
+    const next={...(ebs||{})}; if(Object.keys(cur).length) next[sid]=cur; else delete next[sid]; return next; }
+  excludeFromMemory(key){ this.setState(s=>{
+    const cur=(s.memoryBySpace[s.spaceId]||[]).filter(m=>m.key!==key);
+    const memoryBySpace={...s.memoryBySpace,[s.spaceId]:cur}; this.save('eo5.memBySpace',memoryBySpace);
+    const ex={...((s.excludedBySpace||{})[s.spaceId]||{})}; ex[key]=true;
+    const excludedBySpace={...(s.excludedBySpace||{}),[s.spaceId]:ex}; this.save('eo5.excludedBySpace',excludedBySpace);
+    return {memoryBySpace, excludedBySpace}; }); }
+  unexclude(key){ this.setState(s=>{ const excludedBySpace=this.dropExcluded(s.excludedBySpace,s.spaceId,key);
+    this.save('eo5.excludedBySpace',excludedBySpace); return {excludedBySpace}; }); }
+  setAutoCapture(on){ this.setState({autoCapture:!!on}); this.save('eo5.autoCapture',!!on); }
+  clearExcluded(){ this.setState(s=>{ const next={...(s.excludedBySpace||{})}; delete next[s.spaceId];
+    this.save('eo5.excludedBySpace',next); return {excludedBySpace:next}; }); }
+  // Proactively record any real page the app navigates to. Called from setDoc.
+  captureVisit(d){
+    if(!this.state.autoCapture) return;
+    if(!d || d.kind==='loading' || d.mode==='loading') return;
+    const key=this.docKey(d); if(!key || key==='doc') return;
+    if(this.isExcluded(key)) return;
+    if(this.inMemory(d)) return;
+    this.addToMemory(d,{auto:true});
+  }
 
   // ── seed: a few sources across spaces so recording/toggle/membership are visible on first run ──
   mkSeed(o){ return { key:o.key, id:o.id, title:o.title, source:o.source||o.key, medium:o.medium,
@@ -3379,6 +3429,7 @@ class Component extends DCLogic {
     const sourceRows=drawerList.map(m=>{ const on=S.structActive[m.id]!==false; const code=this.medCode(m.medium), dot=this.medColor(m.medium);
       const memberIds=this.spacesForKey(m.key);
       return { id:m.id, key:m.key, code, dot, title:m.title, det:m.words?(m.medium+' · '+this.nf(m.words)+' words'):m.medium,
+        auto:!!m.auto,
         on, track:on?t.accent:t.bStrong, knob:on?'16px':'2px', knobSm:on?'14px':'2px', rowOp:on?1:0.55, rowBgFill:'transparent',
         recording:!!m.recording, recColor:m.recording?'#2f9e57':t.mut,
         recLabel:m.recording?('Recording · updated '+this.relTime(m.lastUpdate)):'Not recording',
@@ -3387,7 +3438,7 @@ class Component extends DCLogic {
         toggleOn:()=>this.toggleStructActive(m.id),
         toggleRec:()=>this.toggleRecording(m.key),
         open:()=>{ this.clearNew(m.key); this.setState(s=>({sourcesOpen:false,tab:'structure',structExp:{...s.structExp,[m.id]:true}})); },
-        remove:()=>this.removeFromMemory(m.key),
+        remove:()=>this.excludeFromMemory(m.key),
         expanded:S.srcExpand===m.id, toggleExpand:()=>this.setState(s=>({srcExpand:s.srcExpand===m.id?null:m.id})), chevron:S.srcExpand===m.id?'90deg':'0deg',
         spaces:(S.spaces||[]).map(x=>{ const inn=memberIds.includes(x.id); return {id:x.id,name:x.name,accent:x.accent, inn,
           bg:inn?t.accentSoft:'transparent', bd:inn?x.accent:t.border, fg:inn?t.text:t.mut, dotOp:inn?1:0.3,
@@ -3567,6 +3618,10 @@ class Component extends DCLogic {
       memColor:memIn?'#2f7a55':t.accent, memBg:memIn?'rgba(47,122,85,.10)':t.accentSoft, memBorder:memIn?'#2f7a55':t.accentLine,
       memIconClass:memIn?'ph-fill ph-bookmark-simple':'ph ph-bookmark-simple', memTitle:memIn?'Saved to space — tap to remove':'Save to space',
       toggleMemBtn:()=>{ if(d) this.toggleMemory(d); },
+      autoCapTrack:S.autoCapture?t.accent:(dark?'#33406b':'#d9d4c8'), autoCapKnob:S.autoCapture?'16px':'2px',
+      toggleAutoCap:()=>this.setAutoCapture(!S.autoCapture),
+      excludedCount:Object.keys(this.excludedSet()).length, hasExcluded:Object.keys(this.excludedSet()).length>0,
+      clearExcluded:()=>this.clearExcluded(),
       isReader:S.tab==='reader', isSearch:S.tab==='search',
       isOverview:S.tab==='overview', setOverview:()=>this.setState({tab:'overview'}),
       tabOB:S.tab==='overview'?activeBg:'transparent', tabOC:S.tab==='overview'?activeC:t.mut,
