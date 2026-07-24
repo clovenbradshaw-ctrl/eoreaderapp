@@ -154,20 +154,49 @@
         <div style="font:500 12px/1.5 system-ui;color:{{ t.mut }};margin:10px 0 4px">Size shows structural importance, color shows referent kind. Tap a body to focus that entity below; tap Expand for a full-screen map.</div>
 
         <div style="font:700 9px 'IBM Plex Mono',monospace;letter-spacing:.07em;text-transform:uppercase;color:{{ t.mut }};margin:18px 2px 9px">By kind</div>
-        <sc-for list="{{ entKindSegments }}" as="k" hint-placeholder-count="3">
-          <div style="background:{{ t.card }};border:1px solid {{ t.border }};border-radius:14px;padding:11px 13px;margin-bottom:10px">
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:9px">
-              <span style="width:10px;height:10px;border-radius:3px;flex:none;background:{{ k.color }}"></span>
-              <div style="flex:1;font:800 12px system-ui;color:{{ t.text }}">{{ k.label }}</div>
-              <span style="font:700 10px 'IBM Plex Mono',monospace;color:{{ t.mut }}">{{ k.count }} · {{ k.total }} mentions</span>
-            </div>
-            <div style="display:flex;flex-wrap:wrap;gap:6px">
-              <sc-for list="{{ k.entities }}" as="e" hint-placeholder-count="4">
-                <span onClick="{{ e.pick }}" style="display:inline-flex;align-items:center;gap:6px;background:{{ e.chipBg }};border:1px solid {{ e.chipBd }};border-radius:14px;padding:5px 10px;font:600 12px system-ui;color:{{ t.text }};cursor:pointer"><span style="width:8px;height:8px;border-radius:50%;flex:none;background:{{ e.color }}"></span>{{ e.name }}<span style="font:700 9px 'IBM Plex Mono',monospace;color:{{ t.mut }}">{{ e.count }}</span></span>
-              </sc-for>
-            </div>
+
+        <div style="display:flex;align-items:center;gap:8px;background:{{ t.card }};border:1px solid {{ t.border }};border-radius:12px;padding:8px 10px;margin-bottom:9px">
+          <i class="ph ph-magnifying-glass" style="font-size:14px;color:{{ t.mut }}"></i>
+          <input defaultValue="{{ entTableQuery }}" onInput="{{ onEntTableQuery }}" placeholder="Search entities…" style="flex:1;min-width:0;background:transparent;border:0;outline:none;font:600 13px system-ui;color:{{ t.text }}">
+          <sc-if value="{{ hasEntTableQuery }}">
+            <span onClick="{{ clearEntTableQuery }}" style="font:800 14px system-ui;color:{{ t.mut }};cursor:pointer">×</span>
+          </sc-if>
+        </div>
+
+        <div style="display:flex;gap:6px;overflow-x:auto;margin-bottom:10px">
+          <sc-for list="{{ entKindChips }}" as="c" hint-placeholder-count="3">
+            <span onClick="{{ c.pick }}" style="flex:none;display:inline-flex;align-items:center;gap:6px;background:{{ c.chipBg }};color:{{ c.chipFg }};border:1px solid {{ c.chipBd }};border-radius:18px;padding:6px 10px;font:800 11px system-ui;cursor:pointer"><span style="width:7px;height:7px;border-radius:3px;background:{{ c.color }}"></span>{{ c.label }}</span>
+          </sc-for>
+        </div>
+
+        <div style="background:{{ t.card }};border:1px solid {{ t.border }};border-radius:14px;overflow:hidden;margin-bottom:8px">
+          <div style="display:flex;align-items:center;padding:8px 12px;border-bottom:1px solid {{ t.border }};font:700 9px 'IBM Plex Mono',monospace;letter-spacing:.06em;text-transform:uppercase;color:{{ t.mut }}">
+            <div style="flex:1">Entity</div>
+            <div style="width:110px;flex:none">Kind</div>
+            <div style="width:56px;flex:none;text-align:right">Count</div>
           </div>
-        </sc-for>
+          <sc-if value="{{ entTableEmpty }}">
+            <div style="padding:18px 13px;font:500 12.5px system-ui;color:{{ t.mut }};text-align:center">No entities match this search.</div>
+          </sc-if>
+          <sc-for list="{{ entTableRows }}" as="r" hint-placeholder-count="6">
+            <div onClick="{{ r.pick }}" style="display:flex;align-items:center;padding:9px 12px;border-bottom:1px solid {{ t.border }};background:{{ r.rowBg }};cursor:pointer">
+              <div style="flex:1;min-width:0;display:flex;align-items:center;gap:7px;font:600 12.5px system-ui;color:{{ t.text }};overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><span style="width:8px;height:8px;border-radius:50%;flex:none;background:{{ r.color }}"></span>{{ r.name }}</div>
+              <div style="width:110px;flex:none;font:500 11px system-ui;color:{{ t.mut }};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ r.kindLabel }}</div>
+              <div style="width:56px;flex:none;text-align:right;font:700 11px 'IBM Plex Mono',monospace;color:{{ t.mut }}">{{ r.count }}</div>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:16px">
+          <div style="font:600 11px system-ui;color:{{ t.mut }}">{{ entTableCountLabel }}</div>
+          <sc-if value="{{ showEntTablePager }}">
+            <div style="display:flex;align-items:center;gap:8px">
+              <span onClick="{{ entTablePrev }}" style="opacity:{{ entTablePrevOpacity }};pointer-events:{{ entTablePrevPtr }};width:28px;height:28px;border-radius:50%;background:{{ t.bar }};border:1px solid {{ t.border }};display:flex;align-items:center;justify-content:center;cursor:pointer;color:{{ t.text }}"><i class="ph ph-caret-left" style="font-size:13px"></i></span>
+              <span style="font:700 11px system-ui;color:{{ t.mut }}">{{ entTablePageLabel }}</span>
+              <span onClick="{{ entTableNext }}" style="opacity:{{ entTableNextOpacity }};pointer-events:{{ entTableNextPtr }};width:28px;height:28px;border-radius:50%;background:{{ t.bar }};border:1px solid {{ t.border }};display:flex;align-items:center;justify-content:center;cursor:pointer;color:{{ t.text }}"><i class="ph ph-caret-right" style="font-size:13px"></i></span>
+            </div>
+          </sc-if>
+        </div>
       </sc-if>
       <sc-if value="{{ profileNoMap }}">
         <div style="padding:26px;border-radius:16px;background:{{ t.bar }};border:1px solid {{ t.border }};font:500 13px/1.6 system-ui;color:{{ t.mut }}">Open a source with resolved, evidence-bearing referents to see its Map.</div>
@@ -2565,7 +2594,8 @@ class Component extends DCLogic {
       sourcesOpen:false, srcQuery:'', srcExpand:null, recPulse:0, historyExpanded:false,
       priorActive:this.load('eo5.priorActive',{}), priorExpand:null,
       userPriors:this.load('eo5.userPriors',[]), priorSaveOpen:false, priorSaveText:'', priorSaveTitle:'', priorSaveMsg:'',
-      chromeHidden:false, webFrameActiveIds:[], readPct:0
+      chromeHidden:false, webFrameActiveIds:[], readPct:0,
+      entQuery:'', entKindFilter:'all', entPage:0
     };
     this.scrollRef=(el)=>{
       if(!el) return;
@@ -2956,6 +2986,28 @@ class Component extends DCLogic {
     }).sort((x,y)=>y.total-x.total);
   }
   terrainClusters(){ return this.entityKindSegments(); }
+  // ── flat, searchable, paginated table view over the same entity kind segments ──
+  entityTable(pageSize){
+    pageSize=pageSize||12;
+    const segs=this.entityKindSegments();
+    const S=this.state;
+    const q=(S.entQuery||'').trim().toLowerCase();
+    const kf=S.entKindFilter||'all';
+    let rows=[];
+    segs.forEach(seg=>{
+      if(kf!=='all' && kf!==seg.kind) return;
+      seg.entities.forEach(e=>{
+        if(q && e.name.toLowerCase().indexOf(q)<0) return;
+        rows.push({id:e.id, name:e.name, count:e.count, kind:seg.kind, kindLabel:seg.label, color:e.color||seg.color});
+      });
+    });
+    rows.sort((a,b)=>b.count-a.count||a.name.localeCompare(b.name));
+    const total=rows.length;
+    const pages=Math.max(1,Math.ceil(total/pageSize));
+    const page=Math.min(Math.max(0,S.entPage||0),pages-1);
+    const start=page*pageSize;
+    return {kinds:segs.map(s=>({kind:s.kind,label:s.label,color:s.color,count:s.entities.length})), rows:rows.slice(start,start+pageSize), total, page, pages, start};
+  }
   openExplore(){ this.setState({explore:{terrain:null}, sel:null, linkSel:null, level:'full'}); }
   openTerrain(id){ this.setState(s=>({explore:{...s.explore,terrain:id}})); }
   exploreBack(){ this.setState(s=>({explore:{...s.explore,terrain:null}})); }
@@ -5647,14 +5699,34 @@ class Component extends DCLogic {
       solarKey:(d&&(d.url||d.title||d.name))||'doc',
       mapExpanded:!!S.mapExpanded, openMap:()=>this.setState({mapExpanded:true}), closeMap:()=>this.setState({mapExpanded:false}),
       solarKeyBig:((d&&(d.url||d.title||d.name))||'doc')+'|big|'+(S.sel||''),
-      entKindSegments:this.entityKindSegments().map(seg=>({
-        id:seg.id, label:seg.label, color:seg.color, total:seg.total, count:seg.entities.length,
-        entities:seg.entities.slice(0,60).map(e=>{ const on=S.sel===e.id; return {
-          name:e.name, count:e.count, color:e.color||seg.color,
-          chipBg:on?t.accentSoft:t.bar, chipBd:on?t.accentLine:t.border,
-          pick:()=>this.pick(e.id)
-        }; })
-      })),
+      ...(()=>{
+        const et=this.entityTable(12);
+        const onQuery=(e)=>{ const v=e.target.value; this.setState({entQuery:v, entPage:0}); };
+        const pickKind=(k)=>this.setState({entKindFilter:k, entPage:0});
+        return {
+          entTableQuery:S.entQuery||'', onEntTableQuery:onQuery,
+          clearEntTableQuery:()=>this.setState({entQuery:'', entPage:0}),
+          hasEntTableQuery:!!(S.entQuery&&S.entQuery.length),
+          entKindChips:[{key:'all',label:'All',color:t.mut,active:(S.entKindFilter||'all')==='all',pick:()=>pickKind('all')}]
+            .concat(et.kinds.map(k=>({key:k.kind,label:k.label+' '+k.count,color:k.color,active:S.entKindFilter===k.kind,pick:()=>pickKind(k.kind)})))
+            .map(c=>({...c,
+              chipBg:c.active?t.accentSoft:t.bar, chipBd:c.active?t.accentLine:t.border, chipFg:c.active?t.text:t.mut
+            })),
+          entTableRows:et.rows.map(r=>{ const on=S.sel===r.id; return {
+            name:r.name, count:r.count, kindLabel:r.kindLabel, color:r.color,
+            rowBg:on?t.accentSoft:'transparent',
+            pick:()=>this.pick(r.id)
+          }; }),
+          entTableEmpty:et.total===0,
+          entTableCountLabel: et.total===0 ? 'No matches' : ((et.start+1)+'–'+Math.min(et.start+et.rows.length,et.total)+' of '+et.total),
+          entTablePageLabel:'Page '+(et.page+1)+' of '+et.pages,
+          entTablePrevOpacity:et.page<=0?0.4:1, entTablePrevPtr:et.page<=0?'none':'auto',
+          entTableNextOpacity:et.page>=et.pages-1?0.4:1, entTableNextPtr:et.page>=et.pages-1?'none':'auto',
+          entTablePrev:()=>this.setState(s=>({entPage:Math.max(0,(s.entPage||0)-1)})),
+          entTableNext:()=>this.setState(s=>({entPage:Math.min(et.pages-1,(s.entPage||0)+1)})),
+          showEntTablePager: et.pages>1
+        };
+      })(),
       isProfile:S.tab==='profile', setProfile:()=>this.setState({tab:'profile'}),
       isEot:S.tab==='eot', setEot:()=>this.setState({tab:'eot'}),
       tabPB:S.tab==='profile'?activeBg:'transparent', tabPC:S.tab==='profile'?activeC:t.mut,
