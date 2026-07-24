@@ -4503,7 +4503,7 @@ class Component extends DCLogic {
     const d=this.state.doc||{}, a=d.analysis||{};
     const paras=(a.paras||[]).join('\n\n');
     const ents=(a.list||[]).slice(0,12).map(e=>e.name).join(', ');
-    const priors=(this.getPriors?this.getPriors():[]).filter(p=>this.state.priorActive?.[p.id]!==false).slice(0,6).map(p=>p.title||p.id).join('; ');
+    const priors=this.activePriors().slice(0,6).map(p=>p.title||p.id).join('; ');
     return [d.title||d.name||'Untitled source', paras, ents&&('Referents: '+ents), priors&&('Priors: '+priors)].filter(Boolean).join('\n');
   }
   betaAnalyze(prompt){
@@ -4514,7 +4514,11 @@ class Component extends DCLogic {
     const sentences=String(raw).split(/(?<=[.!?])\s+/).filter(x=>x.trim()).slice(0,8);
     const discourse=[/\bbut|however|although|yet\b/i.test(raw)&&'contrast', /\bbecause|therefore|so|thus\b/i.test(raw)&&'cause', /\bfirst|then|after|before|finally\b/i.test(raw)&&'sequence', /\bif|suppose|imagine\b/i.test(raw)&&'hypothetical'].filter(Boolean);
     const nums=Array.from({length:32},(_,i)=>{ const w=words[i%Math.max(1,words.length)]||'eo'; return (w.split('').reduce((a,c)=>a+c.charCodeAt(0),0)+i*13)%97; });
-    return {top,sentences,discourse:discourse.length?discourse:['association'],nums};
+    const activePriors=this.activePriors().slice(0,6).map(p=>({title:p.title||p.id,genre:p.genre||'Prior',cells:this.priorCellBars(p.id).slice(0,3).map(c=>c.label)}));
+    const doc=this.state.doc||{}, analysis=doc.analysis||{};
+    const anchors=(analysis.hi||[]).slice(0,3).map((text,i)=>({label:'highlight '+(i+1),text}));
+    if(!anchors.length) (analysis.paras||[]).slice(0,3).forEach((text,i)=>anchors.push({label:'paragraph '+(i+1),text}));
+    return {top,sentences,discourse:discourse.length?discourse:['association'],nums,activePriors,anchors};
   }
   runBeta(){ this.setState({betaTurn:this.betaAnalyze(this.state.betaPrompt)}); }
   toggleBetaOrgan(k){ this.setState(s=>({betaOrgans:{...s.betaOrgans,[k]:!s.betaOrgans[k]}})); }
@@ -4535,6 +4539,11 @@ class Component extends DCLogic {
       h('textarea',{key:'ta',value:S.betaPrompt||'',onChange:e=>this.setState({betaPrompt:e.target.value}),placeholder:'Ask for a transformation, e.g. make the causal turns audible and the contested referents visible…',style:{width:'100%',minHeight:'88px',resize:'vertical',background:t.card,border:'1px solid '+t.border,borderRadius:'14px',padding:'11px 12px',font:'600 13px/1.45 system-ui',color:t.text,outline:'none'}}),
       h('div',{key:'chips',style:{display:'flex',gap:'7px',flexWrap:'wrap',margin:'10px 0'}},[chip('text','Text'),chip('image','Image'),chip('audio','Audio / music'),chip('video','Video frames'),chip('math','Math strings'),h('span',{key:'run',onClick:()=>this.runBeta(),style:{marginLeft:'auto',background:t.accent,color:'#fff',borderRadius:'16px',padding:'7px 12px',font:'800 11px system-ui',cursor:'pointer'}},'Generate locally')]),
       card('disc','Discourse read',h('div',{style:{font:'600 12.5px/1.55 system-ui',color:t.t2}},'Detected modes: '+turn.discourse.join(', ')+' · anchors: '+turn.top.join(', '))),
+      card('guard','Generation guardrails',h('div',{style:{font:'600 12.5px/1.55 system-ui',color:t.t2}},[
+        h('div',{key:'p'},'Active priors reviewed: '+(turn.activePriors.length?turn.activePriors.map(p=>p.title+' ['+p.genre+']').join('; '):'none')),
+        h('div',{key:'a',style:{marginTop:'6px'}},'Source anchors available to cite: '+(turn.anchors.length?turn.anchors.map(a=>a.label).join(', '):'none')),
+        h('div',{key:'g',style:{marginTop:'6px',color:t.mut}},'Outputs below are sketches derived from source tokens, selected organs, and prior distributions; they do not introduce outside facts.')
+      ])),
       organs.text&&card('text','Text organ',h('div',{style:{font:"400 14px/1.55 'Source Serif 4',Georgia,serif",color:t.text}},turn.sentences.slice(0,3).join(' '))),
       organs.math&&card('math','Mathematical organ',h('div',{style:{font:"700 13px/1.6 'IBM Plex Mono',monospace",color:t.text,wordBreak:'break-word'}},turn.nums.join(' '))),
       organs.image&&card('img','Image organ',h('img',{src:svg,alt:'Deterministic discourse image',style:{width:'100%',borderRadius:'10px',display:'block'}})),
