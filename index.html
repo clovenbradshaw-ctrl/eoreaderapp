@@ -320,6 +320,11 @@
       {{ inspectorEl }}
     </div>
     </sc-if>
+    <sc-if value="{{ isTransparency }}">
+    <div style="padding:14px 14px 40px;font-family:system-ui;max-width:1040px;margin:0 auto">
+      {{ transparencyEl }}
+    </div>
+    </sc-if>
     <sc-if value="{{ isStructure }}">
     <div style="padding:14px 14px 40px;font-family:system-ui">
 
@@ -690,6 +695,7 @@
     <button onClick="{{ setStruct }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;min-height:44px;display:flex;align-items:center;justify-content:center;background:{{ tabSB }};color:{{ tabSC }};font:800 12px system-ui;cursor:pointer">Workspace</button>
     <button onClick="{{ setPriors }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;min-height:44px;display:flex;align-items:center;justify-content:center;background:{{ tabPrB }};color:{{ tabPrC }};font:800 12px system-ui;cursor:pointer">Priors</button>
     <button onClick="{{ setInspector }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;min-height:44px;display:flex;align-items:center;justify-content:center;background:{{ tabInB }};color:{{ tabInC }};font:800 12px system-ui;cursor:pointer">Inspector</button>
+    <button onClick="{{ setTransparency }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;min-height:44px;display:flex;align-items:center;justify-content:center;background:{{ tabTrB }};color:{{ tabTrC }};font:800 12px system-ui;cursor:pointer">Process</button>
     <button onClick="{{ setCross }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;min-height:44px;display:flex;align-items:center;justify-content:center;background:{{ tabCB }};color:{{ tabCC }};font:800 12px system-ui;cursor:pointer">Search</button>
     <button onClick="{{ setEot }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;min-height:44px;display:flex;align-items:center;justify-content:center;background:{{ tabEB }};color:{{ tabEC }};font:800 12px system-ui;cursor:pointer">Under the hood</button>
   </div>
@@ -3851,6 +3857,148 @@ class Component extends DCLogic {
       gateHist
     ]);
   }
+  // ---- Content Processing Transparency: what actually decoded the loaded source -----
+  CONTENT_DECODE_PROFILES(){
+    return {
+      Webpage:{organ:'DOM block-walk + chrome-strip',detail:'Real element tags (h1–h6, p, li, article…) decide block boundaries. A tag/role/class denylist removes nav, ads, and social/share chrome before paragraphs are read out.'},
+      Article:{organ:'Wikipedia extract',detail:'A plain-text extract is fetched directly from the source API — no DOM chrome to strip.'},
+      Book:{organ:'Gutenberg reflow',detail:'Header/footer boilerplate is stripped, hard-wrapped lines are reflowed into paragraphs, and chapter breaks are detected by form — blank-line runs and heading shape — never by keyword.'},
+      PDF:{organ:'pdf.js text layer',detail:'Text is read from the PDF.js text layer for up to the first 20 pages. A scanned or image-only PDF falls back to a binary view with no extracted text.'},
+      Image:{organ:'byte passthrough',detail:'Bytes are kept as an object URL for direct display; no text or caption extraction is attempted.'},
+      Audio:{organ:'Web Audio decode',detail:'decodeAudioData() yields a PCM buffer; a 240-bar peak envelope is computed for the waveform. No transcription runs on this device.'},
+      Video:{organ:'byte passthrough',detail:'Bytes are kept as an object URL for playback; no frame or audio-track analysis is attempted.'},
+      Spreadsheet:{organ:'delimiter parse',detail:'Rows are split on the detected delimiter into raw cells. Beyond that, the flattened text is read the same way plain text is.'},
+      Text:{organ:'raw text',detail:'File bytes are decoded as UTF-8 text with no chrome to strip.'},
+      Data:{organ:'raw text',detail:'JSON/YAML/XML bytes are decoded as UTF-8 and read as flat text, not parsed against a schema.'},
+      Code:{organ:'raw text',detail:'Source bytes are decoded as UTF-8 and read as flat text; no AST or syntax awareness.'},
+      Document:{organ:'raw text',detail:'File bytes are decoded as UTF-8 text; no layout or style information survives.'},
+      Slides:{organ:'raw text',detail:'File bytes are decoded as UTF-8 text; slide/layout structure is not preserved.'},
+      File:{organ:'byte sniff',detail:'The first 4,000 bytes are sampled; if over 85% are printable ASCII the file is decoded as text, otherwise it is treated as opaque binary.'}
+    };
+  }
+  buildContentTransparency(){
+    const S=this.state, t=this.theme(), h=React.createElement;
+    const d=S.doc||{}, a=d.analysis||{};
+    const hasDoc=!!(d && d.mode && d.mode!=='loading');
+    const medium=d.medium||'—';
+    const profile=this.CONTENT_DECODE_PROFILES()[medium]||{organ:'not yet profiled',detail:'This medium has no recorded decode profile yet.'};
+    const bridgeLive=!!S.engineLive, bridgeName=S.engineName||this.engineBridgeName();
+    const warn='#c98a2e', ready='#2f7a55';
+
+    const banner=h('div',{style:{display:'flex',gap:'8px',alignItems:'flex-start',background:t.bar,border:'1px dashed '+t.border,borderRadius:'12px',padding:'10px 12px',marginBottom:'12px'}},[
+      h('span',{key:'i',style:{flex:'none',color:t.accent,font:'700 13px system-ui'}},'◍'),
+      h('div',{key:'t',style:{font:'600 11.5px/1.5 system-ui',color:t.mut}},[
+        h('b',{key:'b',style:{color:t.text}},'Content Processing Transparency — computed live, not stored. '),
+        "This view re-derives from the currently loaded source every time you open it. It shows what actually decoded this document, not a semantic engine's output — see Engine status below for whether a real EOReader5 ran."
+      ])
+    ]);
+
+    if(!hasDoc){
+      return h('div',{},[banner, h('div',{style:{textAlign:'center',padding:'40px 20px',color:t.mut}},[
+        h('div',{key:'e',style:{fontSize:'26px',marginBottom:'10px',color:t.faint}},'◌'),
+        h('div',{key:'m',style:{font:'700 14px system-ui',color:t.text}},'No source loaded'),
+        h('div',{key:'s',style:{font:'500 12.5px/1.5 system-ui',marginTop:'6px'}},'Open or import a source in Reader to see how it was processed.')
+      ])]);
+    }
+
+    const stages=[
+      {label:'Source bytes',detail:d.size||(d.mode==='text'?this.nf((d.rawText||'').length)+' chars':(d.mode||'—')),done:true},
+      {label:'Sense organ',detail:profile.organ,done:true},
+      {label:'Observation',detail:d.mode==='text'?(this.nf((a.paras||[]).length)+' blocks'):(d.mode||'—'),done:true},
+      {label:'EOReader5 engine',detail:bridgeLive?bridgeName:'idle — local finder used instead',done:bridgeLive},
+      {label:'Output organ',detail:'Reader · Structure · Search projections',done:true}
+    ];
+    const stepper=h('div',{style:{display:'flex',gap:'6px',overflowX:'auto',margin:'0 0 14px'}},
+      stages.map((s,i)=>h('div',{key:i,style:{flex:'none',minWidth:'132px',background:t.card,border:'1px solid '+t.border,borderTop:'3px solid '+(s.done?ready:t.faint),borderRadius:'10px',padding:'8px 10px'}},[
+        h('div',{key:'l',style:{font:"800 9px 'IBM Plex Mono',monospace",letterSpacing:'.05em',color:t.mut,textTransform:'uppercase'}},s.label),
+        h('div',{key:'d',style:{font:'600 11px system-ui',color:t.text,marginTop:'3px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}},s.detail)
+      ]))
+    );
+
+    const statRow=(rows)=>h('div',{style:{display:'flex',flexWrap:'wrap',gap:'7px'}},rows.map(r=>h('div',{key:r.label,style:{flex:'1 1 84px',background:t.bar,border:'1px solid '+t.border,borderRadius:'10px',padding:'9px 6px',textAlign:'center'}},[
+      h('div',{key:'v',style:{font:'700 17px system-ui',color:t.text}},r.val),
+      h('div',{key:'l',style:{font:'600 8.5px system-ui',letterSpacing:'.03em',textTransform:'uppercase',color:t.mut,marginTop:'1px'}},r.label)
+    ])));
+
+    const docCard=h('div',{style:{background:t.card,border:'1px solid '+t.border,borderRadius:'15px',padding:'13px',marginBottom:'12px'}},[
+      h('div',{key:'h',style:{display:'flex',alignItems:'center',gap:'8px',marginBottom:'9px'}},[
+        h('span',{key:'m',style:{font:"800 9px 'IBM Plex Mono',monospace",color:'#fff',background:this.medColor(medium),borderRadius:'5px',padding:'4px 6px'}},this.medCode(medium)),
+        h('div',{key:'t',style:{flex:1,minWidth:0,font:'700 13.5px system-ui',color:t.text,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}},d.title||d.name||'Untitled')
+      ]),
+      h('div',{key:'g',style:{font:'600 11.5px/1.6 system-ui',color:t.mut}},[
+        h('div',{key:'a'},[h('b',{key:'k',style:{color:t.text}},'Detected as: '),medium+' · '+(d.mode||'—')+(d.size?' · '+d.size:'')]),
+        h('div',{key:'b'},[h('b',{key:'k',style:{color:t.text}},'Decoded by: '),profile.organ]),
+        h('div',{key:'c',style:{marginTop:'4px'}},profile.detail)
+      ])
+    ]);
+
+    let structureCard=null, blockCard=null;
+    if(d.mode==='text'){
+      const paras=a.paras||[];
+      const blockInfo=paras.map((p,i)=>(a.blockInfo&&a.blockInfo[i])||eoBlockKind(p));
+      const kindCounts=blockInfo.reduce((acc,b)=>{acc[b.kind]=(acc[b.kind]||0)+1;return acc;},{});
+      const kindLabel={body:'Body text',heading:'Heading',image:'Image'};
+      const maxK=Math.max(1,...Object.values(kindCounts));
+      structureCard=h('div',{style:{background:t.card,border:'1px solid '+t.border,borderRadius:'15px',padding:'13px',marginBottom:'12px'}},[
+        h('div',{key:'h',style:{font:"800 9px 'IBM Plex Mono',monospace",letterSpacing:'.08em',color:t.mut,marginBottom:'9px'}},'STRUCTURE EXTRACTED'),
+        statRow([
+          {label:'Words',val:this.nf(a.words||0)},
+          {label:'Blocks',val:this.nf(paras.length)},
+          {label:'Headings',val:this.nf(kindCounts.heading||0)},
+          {label:'Images',val:this.nf(kindCounts.image||0)},
+          {label:'Chapters',val:this.nf(a.chapters||0)},
+          {label:'Links',val:this.nf(a.links||0)}
+        ])
+      ]);
+      blockCard=h('div',{style:{background:t.card,border:'1px solid '+t.border,borderRadius:'15px',padding:'13px',marginBottom:'12px'}},[
+        h('div',{key:'h',style:{font:"800 9px 'IBM Plex Mono',monospace",letterSpacing:'.08em',color:t.mut,marginBottom:'9px'}},'BLOCK BREAKDOWN · read from real markup, never guessed from text shape'),
+        ...Object.keys(kindCounts).map(k=>h('div',{key:k,style:{display:'flex',alignItems:'center',gap:'8px',padding:'4px 0'}},[
+          h('span',{key:'l',style:{width:'86px',flex:'none',font:'700 11px system-ui',color:t.text}},kindLabel[k]||k),
+          h('div',{key:'b',style:{flex:1,height:'9px',borderRadius:'4px',background:t.border,overflow:'hidden'}},h('div',{style:{width:(kindCounts[k]/maxK*100)+'%',height:'100%',background:t.accent}})),
+          h('span',{key:'c',style:{width:'54px',flex:'none',textAlign:'right',font:"700 10px 'IBM Plex Mono',monospace",color:t.mut}},this.nf(kindCounts[k]))
+        ]))
+      ]);
+    }
+
+    const entList=a.list||[];
+    const entKinds=entList.reduce((acc,e)=>{const k=e.kindLabel||'Entity';acc[k]=(acc[k]||0)+1;return acc;},{});
+    const heuristicCard=(d.mode==='text')?h('div',{style:{background:t.card,border:'1px solid '+t.border,borderRadius:'15px',padding:'13px',marginBottom:'12px'}},[
+      h('div',{key:'h',style:{display:'flex',alignItems:'center',gap:'8px',marginBottom:'9px'}},[
+        h('div',{key:'t',style:{flex:1,font:"800 9px 'IBM Plex Mono',monospace",letterSpacing:'.08em',color:t.mut}},'ENTITY & HIGHLIGHT DETECTION'),
+        h('span',{key:'s',style:{font:'800 9px system-ui',color:bridgeLive?ready:warn,border:'1px solid '+(bridgeLive?ready:warn),borderRadius:'12px',padding:'3px 8px'}},bridgeLive?'ENGINE-DERIVED':'PATTERN HEURISTIC')
+      ]),
+      h('div',{key:'d',style:{font:'600 11.5px/1.55 system-ui',color:t.mut,marginBottom:'9px'}},
+        bridgeLive
+          ? 'The EOReader5 bridge is live — entities and connections below came from its semantic pass, not the fallback described here.'
+          : "No EOReader5 bridge is present, so this device's local finder ran instead: capitalized phrases are harvested from prose-shaped paragraphs only (50+ characters, sentence punctuation, enough lowercase context), filtered against a stopword list, and kept only if they appear capitalized mid-sentence at least once. Dates, money amounts, emails, and URLs are matched by pattern and boosted. This is string matching, not meaning — treat every row as a candidate, not a claim."
+      ),
+      statRow([
+        {label:'Candidates kept',val:this.nf(entList.length)},
+        {label:'Highlights',val:this.nf((a.hi||[]).length)},
+        {label:'Links found',val:this.nf(a.links||0)}
+      ]),
+      Object.keys(entKinds).length?h('div',{key:'k',style:{display:'flex',flexWrap:'wrap',gap:'5px',marginTop:'9px'}},
+        Object.keys(entKinds).map(k=>h('span',{key:k,style:{background:t.bar,border:'1px solid '+t.border,borderRadius:'14px',padding:'4px 9px',font:'600 10.5px system-ui',color:t.t2}},k+' · '+entKinds[k]))
+      ):null
+    ]):null;
+
+    const engineCard=h('div',{style:{background:t.card,border:'1px solid '+t.border,borderRadius:'15px',padding:'13px',marginBottom:'12px'}},[
+      h('div',{key:'h',style:{display:'flex',alignItems:'center',gap:'8px',marginBottom:'6px'}},[
+        h('span',{key:'d',style:{width:'8px',height:'8px',borderRadius:'50%',background:bridgeLive?ready:t.faint,flex:'none'}}),
+        h('div',{key:'t',style:{flex:1,font:"800 9px 'IBM Plex Mono',monospace",letterSpacing:'.08em',color:t.mut}},'ENGINE STATUS')
+      ]),
+      h('div',{key:'b',style:{font:'700 13px system-ui',color:t.text}},bridgeName),
+      h('div',{key:'s',style:{font:'500 11.5px/1.5 system-ui',color:t.mut,marginTop:'4px'}},
+        bridgeLive?'window.EOReader5 (or the EOReader 4.2 compatibility surface) is present in this session.':'window.EOReader5 is not present in this session, so every reading above ran through the app-local decode paths, not a published EOReader5 build.')
+    ]);
+
+    const footer=h('div',{style:{display:'flex',gap:'8px',alignItems:'flex-start',background:t.bar,border:'1px dashed '+t.border,borderRadius:'12px',padding:'10px 12px',font:'600 11px/1.55 system-ui',color:t.mut}},[
+      h('span',{key:'i',style:{flex:'none',color:t.faint,font:'700 13px system-ui'}},'⚠'),
+      h('div',{key:'t'},'Not yet recorded: a persisted per-document CustodyEvent / DecoderRun / EngineRun ledger (src/state/records.js). Everything above is re-derived from the loaded document on each visit, not read back from an append-only audit trail — wiring that ledger in is the next step toward full custody transparency.')
+    ]);
+
+    return h('div',{},[banner, stepper, docCard, structureCard, blockCard, heuristicCard, engineCard, footer].filter(Boolean));
+  }
   buildActiveHereBar(){
     const S=this.state; if(S.tab!=='reader'||S.view!=='annotated') return null;
     const d=S.doc, a=d&&d.analysis; if(!a||!(a.list||[]).length) return null;
@@ -4428,6 +4576,9 @@ class Component extends DCLogic {
       isInspector:S.tab==='inspector', setInspector:()=>this.setState({tab:'inspector'}),
       tabInB:S.tab==='inspector'?activeBg:'transparent', tabInC:S.tab==='inspector'?activeC:t.mut,
       inspectorEl:this.buildPriorInspector(),
+      isTransparency:S.tab==='transparency', setTransparency:()=>this.setState({tab:'transparency'}),
+      tabTrB:S.tab==='transparency'?activeBg:'transparent', tabTrC:S.tab==='transparency'?activeC:t.mut,
+      transparencyEl:this.buildContentTransparency(),
       profileNoMap:!(a.list&&a.list.length),
       profileNoSel:!sel&&!!(a.list&&a.list.length),
       isEntSel:!!sel, isLinkSel:!!linkSel,
