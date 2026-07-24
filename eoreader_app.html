@@ -1631,8 +1631,8 @@ class Component extends DCLogic {
   }
 
   tog(k){ this.setState(s=>({layers:{...s.layers,[k]:!s.layers[k]}})); }
-  pick(id){ this.setState(s=>({sel:id, linkSel:null, level:(s.level==='full')?'full':'half'})); }
-  pickLink(url,text){ this.setState({sel:null, linkSel:{url,text}, level:'half', linkPeek:{status:'idle'}}, ()=>this.peekAhead()); }
+  pick(id){ this.setState(s=>({sel:id, linkSel:null, level:(s.level==='full')?'full':'half', tab:'reader'})); }
+  pickLink(url,text){ this.setState({sel:null, linkSel:{url,text}, level:'half', linkPeek:{status:'idle'}, tab:'reader'}, ()=>this.peekAhead()); }
   peekAhead(){
     const ls=this.state.linkSel; if(!ls) return;
     this.setState({linkPeek:{status:'loading'}});
