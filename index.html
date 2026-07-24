@@ -153,11 +153,11 @@
           <div style="margin:14px 0 2px;font:500 12.5px system-ui;color:{{ t.mut }};display:flex;align-items:center;gap:7px"><i class="ph ph-book-open-text" style="font-size:15px"></i>Looking up Wikipedia…</div>
         </sc-if>
         <sc-if value="{{ selHasWiki }}">
-          <a href="{{ selWikiUrl }}" target="_blank" rel="noopener" style="display:block;margin:14px 0 2px;background:{{ t.bar }};border:1px solid {{ t.border }};border-radius:13px;overflow:hidden;text-decoration:none">
+          <a href="{{ selWikiUrl }}" target="_blank" rel="noopener" style="display:flex;align-items:stretch;margin:14px 0 2px;background:{{ t.bar }};border:1px solid {{ t.border }};border-radius:13px;overflow:hidden;text-decoration:none">
             <sc-if value="{{ selHasWikiImage }}">
-              <img src="{{ selWikiImage }}" alt="{{ selWikiTitle }}" loading="lazy" referrerpolicy="no-referrer" style="display:block;width:100%;height:auto;max-height:220px;object-fit:cover">
+              <img src="{{ selWikiImage }}" alt="{{ selWikiTitle }}" loading="lazy" referrerpolicy="no-referrer" style="flex:none;width:190px;align-self:stretch;min-height:150px;object-fit:cover">
             </sc-if>
-            <div style="padding:11px 13px">
+            <div style="flex:1;min-width:0;padding:11px 13px">
               <div style="font:700 13px system-ui;color:{{ t.accent }}">{{ selWikiTitle }} ↗</div>
               <sc-if value="{{ selHasWikiDesc }}"><div style="font:600 11px system-ui;color:{{ t.mut }};margin-top:2px">{{ selWikiDesc }}</div></sc-if>
               <div style="font:400 12.5px/1.5 'Source Serif 4',Georgia,serif;color:{{ t.t2 }};margin-top:7px">{{ selWikiText }}</div>
@@ -653,11 +653,11 @@
           <div style="margin:14px 0 2px;font:500 12.5px system-ui;color:{{ t.mut }};display:flex;align-items:center;gap:7px"><i class="ph ph-book-open-text" style="font-size:15px"></i>Looking up Wikipedia…</div>
         </sc-if>
         <sc-if value="{{ selHasWiki }}">
-          <a href="{{ selWikiUrl }}" target="_blank" rel="noopener" style="display:block;margin:14px 0 2px;background:{{ t.bar }};border:1px solid {{ t.border }};border-radius:13px;overflow:hidden;text-decoration:none">
+          <a href="{{ selWikiUrl }}" target="_blank" rel="noopener" style="display:flex;align-items:stretch;margin:14px 0 2px;background:{{ t.bar }};border:1px solid {{ t.border }};border-radius:13px;overflow:hidden;text-decoration:none">
             <sc-if value="{{ selHasWikiImage }}">
-              <img src="{{ selWikiImage }}" alt="{{ selWikiTitle }}" loading="lazy" referrerpolicy="no-referrer" style="display:block;width:100%;height:auto;max-height:200px;object-fit:cover">
+              <img src="{{ selWikiImage }}" alt="{{ selWikiTitle }}" loading="lazy" referrerpolicy="no-referrer" style="flex:none;width:120px;align-self:stretch;min-height:120px;object-fit:cover">
             </sc-if>
-            <div style="padding:11px 13px">
+            <div style="flex:1;min-width:0;padding:11px 13px">
               <div style="font:700 13px system-ui;color:{{ t.accent }}">{{ selWikiTitle }} ↗</div>
               <sc-if value="{{ selHasWikiDesc }}"><div style="font:600 11px system-ui;color:{{ t.mut }};margin-top:2px">{{ selWikiDesc }}</div></sc-if>
               <div style="font:400 12.5px/1.5 'Source Serif 4',Georgia,serif;color:{{ t.t2 }};margin-top:7px">{{ selWikiText }}</div>
