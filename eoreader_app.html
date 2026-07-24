@@ -267,6 +267,19 @@
         <div style="font:400 12.5px/1.45 system-ui;color:{{ t.mut }};margin-top:3px">Evidence base for {{ spaceName }} — counts describe active fold versions; findings below require supporting passages.</div>
       </div>
 
+      <sc-if value="{{ priorHasReduction }}">
+        <div onClick="{{ setPriors }}" style="display:flex;align-items:center;gap:9px;background:rgba(47,143,107,.08);border:1px solid rgba(47,143,107,.3);border-radius:11px;padding:9px 12px;margin:0 0 13px;cursor:pointer">
+          <span style="flex:none;font:700 8px 'IBM Plex Mono',monospace;letter-spacing:.05em;color:#2f8f6b;background:rgba(47,143,107,.14);border-radius:5px;padding:3px 6px">{{ priorActiveCount }} PRIOR</span>
+          <div style="flex:1;min-width:0;font:500 11.5px/1.4 system-ui;color:{{ t.t2 }}">Reading against prior knowledge — surprise down <b style="color:#2f8f6b">{{ priorReductionPct }}%</b> ({{ priorOffBits }}→{{ priorOnBits }} bits/span). Tune in Priors ▸</div>
+        </div>
+      </sc-if>
+      <sc-if value="{{ priorNoneActive }}">
+        <div onClick="{{ setPriors }}" style="display:flex;align-items:center;gap:9px;background:{{ t.bar }};border:1px dashed {{ t.border }};border-radius:11px;padding:9px 12px;margin:0 0 13px;cursor:pointer">
+          <span style="flex:none;font:700 8px 'IBM Plex Mono',monospace;letter-spacing:.05em;color:{{ t.mut }};background:{{ t.card }};border-radius:5px;padding:3px 6px">NO PRIOR</span>
+          <div style="flex:1;min-width:0;font:500 11.5px/1.4 system-ui;color:{{ t.mut }}">Reading cold — no prior active. Turn one on in Priors ▸ to read against prior knowledge and cut surprise.</div>
+        </div>
+      </sc-if>
+
       <sc-for list="{{ crossInsights }}" as="ci" hint-placeholder-count="2">
         <div style="background:{{ t.card }};border:1px solid {{ t.border }};border-left:3px solid {{ ci.color }};border-radius:12px;padding:12px 13px;margin-bottom:9px">
           <div style="font:700 9px 'IBM Plex Mono',monospace;letter-spacing:.08em;color:{{ ci.color }};margin-bottom:6px">{{ ci.kind }}</div>
@@ -353,6 +366,79 @@
       </sc-for>
       </sc-if>
 
+    </div>
+    </sc-if>
+    <sc-if value="{{ isPriors }}">
+    <div style="padding:14px 14px 40px;font-family:system-ui">
+      <div style="margin:0 2px 12px">
+        <div style="font:700 10px 'IBM Plex Mono',monospace;letter-spacing:.06em;color:{{ t.accent }}">PRIORS · {{ priorActiveCount }} OF {{ priorTotal }} ACTIVE</div>
+        <div style="font:400 12.5px/1.45 system-ui;color:{{ t.mut }};margin-top:3px">A prior is what the reader knows before it reads this source — a distribution over the 27 EO fold cells. Toggle one on to seed the reading and lower surprise; the compression fit below ranks which prior best fits the current source.</div>
+      </div>
+
+      <div style="background:{{ t.card }};border:1px solid {{ t.border }};border-radius:14px;padding:13px 14px;margin-bottom:14px">
+        <div style="font:800 9px system-ui;letter-spacing:.08em;color:{{ t.mut }};text-transform:uppercase;margin-bottom:9px">Reading surprise · {{ priorTargetLabel }}</div>
+        <sc-if value="{{ priorHasReduction }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex;align-items:flex-end;gap:10px">
+            <div style="flex:none;text-align:center"><div style="font:700 20px system-ui;color:{{ t.mut }}">{{ priorOffBits }}</div><div style="font:600 8.5px system-ui;text-transform:uppercase;letter-spacing:.03em;color:{{ t.faint }};margin-top:1px">bits · no prior</div></div>
+            <div style="flex:none;font:700 18px system-ui;color:{{ t.faint }};padding-bottom:3px">→</div>
+            <div style="flex:none;text-align:center"><div style="font:700 20px system-ui;color:#2f8f6b">{{ priorOnBits }}</div><div style="font:600 8.5px system-ui;text-transform:uppercase;letter-spacing:.03em;color:{{ t.faint }};margin-top:1px">bits · priors on</div></div>
+            <div style="flex:1;text-align:right"><div style="font:700 15px system-ui;color:#2f8f6b">−{{ priorReductionBits }} bits</div><div style="font:600 9px system-ui;color:{{ t.mut }};margin-top:1px">{{ priorReductionPct }}% less surprise</div></div>
+          </div>
+        </sc-if>
+        <sc-if value="{{ priorNoneActive }}">
+          <div style="font:500 12.5px/1.5 system-ui;color:{{ t.mut }}">No prior active — the reader starts cold at <b style="color:{{ t.text }}">{{ priorOffBits }} bits/span</b> of surprise. Toggle a prior on to read this source against prior knowledge.</div>
+        </sc-if>
+      </div>
+
+      <sc-if value="{{ hasPriorRank }}">
+      <div style="font:600 9px system-ui;letter-spacing:.06em;text-transform:uppercase;color:{{ t.mut }};margin:0 2px 9px">Best priors for this source · by compression fit</div>
+      <sc-for list="{{ priorRankRows }}" as="r" hint-placeholder-count="3">
+        <div style="background:{{ t.card }};border:1px solid {{ t.border }};border-radius:12px;padding:11px 13px;margin-bottom:9px">
+          <div style="display:flex;align-items:center;gap:9px">
+            <span style="flex:none;font:800 8px 'IBM Plex Mono',monospace;letter-spacing:.04em;color:{{ r.tagFg }};background:{{ r.tagBg }};border-radius:5px;padding:3px 6px">{{ r.tag }}</span>
+            <div style="flex:1;min-width:0"><div style="font:600 13.5px system-ui;color:{{ t.text }};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ r.title }}</div></div>
+            <span onClick="{{ r.toggle }}" title="Activate / mute this prior" style="flex:none;width:34px;height:20px;border-radius:20px;background:{{ r.track }};position:relative;cursor:pointer;transition:background .18s"><span style="position:absolute;top:2px;left:{{ r.knob }};width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25);transition:left .18s"></span></span>
+          </div>
+          <div style="height:6px;border-radius:4px;background:{{ t.bar }};margin:9px 0 6px;overflow:hidden"><span style="display:block;height:100%;width:{{ r.barW }};background:{{ r.barCol }};border-radius:4px"></span></div>
+          <div style="display:flex;justify-content:space-between;font:600 10px 'IBM Plex Mono',monospace;color:{{ t.mut }}"><span>{{ r.reductionLabel }} saved / span</span><span>{{ r.klLabel }}</span></div>
+        </div>
+      </sc-for>
+      </sc-if>
+
+      <div style="font:600 9px system-ui;letter-spacing:.06em;text-transform:uppercase;color:{{ t.mut }};margin:15px 2px 9px">All priors · toggle as sources</div>
+      <sc-for list="{{ priorRows }}" as="p" hint-placeholder-count="3">
+        <div style="background:{{ t.card }};border:1px solid {{ t.border }};border-radius:14px;margin-bottom:11px;overflow:hidden;opacity:{{ p.rowOp }};transition:opacity .2s">
+          <div style="display:flex;align-items:center;gap:10px;padding:12px 13px">
+            <span onClick="{{ p.toggleSelect }}" style="flex:none;font:700 9px 'IBM Plex Mono',monospace;letter-spacing:.04em;color:#fff;background:{{ p.dot }};border-radius:5px;padding:4px 6px;cursor:pointer">{{ p.code }}</span>
+            <div onClick="{{ p.toggleSelect }}" style="flex:1;min-width:0;cursor:pointer">
+              <div style="font:600 13.5px system-ui;color:{{ t.text }};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ p.title }}</div>
+              <div style="font:500 11px system-ui;color:{{ t.mut }};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ p.det }}</div>
+            </div>
+            <span onClick="{{ p.toggle }}" title="Activate / mute this prior" style="flex:none;width:34px;height:20px;border-radius:20px;background:{{ p.track }};position:relative;cursor:pointer;transition:background .18s"><span style="position:absolute;top:2px;left:{{ p.knob }};width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25);transition:left .18s"></span></span>
+            <span onClick="{{ p.toggleSelect }}" style="flex:none;color:{{ t.faint }};font-size:12px;transform:rotate({{ p.chevron }});transition:transform .2s;cursor:pointer">▸</span>
+          </div>
+          <sc-if value="{{ p.selected }}">
+            <div style="padding:0 13px 14px">
+              <div style="font:400 12.5px/1.5 'Source Serif 4',Georgia,serif;color:{{ t.t2 }};margin-bottom:10px">{{ p.note }}</div>
+              <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:12px">
+                <sc-for list="{{ p.channels }}" as="ch" hint-placeholder-count="3">
+                  <span style="display:flex;align-items:center;gap:5px;background:{{ t.bar }};border:1px solid {{ t.border }};border-radius:14px;padding:4px 9px;font:600 10px 'IBM Plex Mono',monospace;color:{{ t.t2 }}">{{ ch.label }}<span style="color:{{ t.mut }}">→ {{ ch.site }}</span></span>
+                </sc-for>
+              </div>
+              <div style="font:700 8.5px 'IBM Plex Mono',monospace;letter-spacing:.07em;text-transform:uppercase;color:{{ t.mut }};margin-bottom:7px">Fold distribution · top cells</div>
+              <sc-for list="{{ p.cells }}" as="cb" hint-placeholder-count="6">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
+                  <span style="flex:none;width:118px;font:600 10px 'IBM Plex Mono',monospace;color:{{ t.t2 }};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ cb.label }}</span>
+                  <span style="flex:1;height:7px;border-radius:4px;background:{{ t.bar }};overflow:hidden"><span style="display:block;height:100%;width:{{ cb.barW }};background:{{ cb.barCol }};border-radius:4px"></span></span>
+                  <span style="flex:none;width:42px;text-align:right;font:600 9.5px 'IBM Plex Mono',monospace;color:{{ t.mut }}">{{ cb.pctLabel }}</span>
+                </div>
+                <sc-if value="{{ cb.excluded }}"><div style="font:500 9px system-ui;color:{{ t.faint }};margin:-2px 0 6px 126px">{{ cb.muteLabel }}</div></sc-if>
+              </sc-for>
+              <div style="font:500 10px system-ui;color:{{ t.faint }};margin-top:8px">reader {{ p.readerVersion }} · scope {{ p.scopeText }}</div>
+            </div>
+          </sc-if>
+        </div>
+      </sc-for>
     </div>
     </sc-if>
     <sc-if value="{{ isOverview }}">
@@ -606,6 +692,7 @@
     <button onClick="{{ setStruct }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;min-height:44px;display:flex;align-items:center;justify-content:center;background:{{ tabSB }};color:{{ tabSC }};font:800 12px system-ui;cursor:pointer">Workspace</button>
     <button onClick="{{ setProfile }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;min-height:44px;display:flex;align-items:center;justify-content:center;background:{{ tabPB }};color:{{ tabPC }};font:800 12px system-ui;cursor:pointer">Map</button>
     <button onClick="{{ setCross }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;min-height:44px;display:flex;align-items:center;justify-content:center;background:{{ tabCB }};color:{{ tabCC }};font:800 12px system-ui;cursor:pointer">Search</button>
+    <button onClick="{{ setPriors }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;min-height:44px;display:flex;align-items:center;justify-content:center;background:{{ tabPrB }};color:{{ tabPrC }};font:800 12px system-ui;cursor:pointer">Priors</button>
   </div>
 
   <sc-if value="{{ backdrop }}">
@@ -2009,6 +2096,7 @@ class Component extends DCLogic {
       cardPath:[], lensByRung:{},
       plain:this.load('eo5.readerPlain',false),
       structFilter:'all', structExp:{}, structRows:{}, structActive:{},
+      priorsActive:this.load('eo5.priorsActive',{'corpus-prior@1.0.0':true}), priorSel:null,
       doc:this.loadingDoc('https://www.npr.org'),
       src:{label:'npr.org',det:'Loading…',dot:'#5b9bd5'},
       spaces, spaceId, memoryBySpace, memoryExclusions:this.load('eo5.memExclusions',{}),
@@ -3114,6 +3202,146 @@ class Component extends DCLogic {
   toggleStructExp(id){ this.setState(s=>({structExp:{...s.structExp,[id]:!s.structExp[id]}})); }
   toggleStructRow(k){ this.setState(s=>({structRows:{...s.structRows,[k]:!s.structRows[k]}})); }
 
+  // ── priors : inspectable, toggleable sources ──────────────────────────────
+  // A prior is everything the reader knows that did NOT come from the source in
+  // front of it — a distribution over the 27 EO phasepost cells (eoPriors' fold
+  // space, data/phasepost-cells.json). Treated here as a SOURCE you can toggle
+  // on/off: an active prior seeds the reading and lowers surprise, and the
+  // compression technique (cross-entropy in bits) ranks which prior best fits a
+  // given source. The scoring mirrors eoPriors/src/prior-fit.js + fold-cells.js,
+  // kept inline because the deployed app is a single self-contained page.
+  PRIOR_CELLS(){ return ['NUL_Clearing_Void','NUL_Dissecting_Entity','NUL_Unraveling_Kind','SEG_Clearing_Field','SEG_Dissecting_Link','SEG_Unraveling_Network','DEF_Clearing_Atmosphere','DEF_Dissecting_Lens','DEF_Unraveling_Paradigm','SIG_Tending_Void','SIG_Binding_Entity','SIG_Tracing_Kind','CON_Tending_Field','CON_Binding_Link','CON_Tracing_Network','EVA_Tending_Atmosphere','EVA_Binding_Lens','EVA_Tracing_Paradigm','INS_Cultivating_Void','INS_Making_Entity','INS_Composing_Kind','SYN_Cultivating_Field','SYN_Making_Link','SYN_Composing_Network','REC_Cultivating_Atmosphere','REC_Making_Lens','REC_Composing_Paradigm']; }
+  // EVA_Binding_Lens / REC_Making_Lens are the reader's always-on evaluate and
+  // predict acts — they fire on ~every span and carry the bulk of any corpus
+  // prior's mass, so they say almost nothing about fit. Silenced for the
+  // discriminating "content-cell" view, exactly as eoPriors' experiments do.
+  PRIOR_EXCLUDED(){ return ['EVA_Binding_Lens','REC_Making_Lens']; }
+  priorRegistry(){
+    if(this._priorReg) return this._priorReg;
+    this._priorReg=[
+      { id:'corpus-prior@1.0.0', title:'Diverse corpus', medium:'Prior', role:'corpus',
+        reader_version:'eoreader4.2@1.0.0', basis_id:'exemplar-basis:sha256:0000…0000',
+        channels:['priorMass','priorBond','priorProp'],
+        scope:{ languages:['multi'], media:['text'], genres:['prose'] },
+        note:'296 books · 22,078 spans. The shipped eoPriors aggregate fold distribution — the general-purpose reading prior.',
+        dist:{NUL_Clearing_Void:1,NUL_Dissecting_Entity:40281,NUL_Unraveling_Kind:1,SEG_Clearing_Field:1,SEG_Dissecting_Link:43663,SEG_Unraveling_Network:1,DEF_Clearing_Atmosphere:1,DEF_Dissecting_Lens:12275,DEF_Unraveling_Paradigm:1,SIG_Tending_Void:1,SIG_Binding_Entity:1932,SIG_Tracing_Kind:1,CON_Tending_Field:1,CON_Binding_Link:88081,CON_Tracing_Network:1,EVA_Tending_Atmosphere:1,EVA_Binding_Lens:375814,EVA_Tracing_Paradigm:1,INS_Cultivating_Void:1,INS_Making_Entity:58396,INS_Composing_Kind:1,SYN_Cultivating_Field:1,SYN_Making_Link:6161,SYN_Composing_Network:1,REC_Cultivating_Atmosphere:1,REC_Making_Lens:373379,REC_Composing_Paradigm:1} },
+      { id:'narrative-prose@0.1.0', title:'Narrative prose', medium:'Prior', role:'corpus',
+        reader_version:'eoreader4.2@1.0.0', basis_id:'exemplar-basis:sha256:0000…0000',
+        channels:['priorMass','priorBond','priorProp'],
+        scope:{ languages:['en'], media:['text'], genres:['fiction','narrative'] },
+        note:'Character-and-relation heavy: expects entities entering and bonding, few defined terms. Best for stories and reportage.',
+        dist:{NUL_Dissecting_Entity:40000,SEG_Dissecting_Link:20000,DEF_Dissecting_Lens:8000,SIG_Binding_Entity:70000,CON_Binding_Link:110000,EVA_Binding_Lens:300000,INS_Making_Entity:120000,SYN_Making_Link:22000,REC_Making_Lens:300000} },
+      { id:'reference-structure@0.1.0', title:'Reference & structure', medium:'Prior', role:'corpus',
+        reader_version:'eoreader4.2@1.0.0', basis_id:'exemplar-basis:sha256:0000…0000',
+        channels:['priorMass','priorBond','priorProp'],
+        scope:{ languages:['en'], media:['text'], genres:['reference','manual','spec'] },
+        note:'Section-and-definition heavy: expects boundaries and defined terms over character bonds. Best for docs, specs, manuals.',
+        dist:{NUL_Dissecting_Entity:80000,SEG_Dissecting_Link:150000,DEF_Dissecting_Lens:120000,SIG_Binding_Entity:5000,CON_Binding_Link:20000,EVA_Binding_Lens:280000,INS_Making_Entity:60000,SYN_Making_Link:4000,REC_Making_Lens:280000} },
+    ];
+    return this._priorReg;
+  }
+  // Normalize a {cell:weight} map to an ε-floored probability vector over `keys`
+  // (a never-seen cell stays scoreable, so cross-entropy never hits log2(0) and
+  // KL stays ≥0 — the Gibbs invariant).
+  _priorNorm(raw, keys){
+    const EPS=1e-6; const mass={}; let total=0;
+    for(const c of keys){ const v=Number(raw&&raw[c])||0; mass[c]=v<0?0:v; total+=mass[c]; }
+    const d={}; let norm=0;
+    for(const c of keys){ d[c]=total>0?Math.max(EPS,mass[c]/total):1/keys.length; norm+=d[c]; }
+    for(const c of keys) d[c]/=norm;
+    return d;
+  }
+  // Estimate a source's 27-cell fold distribution from the evidence the app
+  // already extracts (entities, links, sections, highlights) — a transparent
+  // stand-in for a full eoreader read: each named entity is an INS, each entity
+  // link a CON, repeat mentions SIG, recurring referents SYN, sections SEG,
+  // highlights DEF, plus the always-on EVA/REC evaluate/predict acts.
+  sourceFoldDist(m){
+    const ents=m.ents||[], toc=m.toc||[], hi=m.highlights||[];
+    const linkTotal=ents.reduce((a,e)=>a+(e.links||0),0);
+    const related=ents.reduce((a,e)=>a+((e.related&&e.related.length)||0),0);
+    const mentions=ents.reduce((a,e)=>a+(e.count||0),0);
+    return {
+      INS_Making_Entity: ents.length*3,
+      SIG_Binding_Entity: Math.max(0, mentions-ents.length),
+      CON_Binding_Link: linkTotal,
+      SYN_Making_Link: related,
+      SEG_Dissecting_Link: toc.length*3,
+      DEF_Dissecting_Lens: hi.length*2,
+      NUL_Dissecting_Entity: Math.max(1, Math.round((m.words||0)/800)),
+      EVA_Binding_Lens: Math.max(6, ents.length+toc.length),
+      REC_Making_Lens: Math.max(6, ents.length+toc.length),
+    };
+  }
+  // Cross-entropy H(P,Q) in bits/span between a source's fold P and a prior Q,
+  // with KL (avoidable cost) and surpriseReductionBits = H(P,uniform) − H(P,Q):
+  // the bits saved per span by reading under Q instead of a cold uniform prior.
+  priorFit(sourceRaw, priorRaw, contentOnly){
+    const all=this.PRIOR_CELLS();
+    const keys = (contentOnly===false) ? all : all.filter(c=>this.PRIOR_EXCLUDED().indexOf(c)<0);
+    const P=this._priorNorm(sourceRaw, keys), Q=this._priorNorm(priorRaw, keys);
+    let ce=0, h=0;
+    for(const c of keys){ if(P[c]>0){ ce += -P[c]*Math.log2(Q[c]); h += -P[c]*Math.log2(P[c]); } }
+    const uniform=Math.log2(keys.length);
+    return { crossEntropyBits:ce, sourceEntropyBits:h, klBits:Math.max(0,ce-h), uniformBits:uniform, surpriseReductionBits:uniform-ce, cells:keys.length };
+  }
+  activePriorRecords(){ const a=this.state.priorsActive||{}; return this.priorRegistry().filter(p=>!!a[p.id]); }
+  // Blend every active prior into one distribution (equal-weight mixture) — the
+  // prior the reading is actually conditioned on when several are toggled on.
+  blendedActiveRaw(){
+    const recs=this.activePriorRecords(); if(!recs.length) return null;
+    const all=this.PRIOR_CELLS(); const raw={}; for(const c of all) raw[c]=0;
+    for(const p of recs){ const d=this._priorNorm(p.dist, all); for(const c of all) raw[c]+=d[c]; }
+    return raw;
+  }
+  // Reading-surprise for a source, with priors off (cold uniform) vs. the active
+  // blend on — "priors used for reading to minimize surprise" made a number.
+  readingSurprise(m){
+    const all=this.PRIOR_CELLS(); const keys=all.filter(c=>this.PRIOR_EXCLUDED().indexOf(c)<0);
+    const P=this._priorNorm(this.sourceFoldDist(m), keys);
+    const off=Math.log2(keys.length);
+    const blend=this.blendedActiveRaw();
+    let on=off;
+    if(blend){ const Q=this._priorNorm(blend, keys); on=0; for(const c of keys) if(P[c]>0) on += -P[c]*Math.log2(Q[c]); }
+    const red=off-on;
+    return { offBits:off, onBits:on, reductionBits:red, pct: off>0?Math.round(100*red/off):0, active:this.activePriorRecords().length };
+  }
+  // Rank every prior for a source, best (least surprising) first — the
+  // compression technique finding the best priors for a given source.
+  rankPriorsFor(m){
+    const src=this.sourceFoldDist(m);
+    return this.priorRegistry()
+      .map(p=>({ p, fit:this.priorFit(src, p.dist, true) }))
+      .sort((a,b)=>b.fit.surpriseReductionBits-a.fit.surpriseReductionBits)
+      .map((x,i)=>({ ...x, rank:i+1 }));
+  }
+  // The source the "best priors" ranking is computed against: the open document
+  // if it's in memory, else an aggregate of the active sources.
+  priorTargetSource(){
+    const d=this.state.doc, list=this.mem();
+    const match = d && list.find(m=>(d.id&&m.id===d.id)||(d.title&&m.title===d.title));
+    if(match) return { m:match, label:match.title };
+    const act=list.filter(m=>this.state.structActive[m.id]!==false);
+    const pool=act.length?act:list;
+    if(!pool.length) return null;
+    const agg={ents:[],toc:[],highlights:[],words:0};
+    pool.forEach(m=>{ agg.ents=agg.ents.concat(m.ents||[]); agg.toc=agg.toc.concat(m.toc||[]); agg.highlights=agg.highlights.concat(m.highlights||[]); agg.words+=(m.words||0); });
+    return { m:agg, label: pool.length+' active source'+(pool.length===1?'':'s') };
+  }
+  // Top cells of a prior's distribution, for the inspector — share of mass, a
+  // bar width, and whether the cell is one of the silenced universal acts.
+  priorCellBars(p){
+    const cells=this.PRIOR_CELLS(); const excl=this.PRIOR_EXCLUDED();
+    const total=cells.reduce((s,c)=>s+(Number(p.dist[c])||0),0)||1;
+    return cells.map(c=>{ const parts=c.split('_'); const share=(Number(p.dist[c])||0)/total;
+        return { key:c, op:parts[0], grain:parts[1], site:parts[2], label:parts[0]+' · '+parts[2], pct:Math.round(share*1000)/10, share, excluded:excl.indexOf(c)>=0 }; })
+      .filter(x=>x.share>0.002)
+      .sort((a,b)=>b.share-a.share)
+      .slice(0,10);
+  }
+  togglePrior(id){ this.setState(s=>{ const priorsActive={...s.priorsActive,[id]:!s.priorsActive[id]}; this.save('eo5.priorsActive',priorsActive); return {priorsActive}; }); }
+  selectPrior(id){ this.setState(s=>({priorSel:s.priorSel===id?null:id})); }
+
   ingest(f){
     if(!f)return;
     const name=f.name, medium=this.medium(name), size=this.fmtSize(f.size), ext=(name.split('.').pop()||'').toLowerCase();
@@ -3799,12 +4027,46 @@ class Component extends DCLogic {
     const cdBackShown = cardPath.length>0;
     const cdBackLabel = cardPath.length<=1 ? terrain.rungs[0].label : (cardPath[cardPath.length-2].label||'');
 
+    // ── priors panel data ──
+    const priorReg=this.priorRegistry();
+    const priorTarget=this.priorTargetSource();
+    const priorReading = priorTarget ? this.readingSurprise(priorTarget.m) : null;
+    const priorRanking = priorTarget ? this.rankPriorsFor(priorTarget.m) : [];
+    const priorBestId = priorRanking.length ? priorRanking[0].p.id : null;
+    const fmtBits=(x)=>(x>=0?'+':'−')+Math.abs(x).toFixed(2);
+    const priorRankRows = priorRanking.map(x=>{ const on=!!S.priorsActive[x.p.id]; const best=x.p.id===priorBestId;
+      return { id:x.p.id, title:x.p.title, rank:x.rank, best,
+        reductionLabel:fmtBits(x.fit.surpriseReductionBits)+' bits',
+        klLabel:x.fit.klBits.toFixed(2)+' bits KL',
+        barW:Math.max(3,Math.min(100,Math.round((x.fit.surpriseReductionBits/Math.max(0.01,priorRanking[0].fit.surpriseReductionBits))*100)))+'%',
+        barCol:best?'#2f8f6b':t.accent, tagBg:best?'rgba(47,143,107,.12)':t.bar, tagFg:best?'#2f8f6b':t.mut,
+        tag:best?'BEST FIT':('#'+x.rank),
+        on, track:on?t.accent:t.bStrong, knob:on?'16px':'2px', toggle:()=>this.togglePrior(x.p.id) }; });
+    const priorRows = priorReg.map(p=>{ const on=!!S.priorsActive[p.id]; const sel=S.priorSel===p.id;
+      const scopeText=[(p.scope.genres||[]).join(', '),(p.scope.languages||[]).join('/')].filter(Boolean).join(' · ');
+      return { id:p.id, title:p.title, code:'PRIOR', dot:'#8e6fb3',
+        det:p.channels.join(' · '), scopeText, note:p.note, readerVersion:p.reader_version,
+        on, track:on?t.accent:t.bStrong, knob:on?'16px':'2px', rowOp:on?1:0.62,
+        toggle:()=>this.togglePrior(p.id), selected:sel, toggleSelect:()=>this.selectPrior(p.id),
+        chevron:sel?'90deg':'0deg',
+        channels:p.channels.map(ch=>({ label:ch, site:{priorMass:'Void',priorBond:'Field',priorProp:'Atmosphere'}[ch]||'' })),
+        cells:this.priorCellBars(p).map(cb=>({ label:cb.label, pctLabel:cb.pct.toFixed(1)+'%', barW:Math.max(2,Math.round(cb.share*100))+'%',
+          barCol:cb.excluded?t.bStrong:'#8e6fb3', op:cb.op, excluded:cb.excluded, muteLabel:cb.excluded?'universal · silenced in fit':'' })) }; });
+    const priorActiveCount=this.activePriorRecords().length;
+
     return {
+      priorRows, priorRankRows, priorTargetLabel:priorTarget?priorTarget.label:'', hasPriorTarget:!!priorTarget,
+      priorActiveCount, priorTotal:priorReg.length, hasPriorRank:priorRankRows.length>0,
+      priorOffBits:priorReading?priorReading.offBits.toFixed(2):'—', priorOnBits:priorReading?priorReading.onBits.toFixed(2):'—',
+      priorReductionBits:priorReading?priorReading.reductionBits.toFixed(2):'0.00', priorReductionPct:priorReading?priorReading.pct:0,
+      priorHasReduction:!!(priorReading&&priorReading.active>0), priorNoneActive:priorActiveCount===0,
+      isPriors:S.tab==='priors', setPriors:()=>this.setState({tab:'priors'}),
+      tabPrB:S.tab==='priors'?activeBg:'transparent', tabPrC:S.tab==='priors'?activeC:t.mut,
       isStructure:S.tab==='structure', notStructure:S.tab!=='structure',
       setStruct:()=>this.setState({tab:'structure'}),
       tabSB:S.tab==='structure'?activeBg:'transparent', tabSC:S.tab==='structure'?activeC:t.mut,
-      sheetDisp:(S.tab==='structure'||S.tab==='search'||S.tab==='overview'||S.tab==='profile'||(!sel&&!linkSel&&!explore))?'none':'flex',
-      panelOpenClass:(S.tab==='structure'||S.tab==='search'||S.tab==='overview'||S.tab==='profile'||(!sel&&!linkSel&&!explore))?'':'eo-panel-docked',
+      sheetDisp:(S.tab==='structure'||S.tab==='search'||S.tab==='overview'||S.tab==='profile'||S.tab==='priors'||(!sel&&!linkSel&&!explore))?'none':'flex',
+      panelOpenClass:(S.tab==='structure'||S.tab==='search'||S.tab==='overview'||S.tab==='profile'||S.tab==='priors'||(!sel&&!linkSel&&!explore))?'':'eo-panel-docked',
       structSources, corpusStats, sharedEnts, hasShared:sharedEnts.length>0, mediumFilters, crossInsights, crossSources,
       hasCross:crossInsights.length>0, noCross:crossInsights.length===0,
       queryText, onQueryInput:(e)=>this.setState({queryText:e.target.value}), onQueryKey:(e)=>{ if(e.key==='Enter') this.runLocalSearch(e.target.value); }, clearQuery:()=>this.runLocalSearch(''),
