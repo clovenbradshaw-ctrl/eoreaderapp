@@ -45,7 +45,7 @@ function spark(values, t, color) {
   const max = Math.max(1, ...values);
   for (const v of values) {
     const h = Math.max(2, Math.round((v / max) * 32));
-    wrap.appendChild(el('div', `width:100%;min-width:3px;flex:1;height:${h}px;background:${color || t.accent};border-radius:1px;opacity:${0.35 + 0.65 * (v / max)}`));
+    wrap.appendChild(el('div', `width:100%;min-width:1px;flex:1;height:${h}px;background:${color || t.accent};border-radius:1px;opacity:${0.35 + 0.65 * (v / max)}`));
   }
   return wrap;
 }
@@ -57,7 +57,7 @@ function meter(fraction, t, color) {
 }
 
 function cardShell(t, title, right) {
-  const card = el('section', `background:${t.card};border:1px solid ${t.border};border-radius:14px;padding:13px 14px;display:flex;flex-direction:column;gap:10px;min-width:0`);
+  const card = el('section', `background:${t.card};border:1px solid ${t.border};border-radius:14px;padding:13px 14px;display:flex;flex-direction:column;gap:10px;min-width:0;max-width:100%;overflow-x:hidden;box-sizing:border-box`);
   const head = el('div', 'display:flex;align-items:center;gap:8px');
   head.appendChild(el('div', `font:800 10px ${UI};letter-spacing:.1em;color:${t.mut}`, title));
   if (right) {
@@ -106,12 +106,12 @@ function divisionsCardEl(t, divisions) {
   const card = cardShell(t, 'DIVISIONS', `${divisions.candidateSets} candidate sets ›`);
   // Every derivation, retained. No winner.
   for (const d of divisions.derivations) {
-    const row = el('div', 'display:flex;align-items:center;gap:10px');
-    row.appendChild(el('div', `font:700 12px ${UI};color:${d.id === 'dom' ? t.warn : t.text};flex:1;min-width:0`, d.label));
+    const row = el('div', 'display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;min-width:0');
+    row.appendChild(el('div', `font:700 12px ${UI};color:${d.id === 'dom' ? t.warn : t.text};flex:1 1 auto;min-width:0`, d.label));
     row.appendChild(el('div', `font:700 11px ${MONO};color:${t.mut};white-space:nowrap`, `${d.beatCount} ${d.unit}`));
     if (d.sparkline && d.sparkline.length) {
       const s = spark(d.sparkline, t, t.mut);
-      s.setAttribute('style', s.getAttribute('style') + ';width:120px;flex:none;height:22px');
+      s.setAttribute('style', s.getAttribute('style') + ';width:100%;max-width:120px;flex:1 1 80px;min-width:0;height:22px');
       row.appendChild(s);
     }
     card.appendChild(row);
@@ -268,13 +268,13 @@ function readinessCardEl(t, readiness) {
 export function mountOverviewDashboard(root, model, opts = {}) {
   const t = opts.theme || THEMES.light;
   root.innerHTML = '';
-  root.setAttribute('style', `background:${t.bg};color:${t.text};padding:16px;font-family:${UI};box-sizing:border-box`);
-  const shell = el('div', 'max-width:960px;margin:0 auto;display:flex;flex-direction:column;gap:12px');
+  root.setAttribute('style', `background:${t.bg};color:${t.text};padding:16px;font-family:${UI};box-sizing:border-box;overflow-x:hidden`);
+  const shell = el('div', 'max-width:960px;margin:0 auto;display:flex;flex-direction:column;gap:12px;min-width:0');
   shell.appendChild(storyHeader(t, model.story));
   shell.appendChild(frameCardEl(t, model.frame));
   shell.appendChild(divisionsCardEl(t, model.divisions));
 
-  const grid = el('div', 'display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;align-items:start');
+  const grid = el('div', 'display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;align-items:start;min-width:0');
   grid.appendChild(unitsCardEl(t, model.units));
   grid.appendChild(referentsCardEl(t, model.referents));
   grid.appendChild(recurrenceCardEl(t, model.recurrence));
