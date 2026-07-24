@@ -2170,8 +2170,11 @@ class Component extends DCLogic {
     ents.slice(0,240).forEach((e,i)=>{ const id='e'+i,color=pal[i%pal.length],ctx=[];
       const er=new RegExp('(^|\\b)'+e.name.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'(\\b|$)','i');
       for(const p of paras){ if(ctx.length>=30)break; if(!er.test(p))continue; const ss=p.split(/(?<=[.?!])\s+/); for(const s of ss){ if(ctx.length>=30)break; if(er.test(s)){ const c=s.replace(/\s+/g,' ').trim(); if(c) ctx.push(c); } } }
-      const role=suffix.test(e.name)?'Detected organization':(/@/.test(e.name)?'Detected contact':(/\d/.test(e.name)?'Detected value/date':'Detected entity'));
-      const o={id,name:e.name,color,count:e.count,role,links:0,flags:0,conns:[],note:'',related:[],ctx};
+      const hasDate=/\b(?:20\d{2}|19\d{2}|Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?|\d{1,2}\/\d{1,2}\/\d{2,4})\b/i.test(e.name);
+      const kind=suffix.test(e.name)?'organization':(/@/.test(e.name)?'contact':(hasDate?'date':(/\d/.test(e.name)?'value':'entity')));
+      const kindLabel={organization:'Organization',contact:'Contact',date:'Date',value:'Value',entity:'Entity'}[kind]||'Entity';
+      const role='Detected '+kindLabel.toLowerCase();
+      const o={id,name:e.name,color,count:e.count,kind,kindLabel,role,links:0,flags:0,conns:[],note:'',related:[],ctx};
       entById[id]=o; list.push(o);
     });
     const top=list.slice(0,120); top.forEach(e=>e._co={});
@@ -2232,22 +2235,26 @@ class Component extends DCLogic {
   }
   expand(){ if(!this.state.sel && !this.state.linkSel)return; const o=['peek','half','full']; let i=o.indexOf(this.state.level); if(i<0)i=1; this.setState({level:o[(i+1)%3]}); }
   entMap(){ const d=this.state.doc; return (d&&d.analysis)?d.analysis.entById:{}; }
-  // ── terrains: entity clusters named from their own co-occurring entities, not a fixed taxonomy ──
-  terrainClusters(){
+  // ── entity kinds: segment the entity browser by the extracted kind of each referent ──
+  entityKindSegments(){
     const d=this.state.doc, a=d&&d.analysis; if(!a||!a.list||!a.list.length) return [];
-    const ents=a.list.slice(0,40);
-    const parent={}; ents.forEach(e=>parent[e.id]=e.id);
-    const find=x=>parent[x]===x?x:(parent[x]=find(parent[x]));
-    const union=(x,y)=>{ const rx=find(x),ry=find(y); if(rx!==ry) parent[rx]=ry; };
-    const byName={}; ents.forEach(e=>byName[e.name]=e);
-    ents.forEach(e=>(e.related||[]).forEach(r=>{ const t=byName[r.n]; if(t) union(e.id,t.id); }));
+    const order=['organization','entity','date','value','contact'];
+    const meta={
+      organization:{label:'Organizations',color:'#6bbf8a'},
+      entity:{label:'Entities',color:'#c77dba'},
+      date:{label:'Dates',color:'#e0a94c'},
+      value:{label:'Values',color:'#5b9bd5'},
+      contact:{label:'Contacts',color:'#3fb0a0'}
+    };
     const groups={};
-    ents.forEach(e=>{ const r=find(e.id); (groups[r]=groups[r]||[]).push(e); });
-    return Object.values(groups).map((g,i)=>{
-      const sorted=g.slice().sort((x,y)=>y.count-x.count);
-      return {id:'t'+i, label:sorted.slice(0,2).map(e=>e.name).join(' & '), color:sorted[0].color, entities:sorted, total:sorted.reduce((s,e)=>s+e.count,0)};
+    a.list.forEach(e=>{ const k=e.kind||'entity'; (groups[k]=groups[k]||[]).push(e); });
+    return Object.keys(groups).sort((a,b)=>(order.indexOf(a)<0?99:order.indexOf(a))-(order.indexOf(b)<0?99:order.indexOf(b))).map(k=>{
+      const sorted=groups[k].slice().sort((x,y)=>y.count-x.count||x.name.localeCompare(y.name));
+      const m=meta[k]||{label:(sorted[0]&&sorted[0].kindLabel?sorted[0].kindLabel:k).replace(/^./,c=>c.toUpperCase())+'s',color:sorted[0]&&sorted[0].color||'#8a8578'};
+      return {id:'kind-'+k, kind:k, label:m.label, color:m.color, entities:sorted, total:sorted.reduce((s,e)=>s+e.count,0)};
     }).sort((x,y)=>y.total-x.total);
   }
+  terrainClusters(){ return this.entityKindSegments(); }
   openExplore(){ this.setState({explore:{terrain:null}, sel:null, linkSel:null, level:'full'}); }
   openTerrain(id){ this.setState(s=>({explore:{...s.explore,terrain:id}})); }
   exploreBack(){ this.setState(s=>({explore:{...s.explore,terrain:null}})); }
@@ -3453,7 +3460,7 @@ class Component extends DCLogic {
     const curTerrain=(explTerrainId && explTerrainId!=='__quotes__' && explTerrainId!=='__structure__') ? terrains.find(x=>x.id===explTerrainId) : null;
     const explKind = !explTerrainId ? 'top' : (explTerrainId==='__quotes__'?'quotes':(explTerrainId==='__structure__'?'structure':'entities'));
     const explTopRows=[
-      ...terrains.map(tr=>({id:tr.id,label:tr.label,color:tr.color,sub:tr.entities.length+' entit'+(tr.entities.length===1?'y':'ies')+' · '+tr.total+' mention'+(tr.total===1?'':'s'),pick:()=>this.openTerrain(tr.id)})),
+      ...terrains.map(tr=>({id:tr.id,label:tr.label,color:tr.color,sub:tr.entities.length+' item'+(tr.entities.length===1?'':'s')+' · '+tr.total+' mention'+(tr.total===1?'':'s'),pick:()=>this.openTerrain(tr.id)})),
       ...((a.hi||[]).length?[{id:'__quotes__',label:'Quotes',color:'#e8b04a',sub:a.hi.length+' highlighted line'+(a.hi.length===1?'':'s'),pick:()=>this.openTerrain('__quotes__')}]:[]),
       ...(toc.filter(e=>!e.implicit).length>=3?[{id:'__structure__',label:'Structure',color:'#2a78d6',sub:toc.length+' section'+(toc.length===1?'':'s'),pick:()=>this.openTerrain('__structure__')}]:[])
     ];
