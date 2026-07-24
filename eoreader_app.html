@@ -256,6 +256,9 @@
       </sc-if>
 
       <sc-if value="{{ ovIsFrame }}">
+        <sc-if value="{{ cdHasProvenance }}">
+          <div onClick="{{ cdProvenanceOpen }}" style="display:flex;align-items:center;gap:6px;font:600 11.5px system-ui;color:{{ t.accent }};cursor:pointer;margin-bottom:10px">{{ cdProvenanceText }}</div>
+        </sc-if>
         <div style="font:800 10px system-ui;letter-spacing:.08em;text-transform:uppercase;color:{{ t.mut }};margin-bottom:10px">{{ ovFrameKicker }}</div>
         <div style="font:700 21px/1.28 'Source Serif 4',Georgia,serif;color:{{ t.text }};margin-bottom:8px">{{ ovTitle }}</div>
         <div style="font:500 12.5px system-ui;color:{{ t.mut }};margin-bottom:20px">{{ ovMeta }}</div>
@@ -271,17 +274,32 @@
         </sc-for>
 
         <sc-for list="{{ ovFrameAbsences }}" as="ab" hint-placeholder-count="1">
-          <div style="display:flex;gap:9px;align-items:flex-start;padding:8px 2px">
+          <div style="display:flex;gap:9px;align-items:flex-start;padding:8px 2px 4px">
             <span style="font-size:13px;flex:none;color:{{ t.faint }};line-height:1.5">○</span>
-            <div style="flex:1;font:500 13px/1.5 system-ui;color:{{ t.mut }}">{{ ab.text }}</div>
+            <div style="flex:1">
+              <div style="font:500 13px/1.5 system-ui;color:{{ t.mut }}">{{ ab.reason }}</div>
+              <sc-if value="{{ ab.hasOffer }}">
+                <div style="margin-top:8px;background:{{ t.bar }};border:1px solid {{ t.border }};border-radius:12px;padding:10px 11px">
+                  <div style="font:700 12.5px system-ui;color:{{ t.text }}">{{ ab.offerLabel }}</div>
+                  <div style="font:500 11.5px/1.4 system-ui;color:{{ t.mut }};margin:3px 0 8px">{{ ab.offerBlurb }}</div>
+                  <span onClick="{{ ab.offerRun }}" style="display:inline-block;font:700 11.5px system-ui;color:#fff;background:{{ t.accent }};border-radius:9px;padding:6px 11px;cursor:pointer">Try it</span>
+                </div>
+              </sc-if>
+            </div>
           </div>
         </sc-for>
       </sc-if>
 
       <sc-if value="{{ ovIsList }}">
         <div style="font:800 10px system-ui;letter-spacing:.08em;text-transform:uppercase;color:{{ t.mut }};margin-bottom:12px">{{ ovListHeader }}</div>
-        <sc-if value="{{ ovListIsClaims }}">
-        <sc-for list="{{ ovClaimRows }}" as="row" hint-placeholder-count="3">
+        <sc-if value="{{ cdHasLenses }}">
+          <div style="display:flex;gap:6px;margin-bottom:14px">
+            <sc-for list="{{ cdLensChips }}" as="lc" hint-placeholder-count="2">
+              <span onClick="{{ lc.pick }}" style="flex:none;background:{{ lc.on ? t.accent : t.bar }};color:{{ lc.on ? '#fff' : t.t2 }};border:1px solid {{ lc.on ? t.accent : t.border }};border-radius:16px;padding:6px 11px;font:700 11.5px system-ui;cursor:pointer">{{ lc.label }}</span>
+            </sc-for>
+          </div>
+        </sc-if>
+        <sc-for list="{{ ovListRows }}" as="row" hint-placeholder-count="3">
           <div onClick="{{ row.pick }}" style="background:{{ t.card }};border:1px solid {{ t.border }};border-radius:14px;padding:13px 14px;margin-bottom:10px;cursor:pointer">
             <div style="display:flex;align-items:center;margin-bottom:8px">
               <span style="font:700 11px 'IBM Plex Mono',monospace;color:{{ t.faint }}">{{ row.idxLabel }}</span>
@@ -297,26 +315,6 @@
             </sc-if>
           </div>
         </sc-for>
-        </sc-if>
-        <sc-if value="{{ ovListIsActors }}">
-        <sc-for list="{{ ovActorRows }}" as="row" hint-placeholder-count="3">
-          <div onClick="{{ row.pick }}" style="display:flex;align-items:center;gap:11px;background:{{ t.card }};border:1px solid {{ t.border }};border-radius:14px;padding:12px 13px;margin-bottom:9px;cursor:pointer">
-            <span style="width:10px;height:10px;border-radius:50%;background:{{ row.color }};flex:none"></span>
-            <div style="flex:1;min-width:0">
-              <div style="font:700 14.5px system-ui;color:{{ t.text }};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ row.name }}</div>
-              <div style="font:500 12px system-ui;color:{{ t.mut }};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ row.role }}</div>
-            </div>
-            <span style="font:600 10.5px 'IBM Plex Mono',monospace;color:{{ t.mut }};flex:none">{{ row.count }}×</span>
-            <span style="color:{{ t.faint }};font-size:16px;flex:none">›</span>
-          </div>
-        </sc-for>
-        </sc-if>
-        <sc-if value="{{ ovListEmpty }}">
-          <div style="display:flex;gap:9px;align-items:flex-start;padding:8px 2px">
-            <span style="font-size:13px;flex:none;color:{{ t.faint }};line-height:1.5">○</span>
-            <div style="flex:1;font:500 13px/1.5 system-ui;color:{{ t.mut }}">nothing detected here yet</div>
-          </div>
-        </sc-if>
       </sc-if>
 
       <sc-if value="{{ ovIsUnit }}">
@@ -331,13 +329,13 @@
         <sc-if value="{{ ovUnitNoAnchor }}">
           <div style="display:flex;gap:9px;align-items:flex-start;margin-bottom:20px">
             <span style="font-size:13px;flex:none;color:{{ t.faint }};line-height:1.5">○</span>
-            <div style="flex:1;font:500 13px/1.5 system-ui;color:{{ t.mut }}">no exact paragraph match — this couldn’t be re-anchored to the source text</div>
+            <div style="flex:1;font:500 13px/1.5 system-ui;color:{{ t.mut }}">no exact match — this couldn’t be re-anchored to the source</div>
           </div>
         </sc-if>
 
         <div style="font:800 9px system-ui;letter-spacing:.08em;text-transform:uppercase;color:{{ t.mut }};margin-bottom:8px">Named here</div>
         <sc-if value="{{ ovUnitHasEnts }}">
-        <div>
+        <div style="margin-bottom:20px">
           <sc-for list="{{ ovUnitEnts }}" as="e" hint-placeholder-count="2">
             <div onClick="{{ e.pick }}" style="display:flex;align-items:center;gap:9px;padding:9px 0;border-top:1px solid {{ t.border }};cursor:pointer">
               <span style="width:9px;height:9px;border-radius:50%;background:{{ e.c }};flex:none"></span>
@@ -349,10 +347,19 @@
         </div>
         </sc-if>
         <sc-if value="{{ ovUnitNoEnts }}">
-          <div style="display:flex;gap:9px;align-items:flex-start">
+          <div style="display:flex;gap:9px;align-items:flex-start;margin-bottom:20px">
             <span style="font-size:13px;flex:none;color:{{ t.faint }};line-height:1.5">○</span>
-            <div style="flex:1;font:500 13px/1.5 system-ui;color:{{ t.mut }}">no detected entities named in this passage</div>
+            <div style="flex:1;font:500 13px/1.5 system-ui;color:{{ t.mut }}">no detected entities named here</div>
           </div>
+        </sc-if>
+
+        <div style="font:800 9px system-ui;letter-spacing:.08em;text-transform:uppercase;color:{{ t.mut }};margin-bottom:8px">Carries</div>
+        <sc-if value="{{ cdUnitHasLinks }}">
+        <div style="display:flex;flex-wrap:wrap;gap:6px">
+          <sc-for list="{{ cdUnitLinks }}" as="lk" hint-placeholder-count="2">
+            <span style="font:600 11.5px system-ui;color:{{ t.t2 }};background:{{ t.bar }};border:1px solid {{ t.border }};border-radius:14px;padding:5px 10px">{{ lk.text }}</span>
+          </sc-for>
+        </div>
         </sc-if>
       </sc-if>
 
@@ -377,7 +384,7 @@
         <sc-if value="{{ ovRefNoAppear }}">
           <div style="display:flex;gap:9px;align-items:flex-start;margin-bottom:18px">
             <span style="font-size:13px;flex:none;color:{{ t.faint }};line-height:1.5">○</span>
-            <div style="flex:1;font:500 13px/1.5 system-ui;color:{{ t.mut }}">not named in any detected {{ ovClaimsLower }}</div>
+            <div style="flex:1;font:500 13px/1.5 system-ui;color:{{ t.mut }}">not named in any detected unit</div>
           </div>
         </sc-if>
 
@@ -397,10 +404,13 @@
         </sc-if>
 
         <div style="font:800 9px system-ui;letter-spacing:.08em;text-transform:uppercase;color:{{ t.mut }};margin-bottom:8px">Surface forms</div>
-        <div style="display:flex;gap:9px;align-items:flex-start">
-          <span style="font-size:13px;flex:none;color:{{ t.faint }};line-height:1.5">○</span>
-          <div style="flex:1;font:500 13px/1.5 system-ui;color:{{ t.mut }}">not tracked — this build treats each detected string as one name</div>
+        <sc-if value="{{ cdRefHasForms }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;flex-wrap:wrap;gap:6px">
+          <sc-for list="{{ cdRefForms }}" as="f" hint-placeholder-count="1">
+            <span style="font:600 12px system-ui;color:{{ t.t2 }};background:{{ t.bar }};border:1px solid {{ t.border }};border-radius:14px;padding:5px 10px">{{ f }}</span>
+          </sc-for>
         </div>
+        </sc-if>
       </sc-if>
 
     </div>
@@ -1056,6 +1066,295 @@ function mountEOSolar(root, opts){
   };
 }
 
+// ═══════════════════════════════════════════════════════════════════════
+// Cards mode (spec: Cards Mode Implementation, 2026-07-23)
+// A second reading mode over the extracted analysis: a four-rung ladder
+// (Frame → Divisions → Units → Referents) whose vocabulary and anchor type
+// vary by terrain. Terrain is derived state, never a file property.
+// ═══════════════════════════════════════════════════════════════════════
+
+// ── Assembly 1: terrain registry ──
+// Each terrain names its own word for the four fixed rungs (§1.2) plus the
+// anchor type its items carry. rungs[0] is always the singular Frame noun;
+// rungs[1..3].plural is what a rung's list screen headers with — a deriver
+// may still override the plural at render time (see §3.4, Assembly 3).
+const TERRAINS = {
+  article:    { rungs:[{label:'Story',plural:'Story'},        {label:'Turn',plural:'Turns'},         {label:'Claim',plural:'Claims'},     {label:'Actor',plural:'Actors'}],    anchorType:'para' },
+  book:       { rungs:[{label:'Work',plural:'Work'},          {label:'Chapter',plural:'Chapters'},   {label:'Passage',plural:'Passages'}, {label:'Figure',plural:'Figures'}],  anchorType:'para' },
+  report:     { rungs:[{label:'Report',plural:'Report'},      {label:'Section',plural:'Sections'},   {label:'Finding',plural:'Findings'}, {label:'Source',plural:'Sources'}],  anchorType:'para' },
+  code:       { rungs:[{label:'System',plural:'System'},      {label:'Module',plural:'Modules'},     {label:'Function',plural:'Functions'},{label:'Symbol',plural:'Symbols'}], anchorType:'line' },
+  dataset:    { rungs:[{label:'Dataset',plural:'Dataset'},    {label:'Field',plural:'Fields'},       {label:'Record',plural:'Records'},   {label:'Value',plural:'Values'}],    anchorType:'row' },
+  transcript: { rungs:[{label:'Conversation',plural:'Conversation'},{label:'Topic',plural:'Topics'},  {label:'Exchange',plural:'Exchanges'},{label:'Speaker',plural:'Speakers'}],anchorType:'time' },
+  audio:      { rungs:[{label:'Recording',plural:'Recording'},{label:'Section',plural:'Sections'},   {label:'Cue',plural:'Cues'},         {label:'Voice',plural:'Voices'}],    anchorType:'time' },
+  image:      { rungs:[{label:'Image',plural:'Image'},        {label:'Region',plural:'Regions'},     {label:'Object',plural:'Objects'},   {label:'Subject',plural:'Subjects'}], anchorType:'bbox' },
+  notes:      { rungs:[{label:'Note',plural:'Note'},          {label:'Block',plural:'Blocks'},       {label:'Line',plural:'Lines'},       {label:'Term',plural:'Terms'}],      anchorType:'para' },
+};
+
+// Transcript is deliberately absent from this map — it is only ever reached
+// via d.terrain (a perceiver's finding), never guessed from a medium.
+const TERRAIN_MEDIUM_MAP = {
+  Webpage:'article', Article:'article', Book:'book', PDF:'report', Code:'code',
+  Data:'dataset', Spreadsheet:'dataset', Text:'notes', Audio:'audio', Video:'audio', Image:'image',
+};
+
+function terrainOf(d){
+  if(!d) return 'notes';
+  if(d.terrain && TERRAINS[d.terrain]) return d.terrain;
+  const t = TERRAIN_MEDIUM_MAP[d.medium];
+  return (t && TERRAINS[t]) ? t : 'notes';
+}
+
+// ── Assembly 2: anchors ──
+// Every item at every rung carries an anchor; anchor type is a terrain
+// property (§1.3). Both functions are total: a malformed anchor yields ''
+// or a silent no-op, never a throw — an anchor must never be the reason a
+// card fails to render.
+function anchorLabel(anchor){
+  if(!anchor || typeof anchor!=='object' || !anchor.type) return '';
+  const pad2=n=>String(n).padStart(2,'0');
+  const fmtTime=(s)=>{ s=Math.max(0,Math.round(Number(s)||0)); return pad2(Math.floor(s/60))+':'+pad2(s%60); };
+  try{
+    switch(anchor.type){
+      case 'para': return Number.isFinite(anchor.pi) ? ('¶'+(anchor.pi+1)) : '';
+      case 'line': {
+        if(!Number.isFinite(anchor.from)) return '';
+        return (Number.isFinite(anchor.to) && anchor.to!==anchor.from) ? ('L'+anchor.from+'–'+anchor.to) : ('L'+anchor.from);
+      }
+      case 'row': return Number.isFinite(anchor.ri) ? ('row '+(anchor.ri+1)) : '';
+      case 'time': {
+        if(!Number.isFinite(anchor.from)) return '';
+        return Number.isFinite(anchor.to) ? (fmtTime(anchor.from)+' – '+fmtTime(anchor.to)) : fmtTime(anchor.from);
+      }
+      case 'bbox': return (Number.isFinite(anchor.x) && Number.isFinite(anchor.y)) ? ('region'+(Number.isFinite(anchor.idx)?' '+(anchor.idx+1):'')) : '';
+      default: return '';
+    }
+  }catch(_){ return ''; }
+}
+// anchorJump only knows how to honour a 'para' anchor against the Reader
+// DOM (paragraphs render with id="eo-p<pi>"); every other combination —
+// unsupported anchor type, or a view that can't display this anchor kind
+// (e.g. a bbox with no image-region view built yet; Native+'s iframe,
+// whose injection pass is out of scope for this spec) — is a silent no-op.
+function anchorJump(anchor, view){
+  try{
+    if(!anchor || anchor.type!=='para' || view!=='reader') return;
+    if(!Number.isFinite(anchor.pi)) return;
+    const el = document.getElementById('eo-p'+anchor.pi);
+    if(el && el.scrollIntoView) el.scrollIntoView({block:'center'});
+  }catch(_){ /* an anchor must never be why a card fails to render */ }
+}
+
+// ── Assembly 4: shared referent computation ──
+// entitiesIn(text, list) is the one place "which entities are present in
+// this text" gets computed — both Native+'s ACTIVE HERE bar (buildDoc's
+// activeSceneEntities) and Cards rung 4 (deriveReferents) call through
+// here, so the two can never drift into two different answers to the same
+// question.
+function eoEscRe(s){ return String(s).replace(/[.*+?^${}()|[\]\\]/g,'\\$&'); }
+function entitiesIn(text, list){
+  if(!text || !(list && list.length)) return [];
+  const low = ' '+String(text).toLowerCase()+' ';
+  return list.filter(e=>{
+    if(!e || !e.name) return false;
+    const re = new RegExp('(^|[^a-z0-9])'+eoEscRe(e.name.toLowerCase())+'([^a-z0-9]|$)','i');
+    return re.test(low);
+  });
+}
+
+// ── Assembly 3: derivers ──
+// One deriver per (terrain, rung). Each is a pure function of (d, a) that
+// returns a Present or an Absent value (§1.4) — never a Present with an
+// empty items array, which is a different, false claim ("this rung exists
+// and has nothing in it") from Absent ("this rung does not apply here").
+function eoIsHeadingPara(p){ return /^#{1,6}\s+/.test(String(p||'').trim()); }
+function eoFindParaIndex(paras, text){
+  if(!text) return -1;
+  for(let i=0;i<(paras||[]).length;i++){ if(paras[i] && String(paras[i]).indexOf(text)>=0) return i; }
+  return -1;
+}
+// csvRowsOf(d) — read csv rows off an already-parsed d.csv (set at ingest),
+// falling back to a minimal parse of d.rawText so a deriver never depends
+// on when in the ingest pipeline the CSV happened to get parsed.
+function csvRowsOf(d){
+  if(d && d.csv && Array.isArray(d.csv.rows) && d.csv.headers) return d.csv;
+  const raw = d && d.rawText;
+  if(!raw || !raw.trim()) return null;
+  const lines = raw.trim().split(/\r?\n/).filter(Boolean);
+  if(!lines.length) return null;
+  const split = l=>l.split(',').map(x=>x.trim().replace(/^"|"$/g,''));
+  const headers = split(lines[0]);
+  const rows = lines.slice(1).map(split).map(cols=>Object.fromEntries(headers.map((h,i)=>[h,cols[i]||''])));
+  return {headers, rows};
+}
+
+// PerceiverOffer factories (Assembly 10) — kept alongside the derivers that
+// hand them out. run() mutates the doc it closed over and resolves; it does
+// not touch component state directly (see the app's onRunPerceiver bridge).
+function eoTranscribeFixtureText(){
+  return [
+    '## Funding',
+    'Alice: We pulled together enough runway for one more quarter, but that’s it.',
+    'Bob: One more quarter buys us a demo, not a customer.',
+    '## Roadmap',
+    'Alice: If the demo lands, the roadmap doesn’t change. If it doesn’t, we cut the mobile client.',
+    'Bob: Cutting mobile loses us the one design partner who actually opened the last build.'
+  ].join('\n\n');
+}
+function offerTranscribe(d){
+  return { id:'transcribe', label:'Transcribe', blurb:'Turn this recording into a transcript with speaker turns and topics.', unlocks:[2,3,4],
+    run:()=>new Promise(resolve=>{
+      const priorTitle=d.title, priorUrl=d.url;
+      const text=eoTranscribeFixtureText();
+      const analysis = (typeof window!=='undefined' && window.__eoAnalyzeText) ? window.__eoAnalyzeText(text) :
+        {paras:text.split(/\n{2,}/),entById:{},list:[],hi:[],tension:[],chapters:0,links:0,words:text.split(/\s+/).filter(Boolean).length,toc:[]};
+      d.derivedFrom = {terrain:'audio', title:priorTitle, url:priorUrl};
+      d.terrain = 'transcript';
+      d.analysis = analysis;
+      resolve();
+    }) };
+}
+function offerDetectRegions(d){
+  return { id:'detect-regions', label:'Detect regions', blurb:'Find the regions, objects, and subjects in this image.', unlocks:[2,3,4],
+    run:()=>new Promise(resolve=>{
+      d.regions = [
+        {label:'Speaker (left)', x:0.06, y:0.12, w:0.34, h:0.5},
+        {label:'Whiteboard', x:0.42, y:0.08, w:0.5, h:0.6},
+      ];
+      resolve();
+    }) };
+}
+
+// 3.1 Frame (rung 1) — all terrains, always Present, single item.
+function deriveFrame(terrainId, d, a){
+  const terrain = TERRAINS[terrainId] || TERRAINS.notes;
+  const label = terrain.rungs[0].label;
+  const size = (a && Number.isFinite(a.words)) ? (a.words+' words') : ((d && d.size) || '');
+  const subtitle = [d && d.medium, size].filter(Boolean).join(' · ');
+  return { lenses:[{ id:'frame', label, items:[{ id:'frame', title:(d&&d.title)||label, body:subtitle, anchor:null, refs:[], badges:[] }] }] };
+}
+
+// 3.2 Divisions (rung 2).
+function deriveTranscriptDivisions(d, a){
+  const paras = (a && a.paras) || [];
+  const toc = ((a && a.toc) || []).filter(e=>!e.implicit);
+  const turnRe = /^([A-Z][A-Za-z .'-]{1,28}):\s*(.+)$/;
+  const turnItems = [];
+  paras.forEach((p,i)=>{ const m=String(p||'').match(turnRe); if(m) turnItems.push({ id:'turn'+i, title:m[1].trim(), body:m[2].trim(), anchor:{type:'para',pi:i}, refs:[], badges:[] }); });
+  const topicItems = toc.map((e,i)=>({ id:'topic'+i, title:e.title||('Topic '+(i+1)), body:'', anchor:{type:'para',pi:e.pi}, refs:[], badges:[] }));
+  const lenses=[];
+  if(topicItems.length) lenses.push({ id:'topics', label:'Topics', items:topicItems });
+  if(turnItems.length) lenses.push({ id:'turns', label:'Turns', items:turnItems });
+  if(!lenses.length) return { absent:true, reason:'no topics or turns — this transcript has no detectable structure', perceiver:null };
+  return { lenses };
+}
+function deriveDivisions(terrainId, d, a){
+  const toc = (a && a.toc) || [];
+  const explicitToc = toc.filter(e=>!e.implicit);
+  if(terrainId==='book' || terrainId==='report'){
+    if(explicitToc.length<=1) return { absent:true, reason:'no sections — this piece is one continuous whole', perceiver:null };
+    const items = explicitToc.map((e,i)=>({ id:'div'+i, title:e.title||('Section '+(i+1)), body:'', anchor:{type:'para',pi:e.pi}, refs:[], badges:[] }));
+    return { lenses:[{ id:'divisions', label:TERRAINS[terrainId].rungs[1].plural, items }] };
+  }
+  if(terrainId==='article'){
+    return { absent:true, reason:'no divisions — narrative beats aren’t derived from anything in this build yet', perceiver:null };
+  }
+  if(terrainId==='code'){
+    return { absent:true, reason:'no modules — this build reads code as one file', perceiver:null };
+  }
+  if(terrainId==='dataset'){
+    const csv = csvRowsOf(d);
+    if(!csv || !csv.headers || !csv.headers.length) return { absent:true, reason:'no fields — the header row could not be read', perceiver:null };
+    const items = csv.headers.map((h,i)=>({ id:'fld'+i, title:h, body:'column '+(i+1), anchor:null, refs:[], badges:[] }));
+    return { lenses:[{ id:'divisions', label:TERRAINS.dataset.rungs[1].plural, items }] };
+  }
+  if(terrainId==='transcript') return deriveTranscriptDivisions(d, a);
+  if(terrainId==='audio'){
+    return { absent:true, reason:'no sections — this recording has not been transcribed', perceiver:offerTranscribe(d) };
+  }
+  if(terrainId==='image'){
+    const regions=(d&&d.regions)||[];
+    if(!regions.length) return { absent:true, reason:'no regions — this image has not been analysed for regions', perceiver:offerDetectRegions(d) };
+    const items=regions.map((r,i)=>({ id:'reg'+i, title:r.label||('Region '+(i+1)), body:'', anchor:{type:'bbox',x:r.x,y:r.y,w:r.w,h:r.h,idx:i}, refs:[], badges:[] }));
+    return { lenses:[{ id:'divisions', label:TERRAINS.image.rungs[1].plural, items }] };
+  }
+  return { absent:true, reason:'no blocks — this note has no detected structure', perceiver:null };
+}
+
+// 3.3 Units (rung 3) + 3.4 the Claims degradation.
+function deriveUnits(terrainId, d, a, divisionScope){
+  if(terrainId==='code'){
+    const raw=(d&&d.rawText)||'';
+    if(!raw) return { absent:true, reason:'no functions — no source text to read', perceiver:null };
+    const lines=raw.split(/\n/);
+    const defRe=/^\s*(function\s+\w+|const\s+\w+\s*=\s*\(|def\s+\w+|class\s+\w+|\w+\s*\([^)]*\)\s*\{)/;
+    const marks=[]; lines.forEach((ln,i)=>{ if(defRe.test(ln)) marks.push({from:i+1, name:ln.trim().slice(0,60)}); });
+    if(!marks.length) return { absent:true, reason:'no functions — no recognisable function boundaries in this file', perceiver:null };
+    const items=marks.map((m,i)=>{ const to=(marks[i+1]?marks[i+1].from-1:lines.length); return { id:'fn'+i, title:m.name, body:'', anchor:{type:'line',from:m.from,to}, refs:[], badges:[] }; });
+    return { lenses:[{ id:'units', label:TERRAINS.code.rungs[2].plural, items }] };
+  }
+  if(terrainId==='dataset'){
+    const csv=csvRowsOf(d);
+    if(!csv || !csv.rows || !csv.rows.length) return { absent:true, reason:'no records — no rows to read', perceiver:null };
+    const items=csv.rows.map((r,i)=>({ id:'rec'+i, title:'Row '+(i+1), body:Object.entries(r).slice(0,4).map(([k,v])=>k+': '+v).join(' · '), anchor:{type:'row',ri:i}, refs:[], badges:[] }));
+    return { lenses:[{ id:'units', label:TERRAINS.dataset.rungs[2].plural, items }] };
+  }
+  if(terrainId==='audio'){
+    return { absent:true, reason:'no cues — this recording has not been transcribed', perceiver:offerTranscribe(d) };
+  }
+  if(terrainId==='image'){
+    return { absent:true, reason:'no objects — this image has not been analysed', perceiver:offerDetectRegions(d) };
+  }
+  if(terrainId==='transcript'){
+    const paras=(a&&a.paras)||[];
+    const turnRe = /^([A-Z][A-Za-z .'-]{1,28}):\s*(.+)$/;
+    const items=[]; paras.forEach((p,i)=>{ const m=String(p||'').match(turnRe); if(m) items.push({ id:'ex'+i, title:m[1].trim(), body:m[2].trim(), anchor:{type:'time',from:i*8,to:i*8+7}, refs:entitiesIn(m[2],(a&&a.list)||[]).map(e=>e.id), badges:[] }); });
+    if(!items.length) return { absent:true, reason:'no exchanges — no speaker turns detected in this transcript', perceiver:null };
+    return { lenses:[{ id:'units', label:TERRAINS.transcript.rungs[2].plural, items }] };
+  }
+  // article / book / report / notes — paragraph-anchored units, optionally
+  // narrowed to a chosen division's [pi, nextPi).
+  const paras=(a&&a.paras)||[];
+  const lo = divisionScope ? divisionScope.pi : 0;
+  const hi = divisionScope ? divisionScope.nextPi : paras.length;
+  const scoped = paras.map((p,i)=>({p,i})).filter(x=>x.i>=lo && x.i<hi && x.p && x.p.trim() && !eoIsHeadingPara(x.p));
+  const tension=(a&&a.tension)||[];
+  if(terrainId==='article' && tension.length){
+    const items=tension.map((tn,i)=>({ id:'cl'+i, title:'Claim '+(i+1), body:tn.text, anchor:{type:'para',pi:eoFindParaIndex(paras,tn.text)}, refs:entitiesIn(tn.text,(a&&a.list)||[]).map(e=>e.id), badges:[] }));
+    return { lenses:[{ id:'units', label:'Claims', items }] };
+  }
+  const fallbackLabel = terrainId==='article' ? 'Passages' : TERRAINS[terrainId].rungs[2].plural;
+  if(!scoped.length) return { absent:true, reason:'no '+fallbackLabel.toLowerCase()+' — nothing extracted from this source yet', perceiver:null };
+  const items=scoped.map((x,i)=>({ id:'u'+i, title:fallbackLabel.replace(/s$/,'')+' '+(i+1), body:x.p, anchor:{type:'para',pi:x.i}, refs:entitiesIn(x.p,(a&&a.list)||[]).map(e=>e.id), badges:[] }));
+  return { lenses:[{ id:'units', label:fallbackLabel, items }] };
+}
+
+// 3.5 Referents (rung 4) — a.list filtered to entities present in the
+// parent scope's text (whole document when no unit/division is chosen).
+function deriveReferents(terrainId, d, a, scopeText){
+  const terrain = TERRAINS[terrainId] || TERRAINS.notes;
+  const plural = terrain.rungs[3].plural.toLowerCase();
+  const list=(a&&a.list)||[];
+  if(!list.length) return { absent:true, reason:'no '+plural+' — no named entities detected', perceiver:null };
+  const scoped = scopeText!=null ? entitiesIn(scopeText, list) : list;
+  if(!scoped.length) return { absent:true, reason:'no '+plural+' — none detected in this scope', perceiver:null };
+  const items=scoped.map(e=>({ id:e.id, title:e.name, body:e.role||'', anchor:null, refs:[], badges:[] }));
+  return { lenses:[{ id:'referents', label:terrain.rungs[3].plural, items }] };
+}
+
+// deriveRung(terrainId, rungIdx, d, a, scope) — the single dispatch point;
+// rungIdx is 1-indexed to match the spec's table (1 Frame, 2 Divisions,
+// 3 Units, 4 Referents). scope narrows Units to a chosen division
+// ({division:{pi,nextPi}}) and Referents to a chosen unit's text ({text}).
+function deriveRung(terrainId, rungIdx, d, a, scope){
+  a = a || {};
+  scope = scope || {};
+  if(rungIdx===1) return deriveFrame(terrainId, d, a);
+  if(rungIdx===2) return deriveDivisions(terrainId, d, a);
+  if(rungIdx===3) return deriveUnits(terrainId, d, a, scope.division||null);
+  if(rungIdx===4) return deriveReferents(terrainId, d, a, scope.text!=null?scope.text:null);
+  return { absent:true, reason:'unknown rung', perceiver:null };
+}
+
 class Component extends DCLogic {
   constructor(props){
     super(props);
@@ -1080,7 +1379,7 @@ class Component extends DCLogic {
       layersOpen:false, settingsOpen:false, importOpen:false, urlVal:'', engineLive:false,
       layers:{hi:true,en:true,ch:true,ln:true,nw:props.candidates!==false},
       sel:null, linkSel:null, linkPeek:{status:'idle'}, level:'prompt', chap:0, tocOpen:false, explore:null,
-      overview:{stack:['frame'],rung:null,unitIdx:null,entId:null},
+      cardPath:[], lensByRung:{},
       structFilter:'all', structExp:{}, structRows:{}, structActive:{},
       doc:this.loadingDoc('https://www.npr.org'),
       src:{label:'npr.org',det:'Loading…',dot:'#5b9bd5'},
@@ -1114,6 +1413,11 @@ class Component extends DCLogic {
     this._prevSel=this.state.sel; this._prevDoc=this.state.doc; this._prevView=this.state.view; this._prevLayers=this.state.layers;
   }
   componentDidMount(){
+    // Bridge for perceiver stubs (Assembly 10) — a deriver's PerceiverOffer.run()
+    // is a pure closure over the doc it re-terrains and cannot reach `this`;
+    // it re-analyzes fixture text through the same pipeline every other
+    // ingest path uses via this one bridge, same idea as the EOReader5 bridge below.
+    window.__eoAnalyzeText = (raw, linkMap)=>this.analyzeText(raw, linkMap);
     const set=()=>this.setState({engineLive:!!this.engineBridge(), engineName:this.engineBridgeName()});
     set();
     if(window.addEventListener){
@@ -1379,13 +1683,24 @@ class Component extends DCLogic {
   closeExplore(){ this.setState({explore:null, sel:null, linkSel:null, level:'prompt'}); }
   jumpChapter(i){ this.gotoChap(i); this.setState({explore:null, sel:null, linkSel:null, level:'prompt'}); }
 
-  // ── overview: Frame → Units → Unit → Referent ladder for the current document ──
-  ovPush(screen, patch){ this.setState(s=>({overview:{...s.overview, ...(patch||{}), stack:[...(s.overview.stack||['frame']), screen]}})); }
-  ovOpenRung(rung){ this.ovPush('list', {rung}); }
-  ovOpenUnit(idx){ this.ovPush('unit', {unitIdx:idx}); }
-  ovOpenReferent(entId){ this.ovPush('referent', {entId}); }
-  ovBack(){ this.setState(s=>{ const st=s.overview.stack||['frame']; if(st.length<=1) return {}; return {overview:{...s.overview, stack:st.slice(0,-1)}}; }); }
-  ovJump(pi){ this.setState({tab:'reader'}); requestAnimationFrame(()=>{ const el=document.getElementById('eo-p'+pi); if(el&&el.scrollIntoView) el.scrollIntoView({block:'center'}); }); }
+  // ── Cards mode: Frame → Divisions → Units → Referents ladder (Assembly 5) ──
+  // cardPath is a stack of {rungIdx, itemId, label, scope?}; empty path = rung 1
+  // (Frame). Pushing descends one rung, popping backs out one. Switching
+  // documents clears it; switching to Prose preserves it.
+  cardPush(entry){ this.setState(s=>({cardPath:[...(s.cardPath||[]), entry]})); }
+  cardBack(){ this.setState(s=>{ const p=s.cardPath||[]; return p.length ? {cardPath:p.slice(0,-1)} : {}; }); }
+  cardOpenDivisions(){ this.cardPush({rungIdx:2, itemId:null, label:'Divisions'}); }
+  cardOpenUnits(){ this.cardPush({rungIdx:3, itemId:null, label:'Units'}); }
+  cardOpenReferents(){ this.cardPush({rungIdx:4, itemId:null, label:'Referents'}); }
+  cardOpenDivision(div){ this.cardPush({rungIdx:3, itemId:null, label:div.title, scope:{division:div.anchor&&div.anchor.type==='para'?{pi:div._pi, nextPi:div._nextPi}:null}}); }
+  cardOpenUnit(item){ this.cardPush({rungIdx:3, itemId:item.id, label:item.title}); }
+  cardOpenReferent(entId, label){ this.cardPush({rungIdx:4, itemId:entId, label:label||''}); }
+  cardSetLens(rungIdx, lensId){ this.setState(s=>({lensByRung:{...(s.lensByRung||{}), [rungIdx]:lensId}})); }
+  cardJumpAnchor(anchor){ this.setState({tab:'reader'}); requestAnimationFrame(()=>anchorJump(anchor, this.state.view)); }
+  runPerceiver(offer){
+    if(!offer || !offer.run) return;
+    offer.run().then(()=>this.setState({}));
+  }
 
   // ── the entity graph as paradigms (largest mass) orbited by entities (smallest mass) ──
   // Reuses the same salience form as the eoreader4.2 perceiver (log(1+mass)+log(1+coupling)),
@@ -1586,10 +1901,10 @@ class Component extends DCLogic {
     this._webFrameDoc=null; this._webFrameCleanHTML=null; this._webFrameClickBound=false; this._webFrameActiveIds=[];
     this.setState({doc:d, importOpen:false, searchResults:[], mediaResults:[], searchMsg:'', sel:null, level:'prompt', chap:0, tab:'reader',
       searchProjection:'evidence', searchScope:'all', queryText:'', queryReading:null, queryWhy:null,
-      view:(opts&&opts.view)||'native', webFrameActiveIds:[],
+      view:(opts&&opts.view)||'native', webFrameActiveIds:[], cardPath:[], lensByRung:{},
       src:{label:d.name||d.title, det, dot:this.medColor(d.medium)}});
   }
-  resetSample(){ this.setState({doc:this.demoDoc(), importOpen:false, sel:null, level:'prompt', chap:0, tab:'reader', view:'reader', src:{label:'theatlantic.com/…/the-quiet-collapse',det:'News · sample',dot:'#c0662e'}}); }
+  resetSample(){ this.setState({doc:this.demoDoc(), importOpen:false, sel:null, level:'prompt', chap:0, tab:'reader', view:'reader', cardPath:[], lensByRung:{}, src:{label:'theatlantic.com/…/the-quiet-collapse',det:'News · sample',dot:'#c0662e'}}); }
 
   // ── space-scoped memory ──
   mem(){ return (this.state.memoryBySpace||{})[this.state.spaceId]||[]; }
@@ -2059,10 +2374,13 @@ class Component extends DCLogic {
         const ci=Math.max(0,Math.min(this.state.chap,toc.length-1));
         const en=toc[ci]; lo=en.implicit?en.pi:en.pi+1; hi=(ci+1<toc.length)?toc[ci+1].pi:paras.length;
       }
-      const scene=(' '+paras.slice(lo,hi).join(' ')+' ').toLowerCase();
-      const esc=s=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
-      return list.map(e=>{ const re=new RegExp('(^|\\b)'+esc(e.name.toLowerCase())+'(\\b|$)','g'); const n=(scene.match(re)||[]).length; return {...e,active:n}; })
-        .filter(e=>e.active>0).sort((x,y)=>y.active-x.active||y.count-x.count).slice(0,5);
+      const scene=paras.slice(lo,hi).join(' ');
+      const sceneLower=(' '+scene+' ').toLowerCase();
+      // Membership itself is computed by the same entitiesIn() that Cards
+      // rung 4 uses (Assembly 4) — only the ranking-by-occurrence-count
+      // below is specific to this bar's "top 5" display.
+      return entitiesIn(scene, list).map(e=>{ const re=new RegExp('(^|\\b)'+eoEscRe(e.name.toLowerCase())+'(\\b|$)','g'); const n=(sceneLower.match(re)||[]).length; return {...e,active:n}; })
+        .sort((x,y)=>y.active-x.active||y.count-x.count).slice(0,5);
     };
     const nativePlusOverlay=()=>{
       const ents=this.state.layers.en?activeSceneEntities():[];
@@ -2248,89 +2566,114 @@ class Component extends DCLogic {
     const explChapterRows=toc.map((c,i)=>({id:'ch'+i,title:c.implicit?(d&&d.title||'Opening'):c.title,sub:'Section '+(i+1)+' of '+toc.length,pick:()=>this.jumpChapter(i)}));
     const explTitle = explKind==='top' ? 'Explore this document' : (explKind==='quotes'?'Quotes':(explKind==='structure'?'Structure':(curTerrain?curTerrain.label:'')));
 
-    // ── overview: Frame → Units → Unit → Referent ladder, article terrain ──
-    const overview = S.overview || {stack:['frame']};
-    const ovStack = (overview.stack&&overview.stack.length) ? overview.stack : ['frame'];
-    const ovScreen = ovStack[ovStack.length-1];
-    const ovPrevScreen = ovStack.length>1 ? ovStack[ovStack.length-2] : null;
+    // ── Cards mode: Frame → Divisions → Units → Referents ladder (Assemblies 5–10) ──
+    // Terrain is derived from the doc (Assembly 1); every rung comes from a
+    // deriver that returns Present or Absent (Assembly 3) — nothing here
+    // hardcodes "claims"/"actors" the way the old single-terrain build did.
+    const terrainId = terrainOf(d);
+    const terrain = TERRAINS[terrainId];
+    const cardPath = S.cardPath||[];
+    const lensByRung = S.lensByRung||{};
+    const entMap = this.entMap();
 
-    const ovTensionRaw = a.tension||[];
-    const ovHasClaims = ovTensionRaw.length>0;
-    const ovClaimsLabel = ovHasClaims ? 'Claims' : 'Passages';
-    const ovEscRe = s=>String(s).replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
-    const ovEntsInText = (text)=>{
-      if(!text || !(a.list&&a.list.length)) return [];
-      const low=' '+String(text).toLowerCase()+' ';
-      return a.list.filter(e=>{
-        const re=new RegExp('(^|[^a-z0-9])'+ovEscRe(e.name.toLowerCase())+'([^a-z0-9]|$)','i');
-        return re.test(low);
-      }).slice(0,6);
+    const findItem=(present,id)=>{ if(!present||present.absent) return null; for(const lens of present.lenses){ const it=lens.items.find(x=>x.id===id); if(it) return it; } return null; };
+    const pickLens=(present,rungIdx)=>{ if(!present||present.absent) return null; const chosen=lensByRung[rungIdx]; return present.lenses.find(l=>l.id===chosen)||present.lenses[0]; };
+
+    // The division scope (if any) the path is currently carrying, for Units.
+    let pathDivisionScope=null;
+    for(let i=cardPath.length-1;i>=0;i--){ if(cardPath[i].rungIdx===3 && cardPath[i].itemId==null && cardPath[i].scope && cardPath[i].scope.division){ pathDivisionScope=cardPath[i].scope.division; break; } }
+
+    const rung2 = deriveRung(terrainId, 2, d, a, {});
+    const rung3Whole = deriveRung(terrainId, 3, d, a, {});
+    const rung3Scoped = pathDivisionScope ? deriveRung(terrainId, 3, d, a, {division:pathDivisionScope}) : rung3Whole;
+    const rung4Whole = deriveRung(terrainId, 4, d, a, {});
+
+    let cardTop = cardPath.length ? cardPath[cardPath.length-1] : null;
+    let cardScreen = !cardTop ? 'frame' : (cardTop.itemId==null ? 'list' : (cardTop.rungIdx===4 ? 'referent' : 'unit'));
+    // A stale path entry (analysis re-ran, item vanished) degrades to Frame
+    // rather than throwing (§Assembly 5).
+    if(cardScreen==='unit' && !findItem(rung3Scoped,cardTop.itemId) && !findItem(rung3Whole,cardTop.itemId)) cardScreen='frame';
+    if(cardScreen==='referent' && !entMap[cardTop.itemId]) cardScreen='frame';
+
+    // -- Frame --
+    const cdFrameRes = deriveRung(terrainId, 1, d, a, {});
+    const cdFrameItem = cdFrameRes.lenses[0].items[0];
+    const cdFrameKicker = terrain.rungs[0].label.toUpperCase();
+    const cdTitle = cdFrameItem.title;
+    const cdMeta = cdFrameItem.body;
+    const cdDerivedFrom = (d && d.derivedFrom) || null;
+    const cdHasProvenance = !!cdDerivedFrom;
+    const cdProvenanceText = cdDerivedFrom ? ('from '+((TERRAINS[cdDerivedFrom.terrain]&&TERRAINS[cdDerivedFrom.terrain].rungs[0].label)||cdDerivedFrom.terrain)+' · '+(cdDerivedFrom.title||'')+'  ↗') : '';
+    const cdProvenanceOpen = ()=>{ if(cdDerivedFrom && cdDerivedFrom.url) this.readUrlValue(cdDerivedFrom.url, cdDerivedFrom.title); };
+
+    const cdRungSub = (idx)=>{
+      if(idx===2) return 'how it’s divided';
+      if(idx===3) return (terrainId==='article') ? ((a.tension||[]).length?'what this story asserts':'paragraphs in this piece') : 'what this holds';
+      return 'what/who it names';
     };
-    const ovFindPara = (text)=>{ const paras=a.paras||[]; for(let i=0;i<paras.length;i++){ if(paras[i] && String(paras[i]).indexOf(text)>=0) return i; } return -1; };
-    const ovIsHeading = p=>/^#{1,6}\s+/.test(String(p||'').trim());
-    const ovParaCandidates=(a.paras||[]).map((p,i)=>({pi:i,text:p})).filter(x=>x.text && x.text.trim() && !ovIsHeading(x.text));
-    const ovClaimUnits = ovHasClaims
-      ? ovTensionRaw.map((x,i)=>({idx:i,text:x.text,pi:ovFindPara(x.text),ents:ovEntsInText(x.text)}))
-      : ovParaCandidates.slice(0,200).map((x,i)=>({idx:i,text:x.text,pi:x.pi,ents:ovEntsInText(x.text)}));
-    const ovActorUnits = (a.list||[]).slice(0,60);
-    const ovDivisionsCount = toc.filter(e=>!e.implicit).length;
-    const ovHasDivisions = ovDivisionsCount>=3;
+    const cdFrameRows=[], cdFrameAbsences=[];
+    [[2,rung2,()=>this.cardOpenDivisions()],[3,rung3Whole,()=>this.cardOpenUnits()],[4,rung4Whole,()=>this.cardOpenReferents()]].forEach(([idx,res,open])=>{
+      if(!res.absent){
+        const total=res.lenses.reduce((n,l)=>n+l.items.length,0);
+        const label = res.lenses.length===1 ? res.lenses[0].label : terrain.rungs[idx-1].plural;
+        cdFrameRows.push({count:total, label, sub:cdRungSub(idx), pick:open});
+      } else {
+        cdFrameAbsences.push({reason:res.reason, hasOffer:!!res.perceiver, offerLabel:res.perceiver?res.perceiver.label:'', offerBlurb:res.perceiver?res.perceiver.blurb:'', offerRun:res.perceiver?(()=>this.runPerceiver(res.perceiver)):null});
+      }
+    });
 
-    const ovFrameRungs=[], ovFrameAbsences=[];
-    if(ovClaimUnits.length>0) ovFrameRungs.push({count:ovClaimUnits.length,label:ovClaimsLabel,sub:ovHasClaims?'what this story asserts':'paragraphs in this piece',pick:()=>this.ovOpenRung('claims')});
-    else ovFrameAbsences.push({text:'no '+ovClaimsLabel.toLowerCase()+' — nothing extracted from this source yet'});
-    if(ovActorUnits.length>0) ovFrameRungs.push({count:ovActorUnits.length,label:'Actors',sub:'who it names',pick:()=>this.ovOpenRung('actors')});
-    else ovFrameAbsences.push({text:'no actors — no named entities detected'});
-    if(ovHasDivisions) ovFrameRungs.push({count:ovDivisionsCount,label:'Sections',sub:'how it’s divided',pick:()=>this.setState({tab:'reader'})});
-    else ovFrameAbsences.push({text:'no sections — this story is one continuous piece'});
+    // -- List (Divisions or Units) --
+    const listRungIdx = cardScreen==='list' ? cardTop.rungIdx : null;
+    const cdListRes = listRungIdx===2 ? rung2 : (listRungIdx===3 ? rung3Scoped : null);
+    const cdListLens = pickLens(cdListRes, listRungIdx);
+    const cdListLenses = (cdListRes && !cdListRes.absent) ? cdListRes.lenses : [];
+    const cdHasLenses = cdListLenses.length>1;
+    const cdLensChips = cdListLenses.map(l=>({label:l.label, on:!!(cdListLens&&l.id===cdListLens.id), pick:()=>this.cardSetLens(listRungIdx,l.id)}));
+    const cdListItems = cdListLens ? cdListLens.items : [];
+    const cdListHeader = (cdListLens?cdListLens.label:'').toUpperCase()+' · '+cdListItems.length;
+    const cdListRows = cdListItems.map((it,i)=>{
+      const anc=anchorLabel(it.anchor);
+      const ents=(it.refs||[]).map(id=>entMap[id]).filter(Boolean).map(e=>({n:e.name,c:e.color}));
+      const body=(it.body||'');
+      const base={ id:it.id, idxLabel:String(i+1).padStart(2,'0'), anchorLabel:anc||'—', hasAnchor:!!anc,
+        text: body.length>240?body.slice(0,240)+'…':(body||it.title), ents, hasEnts:ents.length>0 };
+      if(listRungIdx===2){
+        const nextPi = (i+1<cdListItems.length && cdListItems[i+1].anchor && cdListItems[i+1].anchor.type==='para') ? cdListItems[i+1].anchor.pi : (a.paras?a.paras.length:0);
+        const pi = it.anchor && it.anchor.type==='para' ? it.anchor.pi : 0;
+        return {...base, pick:()=>this.cardOpenDivision({title:it.title, anchor:it.anchor, _pi:pi, _nextPi:nextPi})};
+      }
+      return {...base, pick:()=>this.cardOpenUnit(it)};
+    });
 
-    const ovFrameKicker = d ? String((d.medium==='Webpage'||d.medium==='Article')?'Story':(d.medium||'Document')).toUpperCase() : 'STORY';
-    const ovDomain = d&&d.url ? this.hostOf(d.url) : '';
-    const ovMeta = [ovDomain, d&&d.medium, (a.words||0)+' words'].filter(Boolean).join(' · ');
-
-    const ovListRung = overview.rung;
-    const ovClaimRows = ovClaimUnits.map(u=>({
-      id:'u'+u.idx, idxLabel:String(u.idx+1).padStart(2,'0'),
-      anchorLabel:u.pi>=0?('¶'+(u.pi+1)):'—',
-      text:u.text.length>240?u.text.slice(0,240)+'…':u.text,
-      ents:u.ents.map(e=>({n:e.name,c:e.color})), hasEnts:u.ents.length>0,
-      pick:()=>this.ovOpenUnit(u.idx)
-    }));
-    const ovActorRows = ovActorUnits.map(e=>({
-      id:e.id, name:e.name, color:e.color, role:e.role||'', count:e.count,
-      pick:()=>this.ovOpenReferent(e.id)
-    }));
-    const ovListIsClaims = ovScreen==='list' && ovListRung!=='actors';
-    const ovListIsActors = ovScreen==='list' && ovListRung==='actors';
-    const ovListHeader = ovListRung==='actors' ? ('ACTORS · '+ovActorRows.length) : (ovClaimsLabel.toUpperCase()+' · '+ovClaimRows.length);
-    const ovListEmpty = ovListRung==='actors' ? ovActorRows.length===0 : ovClaimRows.length===0;
-
-    const ovUnitIdx = overview.unitIdx;
-    const ovUnitData = (ovUnitIdx!=null) ? ovClaimUnits[ovUnitIdx] : null;
-    const ovUnitKicker = (ovHasClaims?'CLAIM ':'PASSAGE ')+String((ovUnitIdx||0)+1).padStart(2,'0');
-    const ovUnitText = ovUnitData ? ovUnitData.text : '';
-    const ovUnitHasAnchor = !!(ovUnitData && ovUnitData.pi>=0);
-    const ovUnitNoAnchor = !!ovUnitData && !ovUnitHasAnchor;
-    const ovUnitAnchorLabel = ovUnitHasAnchor ? ('¶'+(ovUnitData.pi+1)) : '';
-    const ovUnitEnts = ovUnitData ? ovUnitData.ents.map(e=>({n:e.name,c:e.color,count:e.count,pick:()=>this.ovOpenReferent(e.id)})) : [];
-    const ovUnitHasEnts = ovUnitEnts.length>0;
-    const ovUnitNoEnts = !!ovUnitData && !ovUnitHasEnts;
-
-    const ovEntId = overview.entId;
-    const ovRefEnt = ovEntId ? this.entMap()[ovEntId] : null;
-    const ovRefAppear = ovRefEnt ? ovClaimUnits.filter(u=>u.ents.some(e=>e.id===ovRefEnt.id)).slice(0,10).map(u=>({
-      label:(ovHasClaims?'Claim ':'Passage ')+String(u.idx+1).padStart(2,'0')+'   '+(u.text.length>36?u.text.slice(0,36)+'…':u.text),
-      pick:()=>this.ovOpenUnit(u.idx)
-    })) : [];
-    const ovRefWith = ovRefEnt ? (ovRefEnt.conns||[]).filter(c=>c.id).slice(0,6).map(c=>({n:c.t,c:c.c,pick:()=>this.ovOpenReferent(c.id)})) : [];
-
-    const ovBackLabel = (()=>{
-      if(!ovPrevScreen) return '';
-      if(ovPrevScreen==='frame') return ovFrameKicker.charAt(0)+ovFrameKicker.slice(1).toLowerCase();
-      if(ovPrevScreen==='list') return ovListRung==='actors' ? 'Actors' : ovClaimsLabel;
-      if(ovPrevScreen==='unit') return (ovHasClaims?'Claim ':'Passage ')+String((ovUnitIdx||0)+1).padStart(2,'0');
-      return '';
+    // -- Unit detail --
+    const cdUnitItem = cardScreen==='unit' ? (findItem(rung3Scoped,cardTop.itemId) || findItem(rung3Whole,cardTop.itemId)) : null;
+    const cdUnitKicker = cdUnitItem ? String(cdUnitItem.title||'').toUpperCase() : '';
+    const cdUnitText = cdUnitItem ? (cdUnitItem.body||cdUnitItem.title||'') : '';
+    const cdUnitAnchorLabel = cdUnitItem ? anchorLabel(cdUnitItem.anchor) : '';
+    const cdUnitHasAnchor = !!cdUnitAnchorLabel;
+    const cdUnitNoAnchor = !!cdUnitItem && !cdUnitHasAnchor;
+    const cdUnitJump = ()=>{ if(cdUnitItem && cdUnitItem.anchor) this.cardJumpAnchor(cdUnitItem.anchor); };
+    const cdUnitEnts = cdUnitItem ? (cdUnitItem.refs||[]).map(id=>entMap[id]).filter(Boolean).map(e=>({n:e.name,c:e.color,count:e.count,pick:()=>this.cardOpenReferent(e.id,e.name)})) : [];
+    const cdUnitHasEnts = cdUnitEnts.length>0;
+    const cdUnitNoEnts = !!cdUnitItem && !cdUnitHasEnts;
+    // CARRIES (§8.1) — outbound a.linkMap links whose anchor text appears in this unit's body.
+    const cdUnitLinks = (()=>{
+      if(!cdUnitItem) return [];
+      const lm=a.linkMap||{}, body=cdUnitItem.body||'';
+      return Object.keys(lm).filter(k=>k && body.indexOf(k)>=0).slice(0,6).map(k=>({text:k,url:lm[k]}));
     })();
+    const cdUnitHasLinks = cdUnitLinks.length>0;
+
+    // -- Referent (§8.2) --
+    const cdRefEnt = cardScreen==='referent' ? entMap[cardTop.itemId] : null;
+    const cdRefAppear = (cdRefEnt && !rung3Whole.absent) ? rung3Whole.lenses.flatMap(l=>l.items).filter(it=>(it.refs||[]).includes(cdRefEnt.id)).slice(0,10).map(it=>({
+      label:it.title+(it.body?('   '+(it.body.length>36?it.body.slice(0,36)+'…':it.body)):''), pick:()=>this.cardOpenUnit(it)
+    })) : [];
+    const cdRefWith = cdRefEnt ? (cdRefEnt.conns||[]).filter(c=>c.id).slice(0,6).map(c=>({n:c.t,c:c.c,pick:()=>this.cardOpenReferent(c.id,c.t)})) : [];
+    const cdRefForms = cdRefEnt ? [cdRefEnt.name] : [];
+
+    const cdBackShown = cardPath.length>0;
+    const cdBackLabel = cardPath.length<=1 ? terrain.rungs[0].label : (cardPath[cardPath.length-2].label||'');
 
     return {
       isStructure:S.tab==='structure', notStructure:S.tab!=='structure',
@@ -2351,18 +2694,21 @@ class Component extends DCLogic {
       isReader:S.tab==='reader', isSearch:S.tab==='search',
       isOverview:S.tab==='overview', setOverview:()=>this.setState({tab:'overview'}),
       tabOB:S.tab==='overview'?activeBg:'transparent', tabOC:S.tab==='overview'?activeC:t.mut,
-      ovBackShown:ovStack.length>1, ovBackLabel, ovBack:()=>this.ovBack(),
-      ovIsFrame:ovScreen==='frame', ovFrameKicker, ovTitle:d?d.title:'', ovMeta, ovFrameRungs, ovFrameAbsences,
-      ovIsList:ovScreen==='list', ovListHeader, ovListIsClaims, ovListIsActors, ovClaimRows, ovActorRows, ovListEmpty,
-      ovClaimsLower:ovHasClaims?'claim':'passage',
-      ovIsUnit:ovScreen==='unit', ovUnitKicker, ovUnitText,
-      ovUnitHasAnchor, ovUnitNoAnchor, ovUnitAnchorLabel, ovUnitJump:()=>{ if(ovUnitData&&ovUnitData.pi>=0) this.ovJump(ovUnitData.pi); },
-      ovUnitHasEnts, ovUnitNoEnts, ovUnitEnts,
-      ovIsReferent:ovScreen==='referent',
-      ovRefName:ovRefEnt?ovRefEnt.name:'', ovRefColor:ovRefEnt?ovRefEnt.color:t.mut,
-      ovRefSub:ovRefEnt?('Detected entity · '+ovRefEnt.count+' mention'+(ovRefEnt.count===1?'':'s')):'',
-      ovRefHasAppear:ovRefAppear.length>0, ovRefNoAppear:!!ovRefEnt&&ovRefAppear.length===0, ovRefAppear,
-      ovRefHasWith:ovRefWith.length>0, ovRefNoWith:!!ovRefEnt&&ovRefWith.length===0, ovRefWith,
+      ovBackShown:cdBackShown, ovBackLabel:cdBackLabel, ovBack:()=>this.cardBack(),
+      ovIsFrame:cardScreen==='frame', ovFrameKicker:cdFrameKicker, ovTitle:cdTitle, ovMeta:cdMeta, ovFrameRungs:cdFrameRows, ovFrameAbsences:cdFrameAbsences,
+      cdHasProvenance, cdProvenanceText, cdProvenanceOpen,
+      ovIsList:cardScreen==='list', ovListHeader:cdListHeader, ovListRows:cdListRows, ovListHasRows:cdListRows.length>0,
+      cdHasLenses, cdLensChips,
+      ovIsUnit:cardScreen==='unit', ovUnitKicker:cdUnitKicker, ovUnitText:cdUnitText,
+      ovUnitHasAnchor:cdUnitHasAnchor, ovUnitNoAnchor:cdUnitNoAnchor, ovUnitAnchorLabel:cdUnitAnchorLabel, ovUnitJump:cdUnitJump,
+      ovUnitHasEnts:cdUnitHasEnts, ovUnitNoEnts:cdUnitNoEnts, ovUnitEnts:cdUnitEnts,
+      cdUnitHasLinks, cdUnitLinks,
+      ovIsReferent:cardScreen==='referent',
+      ovRefName:cdRefEnt?cdRefEnt.name:'', ovRefColor:cdRefEnt?cdRefEnt.color:t.mut,
+      ovRefSub:cdRefEnt?('Detected entity · '+cdRefEnt.count+' mention'+(cdRefEnt.count===1?'':'s')):'',
+      ovRefHasAppear:cdRefAppear.length>0, ovRefNoAppear:!!cdRefEnt&&cdRefAppear.length===0, ovRefAppear:cdRefAppear,
+      ovRefHasWith:cdRefWith.length>0, ovRefNoWith:!!cdRefEnt&&cdRefWith.length===0, ovRefWith:cdRefWith,
+      cdRefForms, cdRefHasForms:cdRefForms.length>0,
       scrollRef:this.scrollRef,
       chromeMaxH:chromeCollapsed?'0px':'150px', chromePadT:chromeCollapsed?'0px':'5px',
       chromeOpacity:chromeCollapsed?0:1, chromePE:chromeCollapsed?'none':'auto',
