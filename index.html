@@ -3064,15 +3064,160 @@ class Component extends DCLogic {
   }
   // open a single image (from a profile's "images from this source" strip) as its own doc
   openImage(src, alt){ if(!src) return; this.setDoc({name:alt||src,url:src,title:alt||'Image',medium:'Image',mode:'image',size:''}, {view:'reader'}); }
-  // ── Wikipedia referent for a selected entity (ported from eoreader4.2) ──
+  // ── Wikipedia referent for a selected entity ──
   // One MediaWiki Action-API call does search + intro extract + short description +
   // lead thumbnail + disambiguation flag at once (origin=* → direct CORS, no proxy).
   // The result is only surfaced when it clears a confirmation gate, so an unrelated
-  // article never masquerades as the referent's page (the honesty rule from 4.2).
-  WIKI_GENERIC(){ return this._wikiGeneric||(this._wikiGeneric=new Set('the of and for de du van von inc corp company co llc ltd group holdings university institute foundation ministry department agency report memo chapter book part volume mr mrs ms dr monday tuesday wednesday thursday friday saturday sunday january february march april may june july august september october november december'.split(' '))); }
+  // article never masquerades as the referent's page.
+  //
+  // The gate is a Born-null significance test, not a name match — no hand-set threshold
+  // anywhere in it (the eoreader5 emergence/nulls invariant: "no promotion gate may compare
+  // a statistic against a hand-set constant; every threshold MUST come from an explicit
+  // perturbation of the actual data", ported as deriveNull below):
+  //   (A) IDENTITY — the candidate title IS the name, both directions, stemmed and
+  //       head-noun matched ("London" → "London"). Safe on its own only for a low-collision
+  //       kind (a place) — the article is definitionally about the named thing.
+  //   (B) WEB SIGNIFICANCE — for an ambiguous or fragment name (a bare first name like
+  //       "Margaret", a demonym, a partial title), the candidate must share PROPER names
+  //       with this source's own web — the entities it bonds to, mined from its context —
+  //       at a rate that clears a null formed from (a) the OTHER same-spelled candidates
+  //       (the namesake background: "Margaret" also half-matches Margaret Tudor, Margaret
+  //       Thatcher, Princess Margaret — none of them share this source's web) and (b) a
+  //       permutation null over the ambient proper-name vocabulary across all candidates.
+  //   A full multi-token proper name whose whole title sits inside it ("Cornelius Agrippa")
+  //   may confirm on identity alone — UNLESS the candidate is itself a PERSON, which is
+  //   exactly where a namesake collision happens (a bare name matching a Wikipedia
+  //   biography is the least reliable identity signal there is), so a person-kind candidate
+  //   still needs the web to corroborate. Prefer no match: an ambiguous name with no
+  //   significant web overlap is left unconfirmed.
+  //
+  // candidateKind reads the WIKIPEDIA candidate's own stated type from its short
+  // description ("City in Switzerland", "Fictional character…", "1970 film…") — never a
+  // roster of this document's own referents, so it stays a property of the CANDIDATE, not
+  // a taxonomy of "our" entities. This is an interim, regex-based reading of that
+  // description; the principled version is an induced KindVocabulary prior (eoPriors
+  // schemas/kind-vocabulary.schema.json) with Born-null-measured role parameters
+  // (attributive_share / coupling_dispersion / relative_mass, RoleExpectation@1) in place of
+  // hand-written patterns — tracked as a follow-up, not done here.
   wikiKey(name){ return String(name||'').toLowerCase().replace(/\s+/g,' ').trim(); }
-  wikiToks(s){ return String(s||'').toLowerCase().split(/[^a-z0-9]+/).filter(t=>t.length>1 && !this.WIKI_GENERIC().has(t)); }
-  clipExtract(s,max){ const t=String(s||'').replace(/\s+/g,' ').trim(); if(t.length<=max) return t; const cut=t.slice(0,max); const dot=cut.lastIndexOf('. '); return dot>max*0.5 ? cut.slice(0,dot+1) : cut.replace(/\s+\S*$/,'')+'…'; }
+  _wikiStop(){ return this._wStop||(this._wStop=new Set(('the a an of to in on at for and or but with by from as is are was were be been being this that these those it its their his her our your they we you i he she him them us me year years some most many few what who whom which when where how why than then so if not no nor only also just very more less new over under into out up down off above below').split(' '))); }
+  _wikiGenericNames(){ return this._wGen||(this._wGen=new Set(('state city cities county counties court courts board council councils department departments division office agency authority commission committee bureau national federal american inc llc ltd co company companies corporation corp management partnership group holdings services service systems system solutions association foundation institute university college school center centre downtown district new north south east west northern southern eastern western street road avenue region area january february march april may june july august september october november december monday tuesday wednesday thursday friday saturday sunday daughter daughters son sons sister sisters brother brothers mother father parent parents husband wife widow widower married marriage king queen prince princess crown throne reign kingdom monarch royal empire emperor empress duke duchess earl countess baron baroness knight heir heiress successor').split(' '))); }
+  _wikiRoleTokens(){ return this._wRole||(this._wRole=new Set(('president vice senator sen senate representative rep congressman congresswoman governor gov mayor secretary justice judge general gen colonel col captain capt lieutenant lt sergeant sgt admiral major chancellor chairman chairwoman chair chief ceo cfo cto coo founder director minister ambassador pope king queen prince princess emperor empress sir lord lady dame dr doctor prof professor mr mrs ms mx rev reverend father rabbi imam sheikh saint commissioner sheriff attorney detective officer agent coach deputy former acting interim elect speaker premier dictator pres vp').split(' '))); }
+  _wikiStem(w){ return w.replace(/ies$/,'y').replace(/(ches|shes|sses|xes)$/,m=>m.slice(0,-2)).replace(/s$/,''); }
+  wikiLooksProperNoun(label){
+    const toks=String(label||'').trim().split(/\s+/).filter(Boolean); if(!toks.length) return false;
+    const small=new Set('of the and for in on at to a an or de la van von &'.split(' '));
+    let content=0,capped=0;
+    for(const t of toks){ const w=t.replace(/[^A-Za-z0-9]/g,''); if(!w||small.has(w.toLowerCase())) continue; content++; if(/^[A-Z0-9]/.test(w)) capped++; }
+    return content>0 && capped===content && /[A-Za-z]/.test(label);
+  }
+  wikiNameCore(label){
+    const toks=String(label||'').trim().split(/\s+/).filter(Boolean); let i=0;
+    while(i<toks.length-1){ const w=toks[i].replace(/[^A-Za-z]/g,'').toLowerCase(); if(w&&this._wikiRoleTokens().has(w)) i++; else break; }
+    return toks.slice(i).join(' ');
+  }
+  wikiTitleAffinity(label,title){
+    const small=new Set('the of and for a an on in to at de la von van el le with by as from'.split(' '));
+    const toks=(s)=>String(s||'').toLowerCase().replace(/\([^)]*\)/g,' ').split(/[^a-z0-9]+/)
+      .filter(w=>(w.length>1||/^[ivxlcdm]+$/.test(w))&&!small.has(w)).map(w=>this._wikiStem(w));
+    const L=toks(label),T=toks(title);
+    if(!L.length||!T.length) return {covL:0,covT:0,headMatch:false,headBack:false,exact:false};
+    const Ls=new Set(L),Ts=new Set(T); let inter=0; Ls.forEach(w=>{ if(Ts.has(w)) inter++; });
+    return {covL:inter/Ls.size, covT:inter/Ts.size, headMatch:Ts.has(L[L.length-1]), headBack:Ls.has(T[T.length-1]), exact:Ls.size===Ts.size&&inter===Ls.size};
+  }
+  // Proper-noun referents named INSIDE an external text (a Wikipedia extract) — the same
+  // shape as a document's own proper-name web, so the two intersect to coref-resolve.
+  wikiArticleNames(text){
+    const set=new Set();
+    (String(text||'').match(/\b[A-Z][a-z]{2,}(?:\s+[A-Z][a-z]+)*\b/g)||[])
+      .forEach(ph=>ph.toLowerCase().split(/\s+/).forEach(w=>{ const s=this._wikiStem(w); if(s.length>=3 && !this._wikiStop().has(s) && !this._wikiGenericNames().has(s)) set.add(s); }));
+    return set;
+  }
+  // The document's own web for this entity, graded: STRONG is what the source predicates
+  // about it (its context sentences) plus the neighbours it bonds to; PROPER is the coref
+  // set — specific proper names among its neighbours (minus its own tokens, minus
+  // generic/org/calendar filler that collides across unrelated topics).
+  wikiReferentContext({label, statements=[], neighbors=[]}){
+    const strong=new Set();
+    const addTo=(set,t)=>String(t||'').toLowerCase().split(/[^a-z0-9]+/).forEach(w=>{ const s=this._wikiStem(w); if(w.length>=4 && !this._wikiStop().has(w) && !this._wikiGenericNames().has(s)) set.add(s); });
+    neighbors.slice(0,16).forEach(l=>addTo(strong,l));
+    statements.slice(0,10).forEach(s=>addTo(strong,s));
+    const proper=new Set(), self=new Set();
+    String(label||'').toLowerCase().split(/[^a-z0-9]+/).forEach(w=>{ if(w) self.add(this._wikiStem(w)); });
+    neighbors.slice(0,24).forEach(l=>{
+      if(!l || !/[A-Z]/.test(l) || /^https?:\/\//i.test(l)) return;
+      l.toLowerCase().split(/[^a-z0-9]+/).forEach(w=>{ const st=this._wikiStem(w); if(w.length>=3 && !this._wikiStop().has(w) && !this._wikiGenericNames().has(st)) proper.add(st); });
+    });
+    self.forEach(w=>proper.delete(w));
+    return {strong, proper};
+  }
+  // Pick the best-scoring candidate (lexical affinity + shared vocabulary + coref), and
+  // report the two identity-strength signals the confirmation gate below needs.
+  wikiPickReferent(label, ctx, cands){
+    const hayOf=c=>`${c.extract||''} ${c.description||''} ${c.title||''}`.toLowerCase();
+    const hits=(set,hay)=>{ let n=0; set.forEach(t=>{ if(t&&hay.indexOf(t)>=0) n++; }); return n; };
+    const namesOf=c=>this.wikiArticleNames(`${c.extract||''} ${c.description||''}`);
+    const corefOf=c=>{ const a=namesOf(c); let n=0; ctx.proper.forEach(t=>{ if(a.has(t)) n++; }); return n; };
+    const score=c=>{
+      const af=this.wikiTitleAffinity(label,c.title);
+      return 1.3*hits(ctx.strong,hayOf(c)) + 2.4*Math.min(3,corefOf(c))
+        + 3.0*af.covL*(af.headMatch?1:0.25) + (af.exact?2:0) + ((af.headMatch&&af.headBack)?0.6:0)
+        + (String(c.title||'').toLowerCase()===String(label||'').toLowerCase()?0.5:0);
+    };
+    const cand=[...cands].sort((a,b)=>score(b)-score(a))[0];
+    const af=this.wikiTitleAffinity(label, cand.title);
+    const core=this.wikiNameCore(label), afc=this.wikiTitleAffinity(core, cand.title);
+    const coreToks=core.split(/\s+/).filter(w=>w.replace(/[^A-Za-z0-9]/g,'').length>1).length;
+    const specificName = this.wikiLooksProperNoun(core) && coreToks>=2 && afc.headMatch && afc.headBack && afc.covT>=1 && afc.covL>=0.5;
+    return {cand, af, specificName};
+  }
+  // Interim: classify a Wikipedia candidate by its own stated type — see the note above the
+  // gate for why this is a placeholder for an induced prior, not a taxonomy of our entities.
+  wikiCandidateKind(desc, title, extract){
+    const d=String(desc||'').toLowerCase().trim();
+    const head=d || String(extract||'').toLowerCase().slice(0,140);
+    if(/\b(surname|given name|family name|name list|list of|disambiguation|may refer to|index of)\b/.test(head)) return 'meta';
+    if(/^(title|honorific|rank|form of address)\b/.test(head) || /\btitle (given|used|of|for)\b/.test(head) || /\bnobility title\b/.test(head)) return 'title';
+    if(/\b(film|movie|novel|novella|short story|song|album|single|soundtrack|tv series|television series|web series|anime|manga|play|musical|opera|operetta|video game|board game|book|memoir|autobiography|biography|poem|painting|sculpture|comics?|comic book|franchise|sitcom|miniseries|episode|cartoon|podcast|magazine article|screenplay)\b/.test(head)) return 'work';
+    if(/\bfictional\b|\bliterary character\b|\bcharacter (in|from|of|created|played|portrayed)\b|\bprotagonist\b|\bsuperhero\b|\bsupervillain\b/.test(head)) return 'fiction';
+    if(/\b(city|cities|town|village|hamlet|country|nation|island|archipelago|river|lake|sea|ocean|bay|gulf|mountain|peak|hill|valley|desert|forest|region|province|state|county|prefecture|district|capital|port|harbou?r|borough|municipality|commune|territory|continent|peninsula|neighbou?rhood|suburb|settlement|locality|census-designated)\b/.test(head)) return 'place';
+    if(/\b(company|corporation|firm|business|brand|manufacturer|retailer|airline|bank|startup|conglomerate|enterprise|sports? (team|club)|football club|basketball team|team|club|band|duo|orchestra|ensemble|university|college|school|institute|academy|agency|organization|organisation|association|foundation|charity|nonprofit|ngo|political party|party|trade union|union|league|federation|network|studio|record label|publisher|newspaper|magazine|broadcaster|automaker|database|software|operating system|programming language|website|web service|application|protocol|platform)\b/.test(head)) return 'org';
+    if(/\b(war|battle|revolution|treaty|election|festival|tournament|championship|olympics|world cup|summit|conference|massacre|uprising|rebellion|siege|campaign|expedition|mission|earthquake|hurricane|pandemic|epidemic|disaster|movement|era|period|dynasty)\b/.test(head)) return 'event';
+    if(/\b(politician|statesman|writer|author|poet|novelist|playwright|scientist|physicist|chemist|biologist|naturalist|mathematician|philosopher|economist|historian|actor|actress|singer|musician|composer|footballer|basketball player|baseball player|athlete|player|coach|tennis player|engineer|architect|lawyer|judge|justice|general|admiral|officer|soldier|monarch|king|queen|emperor|president|prime minister|minister|senator|governor|mayor|pope|bishop|saint|activist|journalist|entrepreneur|executive|explorer|inventor|astronaut|physician|surgeon|theologian|priest|diplomat|revolutionary|dictator|chancellor|occultist|alchemist)\b/.test(head)) return 'person-real';
+    if(/\b(born|died)\b/.test(head) || /\(\s*\d{3,4}\s*[–-]\s*\d{2,4}\s*\)/.test(head) || /\b\d{4}\s*[–-]\s*\d{4}\b/.test(head)) return 'person-real';
+    return 'concept';
+  }
+  // Deterministic PRNG (mulberry32, ported from eoreader5's createSeededRng) — the permutation
+  // null below must be reproducible for the same entity, not flicker between lookups.
+  _wikiSeededRng(seed){
+    let state=this._wikiHashSeed(seed)>>>0;
+    return function next(){ state|=0; state=(state+0x6d2b79f5)|0; let t=Math.imul(state^(state>>>15),1|state); t=(t+Math.imul(t^(t>>>7),61|t))^t; return ((t^(t>>>14))>>>0)/4294967296; };
+  }
+  _wikiHashSeed(seed){ const text=String(seed??'wiki-null'); let hash=0x811c9dc5; for(let i=0;i<text.length;i++){ hash^=text.charCodeAt(i); hash=Math.imul(hash,0x01000193); } return hash; }
+  // Born-null threshold (ported from eoreader5 packages/engine/emergence/nulls: "no
+  // promotion gate may compare a statistic against a hand-set constant; every threshold
+  // MUST come from an explicit perturbation of the actual data").
+  wikiDeriveNull({nullSamples, observedStatistic, tailDirection='greater', quantile=0.95}){
+    if(!nullSamples.length) return {passed:false};
+    const sorted=[...nullSamples].sort((a,b)=>a-b);
+    const rank=quantile*(sorted.length-1), lo=Math.floor(rank), hi=Math.min(lo+1,sorted.length-1), frac=rank-lo;
+    const upperQ=sorted[lo]+(sorted[hi]-sorted[lo])*frac;
+    const threshold = tailDirection==='greater' ? upperQ : sorted[sorted.length-1]+sorted[0]-upperQ;
+    return {passed: tailDirection==='greater' ? observedStatistic>=threshold : observedStatistic<=threshold};
+  }
+  // Abbreviation-safe clip to 1–3 sentences: a naive split on ". " shatters "Roe v. Wade,
+  // 410 U.S. 113 (1973)…" into meaningless stubs, so a piece ending on a known abbreviation
+  // re-merges with the next.
+  clipExtract(text,maxChars=300){
+    const t=String(text||'').replace(/\s+/g,' ').trim(); if(!t) return '';
+    const raw=t.split(/(?<=[.!?])\s+(?=["“'A-Z])/);
+    const ABBR=/(?:^|[\s(])(?:[A-Za-z]|Mr|Mrs|Ms|Dr|Prof|Gen|Sen|Rep|Gov|Lt|Sgt|Sr|Jr|St|vs|v|etc|Inc|Ltd|Co|Corp|No|pp|al|Ave|Rd|Rev|Hon|Capt|U\.S|U\.K|U\.N|D\.C)\.$/i;
+    const parts=[];
+    for(const p of raw){ if(parts.length && ABBR.test(parts[parts.length-1])) parts[parts.length-1]+=' '+p; else parts.push(p); }
+    let out='',n=0;
+    for(const p of parts){ const next=out?out+' '+p:p; if(out.length>=80 && next.length>maxChars) break; out=next; n++; if(out.length>=maxChars||n>=3) break; }
+    return out||parts[0]||t.slice(0,maxChars);
+  }
   async fetchEntityWiki(name, ctxNames, ctxText){
     const q=String(name||'').trim(); if(!q) return null;
     const url='https://en.wikipedia.org/w/api.php?action=query&format=json&origin=*&redirects=1'
@@ -3081,45 +3226,55 @@ class Component extends DCLogic {
       +'&piprop=thumbnail&pithumbsize=360&ppprop=disambiguation';
     const r=await fetch(url); const j=await r.json();
     const pages=Object.values((j&&j.query&&j.query.pages)||{})
-      .filter(p=>p&&p.extract&&(!p.pageprops||p.pageprops.disambiguation===undefined));
+      .filter(p=>p&&p.extract&&(!p.pageprops||p.pageprops.disambiguation===undefined))
+      .map(p=>({title:p.title, description:p.description||'', extract:p.extract, thumb:(p.thumbnail&&p.thumbnail.source)||''}));
     if(!pages.length) return null;
-    const nameToks=this.wikiToks(q), nameSet=new Set(nameToks);
-    // Grounding vocabulary for this entity in THIS source: names of co-occurring
-    // entities plus distinctive words from the sentences that mention it. The entity's
-    // own name tokens are excluded — otherwise a bare name would self-corroborate
-    // (e.g. "Margaret" appears in the "Margaret Thatcher" summary, proving nothing).
-    const ctxToks=new Set();
-    (ctxNames||[]).forEach(n=>this.wikiToks(n).forEach(t=>{ if(t.length>=4 && !nameSet.has(t)) ctxToks.add(t); }));
-    this.wikiToks(ctxText||'').forEach(t=>{ if(t.length>=5 && !nameSet.has(t)) ctxToks.add(t); });
-    const scored=pages.map(p=>{
-      const titleToks=this.wikiToks(p.title);
-      const overlap=nameToks.filter(t=>titleToks.indexOf(t)>=0).length;
-      const affinity=nameToks.length?overlap/nameToks.length:0;       // share of the NAME the title covers
-      const titleCover=titleToks.length?overlap/titleToks.length:0;   // share of the TITLE the name covers
-      const ex=(p.extract||'').toLowerCase();
-      let coref=0; ctxToks.forEach(t=>{ if(ex.indexOf(t)>=0) coref++; });
-      return {p,affinity,titleCover,coref,score:affinity*2+coref*2};
-    }).sort((a,b)=>b.score-a.score);
-    const best=scored[0], p=best.p;
-    // Confirmation gate (the honesty rule): matching the article to the entity's NAME
-    // alone is not evidence they are the same referent. A bare first name like
-    // "Margaret" perfectly covers the title "Margaret Thatcher", yet is almost never
-    // her. Two ways to confirm:
-    //  1. The title IS the name — nearly the same string in both directions (e.g.
-    //     "London" → "London", "Victor Frankenstein" → "Victor Frankenstein"). The page
-    //     is definitionally about the named thing.
-    //  2. The name only partially matches the title, so demand corroboration: the
-    //     article's summary must share distinctive vocabulary with how this source talks
-    //     about the entity (co-occurring names / surrounding words), not just the name.
-    const titleIsName = best.affinity>=0.99 && best.titleCover>=0.75;
-    const partialMatch = best.affinity>=0.5 && !titleIsName;
-    const confirmed = titleIsName || (partialMatch && best.coref>=1);
+
+    const statements=String(ctxText||'').split(/(?<=[.?!])\s+/).filter(Boolean);
+    // The neighbour web mined from this entity's OWN context sentences (not just its
+    // co-occurrence list) — a richer web is what lets the coref test actually judge.
+    const capRuns=(String(ctxText||'').match(/\b[A-Z][a-zA-Z'’.-]+(?:\s+[A-Z][a-zA-Z'’.-]+){0,3}\b/g)||[]);
+    const neighbors=[...new Set([...(ctxNames||[]), ...capRuns])];
+    const ctx=this.wikiReferentContext({label:q, statements, neighbors});
+
+    const namesOf=pages.map(p=>this.wikiArticleNames(`${p.extract||''} ${p.description||''}`));
+    const overlap=namesOf.map(set=>{ let n=0; ctx.proper.forEach(t=>{ if(set.has(t)) n++; }); return n; });
+    const picked=this.wikiPickReferent(q, ctx, pages);
+    const top=pages.indexOf(picked.cand), cand=picked.cand, af=picked.af, specific=picked.specificName;
+    const ck=this.wikiCandidateKind(cand.description, cand.title, cand.extract);
+
+    // Born-null web significance for the CHOSEN candidate: does its overlap with this
+    // document's proper-name web clear a null formed from the other same-name candidates
+    // (the namesake background) plus a permutation null over the ambient vocabulary?
+    const observed=overlap[top];
+    const others=overlap.filter((_,i)=>i!==top);
+    const ambient=[...new Set([].concat(...namesOf.map(s=>[...s])))];
+    let webSig=false;
+    if(observed>0 && ambient.length && ctx.proper.size){
+      const rng=this._wikiSeededRng('wiki:'+q), k=ctx.proper.size, topNames=namesOf[top], perm=[];
+      for(let i=0;i<80;i++){ let hit=0; for(let j=0;j<k;j++){ if(topNames.has(ambient[Math.floor(rng()*ambient.length)])) hit++; } perm.push(hit); }
+      webSig=this.wikiDeriveNull({nullSamples:[...others,...perm], observedStatistic:observed, tailDirection:'greater', quantile:0.95}).passed;
+    }
+
+    const titleIsName = af.exact || (af.headMatch && af.headBack && af.covT>=0.85 && af.covL>=0.85);
+    const isPerson = ck==='person-real' || ck==='fiction';
+    // Confirmation (prefer non-match): a name-list/rank/film credit is never the referent; a
+    // full specific name confirms on identity for a non-person kind, but a PERSON candidate —
+    // exactly where a namesake collision happens ("Margaret" / Margaret Thatcher) — still
+    // needs the web to corroborate; an ambiguous name confirms only via Born-null web
+    // significance; an exact title match confirms on identity alone only for a place.
+    let confirmed=false;
+    if(ck==='meta'||ck==='title'||ck==='work'){ /* never the referent */ }
+    else if(specific) confirmed = isPerson ? (observed>=1||webSig) : true;
+    else if(webSig && (af.headMatch||af.exact)) confirmed=true;
+    else if(titleIsName && ck==='place') confirmed=true;
+
     return {
-      title:p.title,
-      description:p.description||'',
-      text:this.clipExtract(p.extract,320),
-      url:'https://en.wikipedia.org/wiki/'+encodeURIComponent(String(p.title).replace(/ /g,'_')),
-      image:(p.thumbnail&&p.thumbnail.source)||'',
+      title:cand.title,
+      description:cand.description||'',
+      text:this.clipExtract(cand.extract,320),
+      url:'https://en.wikipedia.org/wiki/'+encodeURIComponent(String(cand.title).replace(/ /g,'_')),
+      image:cand.thumb||'',
       confirmed
     };
   }
