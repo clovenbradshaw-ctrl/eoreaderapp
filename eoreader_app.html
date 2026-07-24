@@ -20,6 +20,12 @@
   *{box-sizing:border-box}
   body{margin:0;background:#dcd9d2;-webkit-font-smoothing:antialiased}
   a{color:inherit;text-decoration:none}a:hover{text-decoration:underline}
+  /* Native/annotated source views fill the full reading area rather than the capped reader column. */
+  .eo-native-fill{max-width:none!important;width:100%!important;height:100%}
+  .eo-main > div:has(> .eo-native-fill){height:100%!important;display:flex;flex-direction:column}
+  /* Native/annotated fill the FULL reading area: the scroll container's bottom padding (reader
+     clearance) would otherwise shrink the height:100% child, leaving a gap under the iframe. */
+  .eo-main:has(.eo-native-fill){padding-bottom:0!important}
   ::-webkit-scrollbar{width:0;height:0}
   /* Production layout: a real centered app column, not a simulated phone.
      The phone bezel, shadow, and iOS status bar were demo chrome; they are
@@ -29,11 +35,33 @@
   .eo-shell{min-height:100svh!important;padding:0!important;align-items:stretch;justify-content:center;background:#dcd9d2}
   .eo-device{width:100%!important;min-height:100svh!important;padding:0!important;border-radius:0!important;box-shadow:none!important;background:transparent!important}
   .eo-screen{width:100%!important;height:100svh!important;min-height:100svh!important;border-radius:0!important}
-  @media (min-width: 620px){
-    .eo-shell{padding:0!important;align-items:stretch}
-    .eo-device{width:min(460px,100%)!important;min-height:100svh!important;padding:0!important;border-radius:0!important;background:transparent!important;box-shadow:0 0 0 1px rgba(0,0,0,.06)!important}
-    .eo-screen{width:100%!important;height:100svh!important;min-height:100svh!important;border-radius:0!important}
+  /* Phone-width band: keep the original single-column reader capped for line length. */
+  @media (min-width: 620px) and (max-width: 899px){
+    .eo-device{width:min(460px,100%)!important;box-shadow:0 0 0 1px rgba(0,0,0,.06)!important}
   }
+  /* Desktop workspace: full-bleed application window. The floating bottom tab
+     bar becomes a fixed left sidebar; the chrome + content shift right of it;
+     reading views stay at a comfortable measure, analytical views breathe wider. */
+  @media (min-width: 900px){
+    .eo-device{width:100%!important;max-width:none!important;box-shadow:none!important}
+    .eo-screen{width:100%!important;padding-left:264px}
+    .eo-nav{position:fixed!important;left:0!important;top:0!important;bottom:0!important;right:auto!important;width:264px!important;flex-direction:column!important;align-items:stretch!important;justify-content:flex-start!important;gap:3px!important;border:0!important;border-right:1px solid rgba(0,0,0,.09)!important;border-radius:0!important;box-shadow:none!important;padding:70px 14px 18px!important;background:transparent!important;transform:none!important;opacity:1!important;pointer-events:auto!important}
+    .eo-nav button{flex:0 0 auto!important;text-align:left!important;padding:11px 15px!important;border-radius:11px!important;font:700 14px system-ui!important}
+    .eo-nav{overflow-y:auto!important}
+    .eo-spaces-rail{display:flex!important}
+    .eo-main > div{max-width:940px;margin-left:auto;margin-right:auto}
+    .eo-main > div:has(> .eo-native-fill){max-width:none!important;margin:0!important}
+    .eo-main > div:has(> .eo-reader-doc.eo-panel-open){max-width:none!important;margin:0!important;padding-right:min(460px,42vw)!important}
+    /* Native views clear the docked right panel (only while it's open) so no content hides beneath it. */
+    .eo-native-clear{padding-right:min(440px,40vw)!important}
+    /* The reading detail sheet docks as a right panel on desktop instead of a bottom sheet. */
+    .eo-info-sheet{left:auto!important;right:0!important;top:0!important;bottom:0!important;height:100vh!important;width:min(440px,40vw)!important;border-top:0!important;border-left:1px solid rgba(0,0,0,.10)!important;border-radius:0!important;box-shadow:-14px 0 40px rgba(0,0,0,.13)!important}
+    /* Sources are integrated inline in the left rail on desktop — the overlay drawer and its trigger are mobile-only. */
+    .eo-sources-sheet, .eo-src-toolbtn{display:none!important}
+    .eo-rail-sources{display:flex!important}
+  }
+  @keyframes eoRecPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.3;transform:scale(.62)}}
+  .eo-rec-pulse{animation:eoRecPulse 1.4s ease-in-out infinite}
 </style>
 </helmet>
 
@@ -53,6 +81,10 @@
       <span onClick="{{ openLibrary }}" title="Library" style="flex:none;width:34px;height:34px;border-radius:10px;background:{{ t.bar }};border:1px solid {{ t.border }};display:flex;align-items:center;justify-content:center;cursor:pointer">
         <i class="ph ph-books" style="font-size:16px;color:{{ t.t2 }}"></i>
       </span>
+      <span class="eo-src-toolbtn" onClick="{{ openSources }}" title="Sources" style="position:relative;flex:none;width:34px;height:34px;border-radius:10px;background:{{ t.bar }};border:1px solid {{ t.border }};display:flex;align-items:center;justify-content:center;cursor:pointer">
+        <i class="ph ph-stack" style="font-size:16px;color:{{ t.t2 }}"></i>
+        <sc-if value="{{ drawerHasRec }}"><span class="eo-rec-pulse" style="position:absolute;top:-2px;right:-2px;width:9px;height:9px;border-radius:50%;background:#2f9e57;border:2px solid {{ t.screen }}"></span></sc-if>
+      </span>
       <div style="flex:1;min-width:0;display:flex;align-items:center;gap:7px;background:{{ t.bar }};border:1px solid {{ t.border }};border-radius:10px;padding:7px 11px">
         <span style="width:7px;height:7px;border-radius:50%;background:{{ srcDot }};flex:none"></span>
         <input key="{{ srcLabel }}" defaultValue="{{ srcLabel }}" onFocus="{{ onOmniFocus }}" onInput="{{ onSearch }}" onKeyDown="{{ onTopSearchKey }}" placeholder="Search or paste a URL…" style="flex:1;min-width:0;background:transparent;border:none;outline:none;font:500 12.5px system-ui;color:{{ t.t2 }}">
@@ -65,13 +97,14 @@
       </span>
     </div>
 
+    {{ activeHereEl }}
+
     <div style="position:relative;display:flex;align-items:center;gap:4px;flex-wrap:nowrap;margin:9px 0 8px;overflow-x:auto">
       <sc-if value="{{ isReader }}" hint-placeholder-val="{{ true }}">
-        <div style="position:absolute;left:50%;top:50%;transform:translate(calc(-50% - 9px),-50%);flex:none;display:flex;align-items:center;gap:5px;background:{{ t.bar }};border:1px solid {{ t.border }};border-radius:20px;padding:5px 9px 5px 7px" title="Reveal — native → native + layers → reader">
-          <span onClick="{{ setV0 }}" style="width:6px;height:6px;border-radius:50%;background:{{ dot0 }};cursor:pointer"></span>
-          <span onClick="{{ setV1 }}" style="width:6px;height:6px;border-radius:50%;background:{{ dot1 }};cursor:pointer"></span>
-          <span onClick="{{ setV2 }}" style="width:6px;height:6px;border-radius:50%;background:{{ dot2 }};cursor:pointer"></span>
-          <span onClick="{{ cycleView }}" style="font:600 11px system-ui;color:{{ t.accent }};cursor:pointer;white-space:nowrap">{{ viewLabel }}</span>
+        <div style="position:absolute;left:50%;top:50%;transform:translate(calc(-50% - 9px),-50%);flex:none;display:flex;align-items:center;gap:2px;background:{{ t.bar }};border:1px solid {{ t.border }};border-radius:20px;padding:3px">
+          <sc-for list="{{ readerModes }}" as="m" hint-placeholder-count="4">
+            <span onClick="{{ m.pick }}" title="{{ m.title }}" style="display:flex;align-items:center;justify-content:center;width:32px;height:26px;border-radius:14px;cursor:pointer;background:{{ m.bg }};color:{{ m.fg }};transition:background .15s"><i class="{{ m.icon }}" style="font-size:15px"></i></span>
+          </sc-for>
         </div>
       </sc-if>
       <span onClick="{{ openSettings }}" title="Settings" style="flex:none;margin-left:auto;display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:50%;background:{{ t.bar }};border:1px solid {{ t.border }};cursor:pointer;color:{{ t.text }}">
@@ -80,9 +113,45 @@
     </div>
   </div>
 
-  <div ref="{{ scrollRef }}" style="flex:1;min-height:0;overflow-y:auto;position:relative;padding-bottom:{{ scrollPadB }}">
+  <div ref="{{ scrollRef }}" class="eo-main" style="flex:1;min-height:0;overflow-y:auto;position:relative;padding-bottom:{{ scrollPadB }}">
     <sc-if value="{{ isReader }}" hint-placeholder-val="{{ true }}">
       <div style="position:relative;min-height:100%">{{ docEl }}</div>
+    </sc-if>
+    <sc-if value="{{ isProfile }}">
+    <div style="padding:14px 14px 44px;font-family:system-ui;max-width:760px;margin:0 auto">
+      <div style="font:800 10px system-ui;letter-spacing:.08em;text-transform:uppercase;color:{{ t.mut }};margin-bottom:10px">Meaning map · paradigms &amp; entities</div>
+      <sc-if value="{{ hasMeaningMap }}" hint-placeholder-val="{{ true }}">
+        <div key="{{ solarKey }}" ref="{{ solarRef }}" style="height:380px;border-radius:16px;overflow:hidden;background:{{ t.bar }};border:1px solid {{ t.border }}"></div>
+        <div style="font:500 12.5px/1.55 system-ui;color:{{ t.mut }};margin:12px 0 4px">This document sits at the centre; its largest referents orbit as paradigms, each carrying the entities that appear alongside it. Drag to pan, click any body to inspect it.</div>
+      </sc-if>
+      <sc-if value="{{ profileNoMap }}">
+        <div style="padding:26px;border-radius:16px;background:{{ t.bar }};border:1px solid {{ t.border }};font:500 13px/1.6 system-ui;color:{{ t.mut }}">Open a source with named entities to see its meaning map.</div>
+      </sc-if>
+
+      <sc-if value="{{ isEntSel }}">
+        <div style="height:1px;background:{{ t.border }};margin:22px 0 18px"></div>
+        <div style="display:flex;align-items:center;gap:11px;margin-bottom:6px">
+          <span style="width:15px;height:15px;border-radius:4px;flex:none;background:{{ sel.color }}"></span>
+          <div style="flex:1;min-width:0">
+            <div style="font:700 18px system-ui;color:{{ t.text }}">{{ sel.name }}</div>
+            <div style="font:500 12.5px system-ui;color:{{ t.mut }}">{{ sel.role }}</div>
+          </div>
+          <span onClick="{{ closeSheet }}" style="flex:none;width:28px;height:28px;border-radius:50%;background:{{ t.bar }};display:flex;align-items:center;justify-content:center;color:{{ t.mut }};font-size:13px;cursor:pointer">✕</span>
+        </div>
+        <div style="display:flex;gap:9px;margin:12px 0 4px">
+          <div style="flex:1;background:{{ t.bar }};border-radius:11px;padding:10px 11px"><div style="font:700 20px system-ui;color:{{ t.text }}">{{ sel.count }}</div><div style="font:600 9.5px system-ui;letter-spacing:.04em;text-transform:uppercase;color:{{ t.mut }}">Mentions</div></div>
+          <div style="flex:1;background:{{ t.bar }};border-radius:11px;padding:10px 11px"><div style="font:700 20px system-ui;color:{{ t.text }}">{{ sel.links }}</div><div style="font:600 9.5px system-ui;letter-spacing:.04em;text-transform:uppercase;color:{{ t.mut }}">Links</div></div>
+          <div style="flex:1;background:{{ t.bar }};border-radius:11px;padding:10px 11px"><div style="font:700 20px system-ui;color:{{ flagColor }}">{{ sel.flags }}</div><div style="font:600 9.5px system-ui;letter-spacing:.04em;text-transform:uppercase;color:{{ t.mut }}">Flags</div></div>
+        </div>
+        <div style="font:600 10px system-ui;letter-spacing:.05em;text-transform:uppercase;color:{{ t.mut }};margin:18px 0 2px">Mentions in context · {{ sel.count }}</div>
+        <sc-for list="{{ sel.ctx }}" as="x" hint-placeholder-count="3">
+          <div style="display:flex;gap:9px;align-items:flex-start;padding:9px 0;border-top:1px solid {{ t.border }}"><span style="width:6px;height:6px;border-radius:50%;background:{{ sel.color }};margin-top:6px;flex:none"></span><div style="flex:1;font:400 13.5px/1.5 'Source Serif 4',Georgia,serif;color:{{ t.t2 }}">{{ x }}</div></div>
+        </sc-for>
+      </sc-if>
+      <sc-if value="{{ profileNoSel }}">
+        <div style="margin-top:16px;display:flex;gap:9px;align-items:flex-start;color:{{ t.mut }};font:500 13px/1.5 system-ui"><span style="font-size:15px;color:{{ t.faint }};flex:none">☞</span><span>Click a body in the map, or a name in the source, to inspect an entity.</span></div>
+      </sc-if>
+    </div>
     </sc-if>
     <sc-if value="{{ isSearch }}">
     <div style="padding:14px 14px 40px;font-family:system-ui">
@@ -416,11 +485,75 @@
   </div>
 
 
-  <div style="position:absolute;left:14px;right:14px;bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:25;background:{{ t.sheet }};border:1px solid {{ t.border }};box-shadow:0 10px 30px rgba(0,0,0,.16);border-radius:22px;padding:6px;display:flex;gap:6px;font-family:system-ui;transform:{{ chromeBottomT }};opacity:{{ chromeBottomOp }};pointer-events:{{ chromeBottomPE }};transition:transform .3s cubic-bezier(.4,0,.2,1),opacity .22s ease">
-    <button onClick="{{ setReader }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;background:{{ tabRB }};color:{{ tabRC }};font:800 12px system-ui;cursor:pointer">Source</button>
-    <button onClick="{{ setOverview }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;background:{{ tabOB }};color:{{ tabOC }};font:800 12px system-ui;cursor:pointer">Overview</button>
-    <button onClick="{{ setStruct }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;background:{{ tabSB }};color:{{ tabSC }};font:800 12px system-ui;cursor:pointer">Structure</button>
-    <button onClick="{{ setCross }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;background:{{ tabCB }};color:{{ tabCC }};font:800 12px system-ui;cursor:pointer">Search</button>
+  <div class="eo-nav" style="position:absolute;left:14px;right:14px;bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:25;background:{{ t.sheet }};border:1px solid {{ t.border }};box-shadow:0 10px 30px rgba(0,0,0,.16);border-radius:22px;padding:6px;display:flex;gap:6px;font-family:system-ui;transform:{{ chromeBottomT }};opacity:{{ chromeBottomOp }};pointer-events:{{ chromeBottomPE }};transition:transform .3s cubic-bezier(.4,0,.2,1),opacity .22s ease">
+    <div class="eo-spaces-rail" style="display:none;flex-direction:column;gap:2px;margin-bottom:10px">
+      <div style="font:800 9px 'IBM Plex Mono',monospace;letter-spacing:.09em;color:{{ t.mut }};padding:0 6px 7px">WORKSPACES</div>
+      <sc-for list="{{ spaceTabs }}" as="sp" hint-placeholder-count="3">
+        <div onClick="{{ sp.pick }}" style="display:flex;align-items:center;gap:8px;padding:8px 9px;border-radius:10px;cursor:pointer;background:{{ sp.rowBg }}">
+          <span style="width:9px;height:9px;border-radius:50%;background:{{ sp.dotSolid }};flex:none"></span>
+          <span style="flex:1;min-width:0;font:700 13px system-ui;color:{{ t.text }};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ sp.name }}</span>
+          <sc-if value="{{ sp.rec }}"><span class="eo-rec-pulse" style="width:6px;height:6px;border-radius:50%;background:#2f9e57;flex:none"></span></sc-if>
+          <span style="font:700 10px 'IBM Plex Mono',monospace;color:{{ t.mut }};flex:none">{{ sp.count }}</span>
+        </div>
+        <sc-if value="{{ sp.on }}">
+          <div class="eo-rail-sources" style="display:none;flex-direction:column;gap:3px;margin:1px 0 9px 5px;padding-left:9px;border-left:1.5px solid {{ t.border }}">
+            <div style="display:flex;align-items:center;gap:7px;padding:1px 3px 4px">
+              <span style="font:700 9px 'IBM Plex Mono',monospace;color:{{ t.mut }};letter-spacing:.04em">{{ drawerOnCount }}/{{ drawerTotal }} ON</span>
+              <span onClick="{{ bulkAllOn }}" style="font:700 10px system-ui;color:{{ t.accent }};cursor:pointer;margin-left:auto">All on</span>
+              <span onClick="{{ bulkAllOff }}" style="font:700 10px system-ui;color:{{ t.mut }};cursor:pointer">Off</span>
+              <span onClick="{{ startAllRec }}" title="Record every source" style="color:#2f9e57;cursor:pointer;display:flex;align-items:center"><i class="ph ph-record-fill" style="font-size:11px"></i></span>
+            </div>
+            <sc-if value="{{ noSources }}">
+              <div style="font:500 11px system-ui;color:{{ t.mut }};padding:1px 3px 6px">No sources in this space yet.</div>
+            </sc-if>
+            <sc-for list="{{ sourceRows }}" as="s" hint-placeholder-count="2">
+              <div style="border-radius:9px;background:{{ s.rowBgFill }};opacity:{{ s.rowOp }};transition:opacity .2s">
+                <div style="display:flex;align-items:center;gap:7px;padding:5px 5px 5px 3px">
+                  <span style="flex:none;font:700 8px 'IBM Plex Mono',monospace;color:#fff;background:{{ s.dot }};border-radius:4px;padding:3px 4px">{{ s.code }}</span>
+                  <div onClick="{{ s.open }}" style="flex:1;min-width:0;cursor:pointer">
+                    <div style="display:flex;align-items:center;gap:5px">
+                      <div style="font:600 11.5px system-ui;color:{{ t.text }};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ s.title }}</div>
+                      <sc-if value="{{ s.hasNew }}"><span style="flex:none;font:800 8px 'IBM Plex Mono',monospace;color:#fff;background:#2f9e57;border-radius:9px;padding:1px 5px">+{{ s.newCount }}</span></sc-if>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:5px;font:500 9.5px system-ui;color:{{ s.recColor }};margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+                      <sc-if value="{{ s.recording }}"><span class="eo-rec-pulse" style="width:5px;height:5px;border-radius:50%;background:#2f9e57;flex:none"></span></sc-if>
+                      {{ s.recLabel }}
+                    </div>
+                  </div>
+                  <span onClick="{{ s.toggleOn }}" title="On / off in this space" style="flex:none;width:30px;height:18px;border-radius:20px;background:{{ s.track }};position:relative;cursor:pointer;transition:background .18s"><span style="position:absolute;top:2px;left:{{ s.knobSm }};width:14px;height:14px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25);transition:left .18s"></span></span>
+                  <span onClick="{{ s.toggleExpand }}" style="flex:none;color:{{ t.faint }};font-size:10px;transform:rotate({{ s.chevron }});transition:transform .2s;cursor:pointer">▸</span>
+                </div>
+                <sc-if value="{{ s.expanded }}">
+                  <div style="padding:2px 5px 9px 3px">
+                    <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:9px">
+                      <span onClick="{{ s.toggleRec }}" style="display:flex;align-items:center;gap:4px;background:{{ s.recBtnBg }};border:1px solid {{ s.recBtnBd }};color:{{ s.recBtnFg }};border-radius:8px;padding:5px 8px;font:700 10px system-ui;cursor:pointer"><i class="ph ph-record-fill" style="font-size:10px"></i>{{ s.recBtnLabel }}</span>
+                      <span onClick="{{ s.remove }}" style="margin-left:auto;color:#c0341a;font:700 10px system-ui;cursor:pointer;padding:5px 4px">Remove</span>
+                    </div>
+                    <div style="font:700 8px 'IBM Plex Mono',monospace;letter-spacing:.05em;color:{{ t.mut }};margin-bottom:6px">IN WORKSPACES</div>
+                    <div style="display:flex;flex-wrap:wrap;gap:5px">
+                      <sc-for list="{{ s.spaces }}" as="sp2" hint-placeholder-count="3">
+                        <span onClick="{{ sp2.toggle }}" style="display:flex;align-items:center;gap:5px;background:{{ sp2.bg }};border:1px solid {{ sp2.bd }};border-radius:14px;padding:3px 8px;cursor:pointer;font:600 10px system-ui;color:{{ sp2.fg }}">
+                          <span style="width:7px;height:7px;border-radius:50%;background:{{ sp2.accent }};opacity:{{ sp2.dotOp }}"></span>{{ sp2.name }}
+                        </span>
+                      </sc-for>
+                    </div>
+                  </div>
+                </sc-if>
+              </div>
+            </sc-for>
+            <div onClick="{{ recordNew }}" style="display:flex;align-items:center;gap:6px;padding:6px 4px;margin-top:2px;color:{{ t.accent }};font:700 10.5px system-ui;cursor:pointer"><i class="ph ph-plus-circle" style="font-size:13px"></i>Record a source</div>
+          </div>
+        </sc-if>
+      </sc-for>
+      <div onClick="{{ addSpace }}" style="display:flex;align-items:center;gap:8px;padding:8px 9px;border-radius:10px;cursor:pointer;color:{{ t.accent }};font:700 13px system-ui"><span style="width:9px;text-align:center;flex:none">+</span>New space</div>
+      <div style="height:1px;background:{{ t.border }};margin:11px 6px 5px"></div>
+      <div style="font:800 9px 'IBM Plex Mono',monospace;letter-spacing:.09em;color:{{ t.mut }};padding:0 6px 2px">VIEW</div>
+    </div>
+    <button onClick="{{ setReader }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;min-height:44px;display:flex;align-items:center;justify-content:center;background:{{ tabRB }};color:{{ tabRC }};font:800 12px system-ui;cursor:pointer">Source</button>
+    <button onClick="{{ setOverview }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;min-height:44px;display:flex;align-items:center;justify-content:center;background:{{ tabOB }};color:{{ tabOC }};font:800 12px system-ui;cursor:pointer">Overview</button>
+    <button onClick="{{ setStruct }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;min-height:44px;display:flex;align-items:center;justify-content:center;background:{{ tabSB }};color:{{ tabSC }};font:800 12px system-ui;cursor:pointer">Structure</button>
+    <button onClick="{{ setProfile }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;min-height:44px;display:flex;align-items:center;justify-content:center;background:{{ tabPB }};color:{{ tabPC }};font:800 12px system-ui;cursor:pointer">Profile</button>
+    <button onClick="{{ setCross }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;min-height:44px;display:flex;align-items:center;justify-content:center;background:{{ tabCB }};color:{{ tabCC }};font:800 12px system-ui;cursor:pointer">Search</button>
   </div>
 
   <sc-if value="{{ backdrop }}">
@@ -451,11 +584,9 @@
           <div style="flex:1;background:{{ t.bar }};border-radius:11px;padding:10px 11px"><div style="font:700 20px system-ui;color:{{ t.text }}">{{ sel.links }}</div><div style="font:600 9.5px system-ui;letter-spacing:.04em;text-transform:uppercase;color:{{ t.mut }}">Links</div></div>
           <div style="flex:1;background:{{ t.bar }};border-radius:11px;padding:10px 11px"><div style="font:700 20px system-ui;color:{{ flagColor }}">{{ sel.flags }}</div><div style="font:600 9.5px system-ui;letter-spacing:.04em;text-transform:uppercase;color:{{ t.mut }}">Flags</div></div>
         </div>
-        <sc-if value="{{ hasConns }}">
-          <div style="font:600 10px system-ui;letter-spacing:.05em;text-transform:uppercase;color:{{ t.mut }};margin:14px 0 2px">Connections</div>
-          <sc-for list="{{ sel.conns }}" as="c" hint-placeholder-count="3">
-            <div style="display:flex;align-items:center;gap:9px;padding:8px 0;border-top:1px solid {{ t.border }};font:500 13px system-ui;color:{{ t.t2 }}"><span style="font:700 9px 'IBM Plex Mono',monospace;color:#fff;background:{{ c.c }};border-radius:4px;padding:2px 5px;white-space:nowrap;flex:none">{{ c.v }}</span>{{ c.t }}</div>
-          </sc-for>
+        <sc-if value="{{ hasMeaningMap }}">
+          <div style="font:600 10px system-ui;letter-spacing:.05em;text-transform:uppercase;color:{{ t.mut }};margin:16px 0 6px">Meaning map · paradigms &amp; entities</div>
+          <div ref="{{ solarRef }}" style="height:220px;border-radius:14px;overflow:hidden;background:{{ t.bar }};border:1px solid {{ t.border }}"></div>
         </sc-if>
         <sc-if value="{{ hasNote }}">
           <div style="margin-top:13px;background:rgba(208,71,46,.08);border:1px solid rgba(208,71,46,.28);border-radius:11px;padding:10px 12px;font:500 12.5px/1.45 system-ui;color:{{ t.t2 }}"><span style="color:#c0341a;font-weight:700">Noteworthy · </span>{{ sel.note }}</div>
@@ -468,8 +599,6 @@
         </sc-for>
       </sc-if>
       <sc-if value="{{ showFull }}">
-        <div style="font:600 10px system-ui;letter-spacing:.05em;text-transform:uppercase;color:{{ t.mut }};margin:14px 0 6px">Meaning map · paradigms &amp; entities</div>
-        <div ref="{{ solarRef }}" style="height:200px;border-radius:14px;overflow:hidden;background:{{ t.bar }};border:1px solid {{ t.border }}"></div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:14px">
           <sc-for list="{{ relatedChips }}" as="r" hint-placeholder-count="2">
             <span onClick="{{ r.pick }}" style="display:flex;align-items:center;gap:6px;background:{{ t.bar }};border:1px solid {{ t.border }};border-radius:20px;padding:5px 10px;font:600 12px system-ui;color:{{ t.t2 }};cursor:pointer"><span style="width:8px;height:8px;border-radius:3px;background:{{ r.c }}"></span>{{ r.n }}</span>
@@ -492,6 +621,15 @@
         <span onClick="{{ peekAhead }}" style="flex:1;text-align:center;padding:12px;border-radius:12px;border:1px solid {{ t.border }};background:{{ t.card }};color:{{ t.text }};font:600 13.5px system-ui;cursor:pointer">{{ peekBtnLabel }}</span>
       </div>
       <div style="font:500 12px/1.45 'IBM Plex Mono',monospace;color:{{ t.faint }};word-break:break-all;margin-top:8px">{{ linkUrl }}</div>
+      <sc-if value="{{ hasLinkFrom }}">
+        <div onClick="{{ toggleLinkFrom }}" style="margin-top:14px;cursor:pointer;display:flex;align-items:center;gap:7px;user-select:none">
+          <span style="font:700 9px 'IBM Plex Mono',monospace;letter-spacing:.07em;color:{{ t.mut }}">WHERE YOU CLICKED FROM</span>
+          <span style="font-size:11px;color:{{ t.faint }};margin-left:auto">{{ linkFromCaret }}</span>
+        </div>
+        <sc-if value="{{ linkFromOpen }}">
+          <div style="margin-top:8px;padding:11px 14px;border-left:2px solid {{ t.accentLine }};background:{{ t.bar }};border-radius:0 10px 10px 0;font:400 14px/1.62 'Source Serif 4',Georgia,serif;color:{{ t.t2 }}">{{ linkFromText }}</div>
+        </sc-if>
+      </sc-if>
       <sc-if value="{{ peekIdle }}">
         <div style="font:400 13px/1.5 system-ui;color:{{ t.mut }};margin-top:8px">Reading ahead starts automatically and pulls out the passage most relevant here — without leaving this app.</div>
       </sc-if>
@@ -609,11 +747,16 @@
         <div onClick="{{ sp.pick }}" style="display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:10px;cursor:pointer;background:{{ sp.rowBg }}">
           <span style="width:9px;height:9px;border-radius:50%;background:{{ sp.dotSolid }};flex:none"></span>
           <span style="flex:1;min-width:0;font:600 13px system-ui;color:{{ t.text }};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ sp.name }}</span>
+          <span style="font:700 10px 'IBM Plex Mono',monospace;color:{{ t.mut }};flex:none">{{ sp.count }}</span>
+          <sc-if value="{{ sp.rec }}"><span class="eo-rec-pulse" style="width:6px;height:6px;border-radius:50%;background:#2f9e57;flex:none"></span></sc-if>
           <sc-if value="{{ sp.on }}"><span onClick="{{ sp.edit }}" style="font-size:12px;color:{{ t.mut }}">✎</span></sc-if>
         </div>
       </sc-for>
       <div onClick="{{ addSpace }}" style="display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:10px;cursor:pointer;color:{{ t.accent }};font:600 13px system-ui">
         <span style="width:9px;text-align:center;flex:none">+</span>New space
+      </div>
+      <div onClick="{{ openSources }}" style="display:flex;align-items:center;gap:8px;padding:9px 10px;margin-top:4px;border-top:1px solid {{ t.border }};border-radius:0 0 10px 10px;cursor:pointer;color:{{ t.t2 }};font:600 13px system-ui">
+        <i class="ph ph-stack" style="font-size:14px"></i>Manage sources
       </div>
     </div>
   </sc-if>
@@ -634,6 +777,95 @@
       <sc-if value="{{ canDelete }}">
         <div onClick="{{ deleteSpace }}" style="text-align:center;font:600 13px system-ui;color:#c0341a;padding:11px;border:1px solid rgba(192,52,26,.3);border-radius:11px;cursor:pointer">Delete this space</div>
       </sc-if>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ sourcesOpen }}">
+    <div onClick="{{ closeSources }}" style="position:absolute;inset:0;background:rgba(8,10,20,.38);z-index:34"></div>
+    <div class="eo-sources-sheet" style="position:absolute;left:0;right:0;bottom:0;max-height:90%;display:flex;flex-direction:column;background:{{ t.sheet }};border-radius:22px 22px 0 0;z-index:35;box-shadow:0 -12px 36px rgba(0,0,0,.24)">
+      <div style="flex:none;padding:10px 20px 0">
+        <div class="eo-sheet-grab" style="width:40px;height:5px;border-radius:3px;background:{{ t.bStrong }};margin:0 auto 12px"></div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+          <i class="ph ph-stack" style="font-size:19px;color:{{ t.accent }}"></i>
+          <div style="font:700 16px system-ui;color:{{ t.text }}">Sources</div>
+          <span style="font:700 11px 'IBM Plex Mono',monospace;color:{{ t.mut }}">{{ drawerOnCount }}/{{ drawerTotal }} on</span>
+          <span onClick="{{ closeSources }}" style="margin-left:auto;color:{{ t.accent }};font:600 13px system-ui;cursor:pointer">Done</span>
+        </div>
+        <div style="font:600 9px system-ui;letter-spacing:.05em;text-transform:uppercase;color:{{ t.mut }};margin-bottom:7px">Workspace</div>
+        <div style="display:flex;gap:7px;overflow-x:auto;padding-bottom:12px">
+          <sc-for list="{{ spacesMeta }}" as="sp" hint-placeholder-count="3">
+            <span onClick="{{ sp.pick }}" style="flex:none;display:flex;align-items:center;gap:7px;background:{{ sp.bg }};border:1px solid {{ sp.bd }};border-radius:20px;padding:7px 12px;cursor:pointer">
+              <span style="width:9px;height:9px;border-radius:50%;background:{{ sp.accent }};flex:none"></span>
+              <span style="font:700 12.5px system-ui;color:{{ sp.fg }}">{{ sp.name }}</span>
+              <span style="font:700 10px 'IBM Plex Mono',monospace;color:{{ t.mut }}">{{ sp.count }}</span>
+              <sc-if value="{{ sp.rec }}"><span class="eo-rec-pulse" style="width:6px;height:6px;border-radius:50%;background:#2f9e57;flex:none"></span></sc-if>
+            </span>
+          </sc-for>
+          <span onClick="{{ addSpace }}" style="flex:none;display:flex;align-items:center;gap:5px;border:1px dashed {{ t.border }};border-radius:20px;padding:7px 12px;cursor:pointer;color:{{ t.accent }};font:700 12.5px system-ui">+ Space</span>
+        </div>
+        <sc-if value="{{ drawerHasRec }}">
+          <div style="display:flex;align-items:center;gap:9px;background:rgba(47,158,87,.10);border:1px solid rgba(47,158,87,.32);border-radius:12px;padding:9px 12px;margin-bottom:10px">
+            <span class="eo-rec-pulse" style="width:9px;height:9px;border-radius:50%;background:#2f9e57;flex:none"></span>
+            <div style="flex:1;min-width:0;font:600 12px system-ui;color:{{ t.t2 }}">{{ drawerRecCount }} recording · updated {{ drawerLastLabel }}</div>
+            <span onClick="{{ stopAllRec }}" style="font:700 11px system-ui;color:#2f9e57;cursor:pointer">Pause all</span>
+          </div>
+        </sc-if>
+        <div style="display:flex;gap:6px;align-items:center;margin-bottom:11px">
+          <input key="srcfilter" defaultValue="{{ srcQuery }}" onInput="{{ onSrcQuery }}" placeholder="Filter sources…" style="flex:1;min-width:0;background:{{ t.bar }};border:1px solid {{ t.border }};border-radius:10px;padding:9px 11px;font:500 12.5px system-ui;color:{{ t.text }};outline:none">
+          <span onClick="{{ bulkAllOn }}" style="flex:none;font:700 11px system-ui;color:{{ t.accent }};cursor:pointer;padding:8px 8px">All on</span>
+          <span onClick="{{ bulkAllOff }}" style="flex:none;font:700 11px system-ui;color:{{ t.mut }};cursor:pointer;padding:8px 8px">All off</span>
+          <span onClick="{{ startAllRec }}" title="Record all sources in this space" style="flex:none;display:flex;align-items:center;gap:5px;font:700 11px system-ui;color:#2f9e57;cursor:pointer;padding:8px 8px"><i class="ph ph-record-fill" style="font-size:12px"></i>Rec all</span>
+        </div>
+      </div>
+      <div style="flex:1;min-height:0;overflow-y:auto;padding:0 20px 24px">
+        <sc-if value="{{ noSources }}">
+          <div style="text-align:center;padding:44px 16px;color:{{ t.mut }}">
+            <div style="font-size:28px;color:{{ t.faint }};margin-bottom:10px">◍</div>
+            <div style="font:700 14px system-ui;color:{{ t.text }};margin-bottom:6px">{{ spaceName }} has no sources yet</div>
+            <div style="font:400 12.5px/1.5 system-ui;margin-bottom:16px">Open something from the library, then record it into this space.</div>
+            <span onClick="{{ recordNew }}" style="display:inline-flex;align-items:center;gap:6px;background:{{ t.accent }};color:#fff;border-radius:10px;padding:10px 15px;font:700 12.5px system-ui;cursor:pointer">Record a source</span>
+          </div>
+        </sc-if>
+        <sc-for list="{{ sourceRows }}" as="s" hint-placeholder-count="3">
+          <div style="background:{{ t.card }};border:1px solid {{ t.border }};border-radius:14px;margin-bottom:9px;overflow:hidden;opacity:{{ s.rowOp }};transition:opacity .2s">
+            <div style="display:flex;align-items:center;gap:10px;padding:11px 12px">
+              <span style="flex:none;font:700 9px 'IBM Plex Mono',monospace;color:#fff;background:{{ s.dot }};border-radius:5px;padding:4px 6px">{{ s.code }}</span>
+              <div onClick="{{ s.open }}" style="flex:1;min-width:0;cursor:pointer">
+                <div style="display:flex;align-items:center;gap:6px">
+                  <div style="font:600 13px system-ui;color:{{ t.text }};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ s.title }}</div>
+                  <sc-if value="{{ s.hasNew }}"><span style="flex:none;font:800 9px 'IBM Plex Mono',monospace;color:#fff;background:#2f9e57;border-radius:10px;padding:2px 6px">+{{ s.newCount }}</span></sc-if>
+                </div>
+                <div style="display:flex;align-items:center;gap:6px;font:500 10.5px system-ui;color:{{ s.recColor }};margin-top:2px">
+                  <sc-if value="{{ s.recording }}"><span class="eo-rec-pulse" style="width:6px;height:6px;border-radius:50%;background:#2f9e57;flex:none"></span></sc-if>
+                  {{ s.recLabel }}
+                </div>
+              </div>
+              <span onClick="{{ s.toggleOn }}" title="On / off in this space" style="flex:none;width:34px;height:20px;border-radius:20px;background:{{ s.track }};position:relative;cursor:pointer;transition:background .18s"><span style="position:absolute;top:2px;left:{{ s.knob }};width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25);transition:left .18s"></span></span>
+              <span onClick="{{ s.toggleExpand }}" style="flex:none;color:{{ t.faint }};font-size:12px;transform:rotate({{ s.chevron }});transition:transform .2s">▸</span>
+            </div>
+            <sc-if value="{{ s.expanded }}">
+              <div style="padding:11px 12px 12px;border-top:1px solid {{ t.border }}">
+                <div style="display:flex;gap:7px;margin-bottom:13px">
+                  <span onClick="{{ s.toggleRec }}" style="display:flex;align-items:center;gap:6px;background:{{ s.recBtnBg }};border:1px solid {{ s.recBtnBd }};color:{{ s.recBtnFg }};border-radius:9px;padding:7px 11px;font:700 11.5px system-ui;cursor:pointer"><i class="ph ph-record-fill" style="font-size:12px"></i>{{ s.recBtnLabel }}</span>
+                  <span onClick="{{ s.open }}" style="background:{{ t.bar }};border:1px solid {{ t.border }};color:{{ t.t2 }};border-radius:9px;padding:7px 11px;font:700 11.5px system-ui;cursor:pointer">Open</span>
+                  <span onClick="{{ s.remove }}" style="margin-left:auto;color:#c0341a;border:1px solid rgba(192,52,26,.3);border-radius:9px;padding:7px 11px;font:700 11.5px system-ui;cursor:pointer">Remove</span>
+                </div>
+                <div style="font:600 9px system-ui;letter-spacing:.05em;text-transform:uppercase;color:{{ t.mut }};margin-bottom:8px">In workspaces · tap to add or remove</div>
+                <div style="display:flex;flex-wrap:wrap;gap:6px">
+                  <sc-for list="{{ s.spaces }}" as="sp" hint-placeholder-count="3">
+                    <span onClick="{{ sp.toggle }}" style="display:flex;align-items:center;gap:6px;background:{{ sp.bg }};border:1px solid {{ sp.bd }};border-radius:16px;padding:5px 10px;cursor:pointer;font:600 11.5px system-ui;color:{{ sp.fg }}">
+                      <span style="width:8px;height:8px;border-radius:50%;background:{{ sp.accent }};opacity:{{ sp.dotOp }}"></span>{{ sp.name }}
+                    </span>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-if>
+          </div>
+        </sc-for>
+        <sc-if value="{{ hasSources }}">
+          <div onClick="{{ recordNew }}" style="display:flex;align-items:center;justify-content:center;gap:7px;margin-top:4px;padding:11px;border:1px dashed {{ t.border }};border-radius:12px;color:{{ t.accent }};font:700 12.5px system-ui;cursor:pointer"><i class="ph ph-plus-circle" style="font-size:15px"></i>Record a new source</div>
+        </sc-if>
+      </div>
     </div>
   </sc-if>
 
@@ -1005,9 +1237,8 @@ function mountEOSolar(root, opts){
 
   var bodyEls = {}, labelEls = {};
   function mkBody(id, r, fill, label, fontSize){
-    var g = sv('g', { style: 'cursor:pointer' });
+    var g = sv('g', { style: 'cursor:pointer', 'data-body': id });
     g.appendChild(sv('circle', { r: r, fill: fill, stroke: 'rgba(0,0,0,.22)', 'stroke-width': 1 }));
-    g.addEventListener('click', function(ev){ ev.stopPropagation(); focusOn(id); });
     universe.appendChild(g);
     var t = sv('text', {
       'text-anchor': 'middle', 'font-size': fontSize, fill: textColor,
@@ -1022,16 +1253,27 @@ function mountEOSolar(root, opts){
 
   var focus = (opts.focusId && byId[opts.focusId]) ? opts.focusId : SUN;
   var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var timeScale = opts.timeScale || 0.4;   // slower orbital motion (was 1.0)
   var t0 = null, raf = null;
 
+  // ── draggable camera: pan the universe a bit, clamped so it can't fly away ──
+  var panX = 0, panY = 0, dragging = false, sx0 = 0, sy0 = 0, px0 = 0, py0 = 0;
+  var PAN_LIMIT = Math.max(W, H) * 0.85;
+  function clampPan(){
+    panX = Math.max(-PAN_LIMIT, Math.min(PAN_LIMIT, panX));
+    panY = Math.max(-PAN_LIMIT, Math.min(PAN_LIMIT, panY));
+  }
+
+  var stopped = false;
   function frame(now){
-    if (!root.isConnected) { raf = null; return; }
+    if (stopped) { raf = null; return; }
+    if (!root.isConnected) { raf = requestAnimationFrame(frame); return; }  // transient during React commit — keep waiting
     if (t0 == null) t0 = now;
-    var t = reduceMotion ? 0 : (now - t0) / 1000;
+    var t = reduceMotion ? 0 : ((now - t0) / 1000) * timeScale;
     var cache = {}, pos = {};
     ids.forEach(function(id){ pos[id] = truePos(id, t, cache); });
     var target = pos[focus] || { x: 0, y: 0 };
-    universe.setAttribute('transform', 'translate(' + (cx - target.x).toFixed(1) + ',' + (cy - target.y).toFixed(1) + ')');
+    universe.setAttribute('transform', 'translate(' + (cx - target.x + panX).toFixed(1) + ',' + (cy - target.y + panY).toFixed(1) + ')');
     ids.forEach(function(id){
       var p = pos[id], n = byId[id], r = sizeOf(id);
       bodyEls[id].setAttribute('transform', 'translate(' + p.x.toFixed(1) + ',' + p.y.toFixed(1) + ')');
@@ -1051,16 +1293,41 @@ function mountEOSolar(root, opts){
 
   function focusOn(id){
     if (!byId[id] || id === focus) return;
-    focus = id;
+    focus = id; panX = 0; panY = 0;
     if (id !== SUN && opts.onPivot) { try { opts.onPivot(id); } catch (err) {} }
   }
 
   root.appendChild(svg);
+  svg.style.cursor = 'grab';
+  var downId = null, moved = false;
+  svg.addEventListener('pointerdown', function(ev){
+    var bg = ev.target.closest && ev.target.closest('[data-body]');
+    downId = bg ? bg.getAttribute('data-body') : null;
+    dragging = true; moved = false; sx0 = ev.clientX; sy0 = ev.clientY; px0 = panX; py0 = panY;
+    svg.style.cursor = 'grabbing';
+    if (svg.setPointerCapture) { try { svg.setPointerCapture(ev.pointerId); } catch (e) {} }
+  });
+  svg.addEventListener('pointermove', function(ev){
+    if (!dragging) return;
+    var dx = ev.clientX - sx0, dy = ev.clientY - sy0;
+    if (!moved && (dx*dx + dy*dy) > 25) moved = true;   // >5px = a pan, not a tap
+    panX = px0 + dx; panY = py0 + dy; clampPan();
+  });
+  function endDrag(ev){
+    if (!dragging) return;
+    dragging = false; svg.style.cursor = 'grab';
+    if (svg.releasePointerCapture && ev.pointerId != null) { try { svg.releasePointerCapture(ev.pointerId); } catch (e) {} }
+    // A tap (no meaningful movement) on a body pivots the whole view onto it.
+    if (!moved && downId){ panX = px0; panY = py0; focusOn(downId); }
+    downId = null;
+  }
+  svg.addEventListener('pointerup', endDrag);
+  svg.addEventListener('pointercancel', endDrag);
   raf = requestAnimationFrame(frame);
 
   return {
-    destroy: function(){ if (raf) cancelAnimationFrame(raf); if (svg.parentNode) svg.parentNode.removeChild(svg); },
-    focus: function(id){ if (byId[id]) focus = id; },
+    destroy: function(){ stopped = true; if (raf) cancelAnimationFrame(raf); if (svg.parentNode) svg.parentNode.removeChild(svg); },
+    focus: function(id){ if (byId[id]) { focus = id; panX = 0; panY = 0; } },
   };
 }
 
@@ -1077,7 +1344,7 @@ function mountEOSolar(root, opts){
 // rungs[1..3].plural is what a rung's list screen headers with — a deriver
 // may still override the plural at render time (see §3.4, Assembly 3).
 const TERRAINS = {
-  article:    { rungs:[{label:'Story',plural:'Story'},        {label:'Turn',plural:'Turns'},         {label:'Claim',plural:'Claims'},     {label:'Actor',plural:'Actors'}],    anchorType:'para' },
+  article:    { rungs:[{label:'Story',plural:'Story'},        {label:'Turn',plural:'Turns'},         {label:'Claim',plural:'Claims'},     {label:'Entity',plural:'Entities'}], anchorType:'para' },
   book:       { rungs:[{label:'Work',plural:'Work'},          {label:'Chapter',plural:'Chapters'},   {label:'Passage',plural:'Passages'}, {label:'Figure',plural:'Figures'}],  anchorType:'para' },
   report:     { rungs:[{label:'Report',plural:'Report'},      {label:'Section',plural:'Sections'},   {label:'Finding',plural:'Findings'}, {label:'Source',plural:'Sources'}],  anchorType:'para' },
   code:       { rungs:[{label:'System',plural:'System'},      {label:'Module',plural:'Modules'},     {label:'Function',plural:'Functions'},{label:'Symbol',plural:'Symbols'}], anchorType:'line' },
@@ -1165,6 +1432,139 @@ function entitiesIn(text, list){
 // empty items array, which is a different, false claim ("this rung exists
 // and has nothing in it") from Absent ("this rung does not apply here").
 function eoIsHeadingPara(p){ return /^#{1,6}\s+/.test(String(p||'').trim()); }
+// eoPassageScore(p) → how strongly one paragraph reads as a MEANINGFUL segment of
+// running prose rather than site chrome, a photo caption/credit, or a headline
+// fragment. The unit detector keeps only paragraphs that beat the null bar, so
+// "Passages" stops being "every paragraph" and becomes "every paragraph that
+// carries argument". Signals are surface-shape only (no per-site selectors):
+// length, sentence punctuation, and the share of lowercase-initial words that
+// marks flowing prose over Title-Case UI/headline text; explicit penalties knock
+// out agency credits ("…/AP", "via Getty Images"), stock caption verbs, and the
+// masthead boilerplate feeds prepend to their first block.
+const EO_AGENCY_CREDIT=/[\/·]\s*(?:AP|Getty(?: Images)?|Reuters|Bloomberg|AFP|EPA|NurPhoto|Shutterstock|AFP\/Getty)\b|\bvia Getty Images\b/i;
+const EO_CAPTION_VERB=/\b(?:is|are)\s+(?:seen|pictured|displayed|shown)\b|\b(?:speaks|arrives|listens|walks|attends|waves|gestures|departs)\b/i;
+const EO_BOILERPLATE=/breaking news, analysis|nonprofit journalism|this is npr|top stories in the u\.?s\.?|all rights reserved|sign up for|subscribe to|our newsletter|© ?\d{4}/i;
+function eoPassageScore(p){
+  const s=String(p||'').replace(/\s+/g,' ').trim();
+  const words=s.split(' ').filter(Boolean);
+  const wc=words.length;
+  if(wc<14) return 0;                                             // too short to carry an argument
+  const sentences=(s.match(/[.!?]["”'’]?(?:\s|$)/g)||[]).length;
+  const lcStarts=words.filter(w=>/^[a-z]/.test(w)).length;
+  const lcRatio=lcStarts/wc;                                      // running prose ≫ Title-Case chrome
+  let score=Math.min(wc,80)/80 + Math.min(sentences,4)/4 + lcRatio;
+  if(EO_BOILERPLATE.test(s)) score-=1.6;
+  if(EO_AGENCY_CREDIT.test(s)) score-=1.2;                        // photo credit tail
+  if(EO_CAPTION_VERB.test(s) && (EO_AGENCY_CREDIT.test(s) || sentences<=1)) score-=0.9; // stock caption
+  if(!/[.!?]["”'’]?$/.test(s)) score-=0.4;                        // no terminal punctuation → fragment/headline
+  return score;
+}
+// A short human title for a kept passage: its opening clause, so the list reads
+// as meaning rather than "Passage 1 / Passage 2 / …".
+function eoPassageTitle(p){
+  const s=String(p||'').replace(/\s+/g,' ').trim();
+  const first=(s.split(/(?<=[.!?])\s+/)[0]||s);
+  const words=first.split(' ').slice(0,9).join(' ');
+  return (words.length<first.length? words+'…' : words).replace(/[",:;]$/,'');
+}
+// ── feed / homepage structure detection ──────────────────────────────────────
+// A homepage or section index isn't prose: it's a stack of story cards, and a
+// reader-mode extractor flattens each card into "<headline glued to its><summary…>
+// N hrs ago<Section>". eoIsFeedText spots that shape (several relative timestamps);
+// eoNormalizeFeedBlock recovers one card's structure — it drops the relative-time +
+// section-kicker furniture and splits the glued headline from its summary, promoting
+// the headline to a '#' heading so the Structure outline lists real story titles
+// instead of run-on paragraphs. Gated on eoIsFeedText so ordinary articles are
+// never touched.
+const EO_RELTIME=/\b\d+\s*(?:secs?|seconds?|mins?|minutes?|hrs?|hours?|days?|weeks?|months?|yrs?|years?)\s+ago\b/i;
+function eoIsFeedText(txt){ return (String(txt||'').match(new RegExp(EO_RELTIME.source,'gi'))||[]).length>=3; }
+function eoNormalizeFeedBlock(b){
+  const tail=new RegExp(EO_RELTIME.source+'\\s*(?:[A-Z][A-Za-z.]+(?:\\s(?:&\\s)?[A-Z][A-Za-z.]+){0,3})?','gi');
+  let t=String(b||'').replace(tail,' ').replace(new RegExp(EO_RELTIME.source,'gi'),' ').replace(/\s{2,}/g,' ').trim();
+  if(!t) return '';
+  if(/^#{1,6}\s/.test(t)) return t;                                   // already a heading
+  // headline (multi-word, ends lowercase) glued to a capitalised summary word
+  const m=t.match(/^(.+?[a-z])([A-Z][a-z].+)$/);
+  if(m && /\s/.test(m[1]) && m[1].length>=15 && m[1].length<=140){
+    return '# '+m[1].trim()+'\n\n'+m[2].trim();
+  }
+  // a bare section kicker ("US & Canada", "World") → a lightweight heading
+  if(t.length<=40 && !/[.!?]["”'’]?$/.test(t) && /^[A-Z]/.test(t) && !/\b[a-z]{3,}\b/.test(t)) return '## '+t;
+  // a bare headline line (short, no terminal punctuation) → heading
+  if(t.length<=120 && !/[.!?]["”'’]?$/.test(t)) return '# '+t;
+  return t;
+}
+// eoBlockKind(raw) → the structural role of one extracted block, read from real markup signals
+// only (a markdown '#' heading level, or the image token planted at a real <img>/![]() site) —
+// never guessed from surface text shape (title-case, word count, etc). This is what lets
+// Reader/Reader+ paint a heading as a heading and an image as an image for ANY source, not just
+// one site's particular feed shape.
+const EO_IMG_TOKEN_RE=/^\u0001EOIMG(\d+)\u0001$/;
+function eoImgToken(i){ return '\u0001EOIMG'+i+'\u0001'; }
+function eoBlockKind(raw){
+  const s=String(raw||'').trim();
+  if(!s) return {kind:'body'};
+  const im=s.match(EO_IMG_TOKEN_RE);
+  if(im) return {kind:'image', idx:+im[1]};
+  const hd=s.match(/^(#{1,6})\s+(.*)/);
+  if(hd) return {kind:'heading', level:hd[1].length, text:hd[2].trim()};
+  return {kind:'body'};
+}
+// ── DOM → structured text (real dechrome) ──
+// A DOMParser document is never attached/rendered, so `.innerText` (which depends on layout)
+// collapses to little more than concatenated textContent — every block boundary is lost, which
+// is why a scraped page came out as one run-on paragraph. This walks the tree directly: element
+// tag semantics (h1-h6, p, li, article...) decide where a block starts, real <img> elements
+// become image blocks (with real alt text), real <a> hrefs are collected separately.
+const EO_BLOCK_TAGS=new Set(['ARTICLE','SECTION','DIV','LI','P','HEADER','FOOTER','ASIDE','FIGURE','FIGCAPTION','BLOCKQUOTE','UL','OL','TABLE','THEAD','TBODY','TR','TD','TH','MAIN','NAV','FORM','DD','DL','DT','H1','H2','H3','H4','H5','H6']);
+const EO_DOM_SKIP=new Set(['SCRIPT','STYLE','NOSCRIPT','TEMPLATE','SVG','IFRAME']);
+const EO_HEADING_LVL={H1:1,H2:2,H3:3,H4:4,H5:5,H6:6};
+function eoAbsUrl(src,base){ try{ return new URL(src,base).href; }catch(_){ return src||''; } }
+function eoDomToStructuredText(root, baseUrl){
+  const images=[], out=[];
+  const blockSel='img,'+Array.from(EO_BLOCK_TAGS).join(',');
+  const hasBlockDesc=(el)=>{ try{ return !!el.querySelector(blockSel); }catch(_){ return false; } };
+  function pushImage(node){
+    const src=node.currentSrc||node.getAttribute('src')||node.getAttribute('data-src')||'';
+    const abs=src?eoAbsUrl(src,baseUrl):'';
+    if(!abs) return;
+    const idx=images.length; images.push({src:abs,alt:(node.getAttribute('alt')||'').trim()});
+    out.push(eoImgToken(idx));
+  }
+  function inlineText(el){
+    let s='';
+    Array.from(el.childNodes||[]).forEach(node=>{
+      if(node.nodeType===3){ s+=node.textContent; return; }
+      if(node.nodeType!==1) return;
+      const tag=node.tagName;
+      if(EO_DOM_SKIP.has(tag)||tag==='IMG') return;
+      if(tag==='BR'){ s+=' '; return; }
+      s+=inlineText(node);
+    });
+    return s;
+  }
+  function walkContainer(el){
+    let buf='';
+    const flush=()=>{ const t=buf.replace(/\s+/g,' ').trim(); if(t) out.push(t); buf=''; };
+    Array.from(el.childNodes||[]).forEach(node=>{
+      if(node.nodeType===3){ buf+=node.textContent; return; }
+      if(node.nodeType!==1) return;
+      const tag=node.tagName;
+      if(EO_DOM_SKIP.has(tag)) return;
+      if(tag==='IMG'){ flush(); pushImage(node); return; }
+      if(EO_BLOCK_TAGS.has(tag)){
+        flush();
+        if(hasBlockDesc(node)) walkContainer(node);
+        else { const lvl=EO_HEADING_LVL[tag]||0; const txt=inlineText(node).replace(/\s+/g,' ').trim(); if(txt) out.push(lvl?('#'.repeat(lvl)+' '+txt):txt); }
+        return;
+      }
+      buf+=inlineText(node);
+    });
+    flush();
+  }
+  walkContainer(root);
+  return {text:out.join('\n\n'), images};
+}
 function eoFindParaIndex(paras, text){
   if(!text) return -1;
   for(let i=0;i<(paras||[]).length;i++){ if(paras[i] && String(paras[i]).indexOf(text)>=0) return i; }
@@ -1322,7 +1722,14 @@ function deriveUnits(terrainId, d, a, divisionScope){
   }
   const fallbackLabel = terrainId==='article' ? 'Passages' : TERRAINS[terrainId].rungs[2].plural;
   if(!scoped.length) return { absent:true, reason:'no '+fallbackLabel.toLowerCase()+' — nothing extracted from this source yet', perceiver:null };
-  const items=scoped.map((x,i)=>({ id:'u'+i, title:fallbackLabel.replace(/s$/,'')+' '+(i+1), body:x.p, anchor:{type:'para',pi:x.i}, refs:entitiesIn(x.p,(a&&a.list)||[]).map(e=>e.id), badges:[] }));
+  // Beat the null passage detector (one item per paragraph): score each paragraph
+  // for meaning and keep only those that clear the bar, so chrome, photo
+  // captions/credits, and headline fragments drop out. If scoring would empty the
+  // list (very short/structured source), fall back to the raw paragraphs.
+  const MEAN_BAR=1.35;
+  const kept=scoped.filter(x=>eoPassageScore(x.p)>=MEAN_BAR);
+  const chosen=kept.length?kept:scoped;
+  const items=chosen.map((x,i)=>({ id:'u'+i, title:eoPassageTitle(x.p), body:x.p, anchor:{type:'para',pi:x.i}, refs:entitiesIn(x.p,(a&&a.list)||[]).map(e=>e.id), badges:[] }));
   return { lenses:[{ id:'units', label:fallbackLabel, items }] };
 }
 
@@ -1510,7 +1917,8 @@ class Component extends DCLogic {
     ];
     let spaceId=this.load('eo5.space',null);
     if(!spaces.find(s=>s.id===spaceId)) spaceId=spaces[0].id;
-    const memoryBySpace=this.load('eo5.memBySpace',{})||{};
+    let memoryBySpace=this.load('eo5.memBySpace',null);
+    if(!memoryBySpace||typeof memoryBySpace!=='object'){ memoryBySpace=this.seedMemory(spaces); this.save('eo5.memBySpace',memoryBySpace); }
     let proxy=this.load('eo5.proxy',null);
     if(!proxy||!proxy.fetch) proxy={on:true,fetch:'https://n8n.intelechia.com/webhook/feed?url={urlenc}',search:'https://s.jina.ai/?q={q}'};
     this.state = {
@@ -1520,8 +1928,9 @@ class Component extends DCLogic {
       view: vmap[props.view]||'reader',
       layersOpen:false, settingsOpen:false, importOpen:false, urlVal:'', engineLive:false,
       layers:{hi:true,en:true,ch:true,ln:true,nw:props.candidates!==false},
-      sel:null, linkSel:null, linkPeek:{status:'idle'}, level:'prompt', chap:0, tocOpen:false, explore:null,
+      sel:null, linkSel:null, linkPeek:{status:'idle'}, linkFromOpen:true, level:'prompt', chap:0, tocOpen:false, explore:null,
       cardPath:[], lensByRung:{},
+      plain:this.load('eo5.readerPlain',false),
       structFilter:'all', structExp:{}, structRows:{}, structActive:{},
       doc:this.loadingDoc('https://www.npr.org'),
       src:{label:'npr.org',det:'Loading…',dot:'#5b9bd5'},
@@ -1529,6 +1938,7 @@ class Component extends DCLogic {
       proxy, proxyOpen:false,
       searchQ:'', searchResults:[], mediaResults:[], searching:false, searchMsg:'', libraryShelf:'web', _exTick:0,
       spaceEditOpen:false, spacePickerOpen:false, _sk:0,
+      sourcesOpen:false, srcQuery:'', srcExpand:null, recPulse:0,
       chromeHidden:false, webFrameActiveIds:[]
     };
     this.scrollRef=(el)=>{
@@ -1567,7 +1977,9 @@ class Component extends DCLogic {
       window.addEventListener('eo:ready', set);
     }
     this.readUrlValue('https://www.npr.org','NPR').then(()=>this.setState({view:'reader'}));
+    this._recTimer=setInterval(()=>this.recordingTick(),4200);
   }
+  componentWillUnmount(){ if(this._recTimer) clearInterval(this._recTimer); }
   loadingDoc(url){
     return {kind:'loading', medium:'Webpage', title:'Loading npr.org…', byline:'', mode:'text', url,
       analysis:{paras:['Fetching npr.org…'], entById:{}, list:[], hi:[], tension:[], chapters:0, links:0, words:0, toc:[]}};
@@ -1728,7 +2140,7 @@ class Component extends DCLogic {
     return toc;
   }
   gotoChap(i){ const toc=(this.state.doc&&this.state.doc.analysis&&this.state.doc.analysis.toc)||[]; const n=toc.length||1; const ci=Math.max(0,Math.min(i,n-1)); this.setState({chap:ci,tocOpen:false}); requestAnimationFrame(()=>{ if(this._scroll) this._scroll.scrollTop=0; }); }
-  analyzeText(raw, linkMap){
+  analyzeText(raw, linkMap, images){
     const text=(raw||'').replace(/\r/g,'').slice(0,3000000);
     let paras=text.split(/\n{2,}/).map(s=>s.trim()).filter(Boolean);
     if(paras.length<2) paras=text.split(/\n/).map(s=>s.trim()).filter(Boolean);
@@ -1770,12 +2182,28 @@ class Component extends DCLogic {
     const chapters=toc.filter(e=>!e.implicit).length;
     const links=(whole.match(/https?:\/\/\S+|[\w.+-]+@[\w.-]+\.[a-z]{2,}/g)||[]).length;
     const words=whole.split(/\s+/).filter(Boolean).length;
-    return {paras,entById,list,hi,tension:[],chapters,links,words,toc,linkMap:linkMap||{}};
+    const blockInfo=paras.map(eoBlockKind);
+    return {paras,entById,list,hi,tension:[],chapters,links,words,toc,linkMap:linkMap||{},images:images||[],blockInfo};
   }
 
   tog(k){ this.setState(s=>({layers:{...s.layers,[k]:!s.layers[k]}})); }
-  pick(id){ this.setState(s=>({sel:id, linkSel:null, level:(s.level==='full')?'full':'half', tab:'reader'})); }
-  pickLink(url,text){ this.setState({sel:null, linkSel:{url,text}, level:'half', linkPeek:{status:'idle'}, tab:'reader'}, ()=>this.peekAhead()); }
+  pick(id){ this.setState(s=>({sel:id, linkSel:null, level:(s.level==='full')?'full':'half'})); }
+  // Hyperlink gesture: a normal (short) click opens the target page in-app; a press-and-hold
+  // (~430ms) instead launches the run-ahead panel, folded open to the passage the click came from.
+  armLink(url,text,from){
+    this._holdFired=false; this._armed={url,text,from:from||''};
+    clearTimeout(this._holdTimer);
+    this._holdTimer=setTimeout(()=>{ this._holdFired=true; const a=this._armed; if(a) this.holdLink(a.url,a.text,a.from); }, 430);
+  }
+  releaseLink(){
+    clearTimeout(this._holdTimer);
+    const a=this._armed; this._armed=null;
+    if(!this._holdFired && a && a.url){ this.readUrlValue(a.url, a.text); }
+    this._holdFired=false;
+  }
+  cancelLink(){ clearTimeout(this._holdTimer); this._armed=null; this._holdFired=false; }
+  holdLink(url,text,from){ this.setState({sel:null, linkSel:{url,text,from:from||''}, level:'half', linkPeek:{status:'idle'}, linkFromOpen:true, tab:'reader'}, ()=>this.peekAhead()); }
+  pickLink(url,text,from){ this.holdLink(url,text,from); }
   peekAhead(){
     const ls=this.state.linkSel; if(!ls) return;
     this.setState({linkPeek:{status:'loading'}});
@@ -1786,7 +2214,7 @@ class Component extends DCLogic {
       else if(/^\s*</.test(txt)){ try{ body=this.dechrome(txt).text; }catch(_){} }
       let paras=body.split(/\n{2,}/).map(s=>s.trim()).filter(Boolean);
       if(paras.length<2) paras=body.split(/\n/).map(s=>s.trim()).filter(Boolean);
-      const ctx=this.linkContext(ls.text);
+      const ctx=ls.from||this.linkContext(ls.text);
       const words=((ls.text||'')+' '+ctx).toLowerCase().split(/\s+/).map(w=>w.replace(/[^a-z0-9-]/g,'')).filter(w=>w.length>3);
       let best=null,bestScore=-1;
       paras.forEach(p=>{ if(p.length<40) return; const lp=p.toLowerCase(); let score=0; words.forEach(w=>{ if(lp.indexOf(w)>=0) score++; }); if(score>bestScore){ bestScore=score; best=p; } });
@@ -1878,18 +2306,39 @@ class Component extends DCLogic {
     }));
     return { sunLabel:(d&&(d.title||d.name))||'This document', nodes };
   }
+  // Several containers can ask for the solar view at once (the Profile tab's large
+  // map AND the entity detail sheet's small map both carry ref="solarRef"), so each
+  // live element gets its own instance stashed on the node — a single shared slot let
+  // whichever mounted last steal the SVG and leave the other box empty.
   mountSolar(el){
-    if(this._solar){ this._solar.destroy(); this._solar=null; }
-    if(!el) return;
+    this._solars = this._solars || new Set();
+    // ref(null) on unmount: React doesn't say which element, so reap any detached ones.
+    if(!el){
+      for(const e of [...this._solars]){
+        if(!e.isConnected){ if(e.__solar) e.__solar.destroy(); e.__solar=null; this._solars.delete(e); }
+      }
+      return;
+    }
+    if(el.__solar) return;                       // already mounted into this box
     const g=this.paradigmGraph();
     if(!g||!g.nodes.length) return;
     const t=this.theme();
-    this._solar=mountEOSolar(el, {
-      nodes:g.nodes, sunLabel:g.sunLabel, focusId:this.state.sel,
-      width:300, height:200,
-      textColor:t.text, mutedColor:t.mut, edgeColor:t.border, bgColor:t.bar, sunColor:t.accent,
-      onPivot:(id)=>{ if(id) this.pick(id); },
-    });
+    const mount=()=>{
+      if(!el.isConnected || el.__solar) return;
+      const r=el.getBoundingClientRect();
+      const W=Math.max(200,Math.round(r.width||el.clientWidth||300));
+      const H=Math.max(160,Math.round(r.height||el.clientHeight||200));
+      el.__solar=mountEOSolar(el, {
+        nodes:g.nodes, sunLabel:g.sunLabel, focusId:this.state.sel,
+        width:W, height:H,
+        textColor:t.text, mutedColor:t.mut, edgeColor:t.border, bgColor:t.bar, sunColor:t.accent,
+        onPivot:(id)=>{ if(id) this.pick(id); },
+      });
+      this._solars.add(el);
+    };
+    // First layout pass can report width 0; defer one frame so we size to the real box.
+    const r0=el.getBoundingClientRect();
+    if(r0.width>0) mount(); else requestAnimationFrame(mount);
   }
   // The dc-runtime's componentDidUpdate only ever forwards prevProps, never prevState (see
   // support.js), so "what changed since last render" has to be tracked by hand here rather
@@ -1897,7 +2346,15 @@ class Component extends DCLogic {
   componentDidUpdate(prevProps){
     const prevSel=this._prevSel, prevDoc=this._prevDoc, prevView=this._prevView, prevLayers=this._prevLayers;
     this._prevSel=this.state.sel; this._prevDoc=this.state.doc; this._prevView=this.state.view; this._prevLayers=this.state.layers;
-    if(this._solar && prevSel!==this.state.sel && this.state.sel) this._solar.focus(this.state.sel);
+    if(this._solars && prevSel!==this.state.sel && this.state.sel){
+      for(const e of this._solars){ if(e.isConnected && e.__solar) e.__solar.focus(this.state.sel); }
+    }
+    // A new document invalidates every mounted map; rebuild them from the new graph.
+    if(this._solars && prevDoc!==this.state.doc){
+      const live=[...this._solars].filter(e=>e.isConnected);
+      for(const e of [...this._solars]){ if(e.__solar) e.__solar.destroy(); e.__solar=null; this._solars.delete(e); }
+      for(const e of live) this.mountSolar(e);
+    }
     if(this._webFrameDoc && prevDoc===this.state.doc &&
        (prevView!==this.state.view || prevLayers!==this.state.layers)){
       this.syncWebMarks();
@@ -1921,19 +2378,33 @@ class Component extends DCLogic {
         +'[data-eo-ten]{background:rgba(208,71,46,.18);box-shadow:inset 0 -2px #d0472e;border-radius:2px;padding:0 2px}';
       doc.head.appendChild(style);
     }
-    if(!this._webFrameClickBound){
+    // Bind per-document: every mode switch / remount loads a FRESH contentDocument, so a global
+    // "bound once" flag would leave later documents unbound and clicks would escape to target=_blank.
+    if(!doc.__eoClickBound){
+      // "from" context for a hold: the text of the nearest real block the link sits inside.
+      const armFrom=(el)=>{ let n=el; for(let k=0;k<6&&n;k++){ if(n.matches&&n.matches('p,li,blockquote,h1,h2,h3,h4,figcaption,dd')){ const tx=(n.innerText||n.textContent||'').replace(/\s+/g,' ').trim(); if(tx.length>28) return tx.slice(0,700); } n=n.parentElement; } return (el.textContent||'').trim(); };
+      let sx=0,sy=0;
+      doc.addEventListener('pointerdown', ev=>{
+        if(ev.target.closest && ev.target.closest('[data-eo-ent]')) return;   // entities: tap-to-pick, no hold
+        const linkEl=ev.target.closest && ev.target.closest('[data-eo-link]');
+        const anchorEl=ev.target.closest && ev.target.closest('a[href]');
+        const el=linkEl||anchorEl; if(!el) return;
+        sx=ev.clientX; sy=ev.clientY;
+        const url=linkEl?linkEl.getAttribute('data-eo-link'):anchorEl.href;
+        this.armLink(url, el.textContent||'', armFrom(el));
+      });
+      doc.addEventListener('pointermove', ev=>{ if(this._armed && (Math.abs(ev.clientX-sx)>8||Math.abs(ev.clientY-sy)>8)) this.cancelLink(); });
+      doc.addEventListener('pointerup', ()=>this.releaseLink());
+      doc.addEventListener('pointercancel', ()=>this.cancelLink());
+      doc.addEventListener('pointerleave', ()=>this.cancelLink());
       doc.addEventListener('click', ev=>{
         const entEl=ev.target.closest && ev.target.closest('[data-eo-ent]');
         if(entEl){ ev.preventDefault(); this.pick(entEl.getAttribute('data-eo-ent')); return; }
-        const linkEl=ev.target.closest && ev.target.closest('[data-eo-link]');
-        if(linkEl){ ev.preventDefault(); this.pickLink(linkEl.getAttribute('data-eo-link'), linkEl.textContent||''); return; }
-        // Real <a> markup from the source page: the injected <base target> would otherwise
-        // hand these off to a real new browser tab. Route them through the same in-app
-        // link-preview sheet as data-eo-link matches instead.
-        const anchorEl=ev.target.closest && ev.target.closest('a[href]');
-        if(anchorEl && anchorEl.href){ ev.preventDefault(); this.pickLink(anchorEl.href, anchorEl.textContent||''); }
+        // Links/anchors: the gesture (short = go, hold = panel) is handled on pointerup —
+        // here we only cancel the base target=_blank navigation so nothing escapes to a new tab.
+        if(ev.target.closest && (ev.target.closest('[data-eo-link]')||ev.target.closest('a[href]'))) ev.preventDefault();
       });
-      this._webFrameClickBound=true;
+      doc.__eoClickBound=true;
     }
     this.syncWebMarks();
   }
@@ -1990,7 +2461,12 @@ class Component extends DCLogic {
   // JSX-rendered stand-in.
   buildSyntheticWebHtml(d){
     const a=d.analysis||{}, esc=s=>String(s==null?'':s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
-    const paras=(a.paras||[]).map(p=>'<p>'+esc(p)+'</p>').join('\n');
+    const paras=(a.paras||[]).map((p,i)=>{
+      const info=(a.blockInfo&&a.blockInfo[i])||eoBlockKind(p);
+      if(info.kind==='image'){ const im=(a.images||[])[info.idx]; return im&&im.src?('<figure><img src="'+esc(im.src)+'" alt="'+esc(im.alt||'')+'">'+(im.alt?'<figcaption>'+esc(im.alt)+'</figcaption>':'')+'</figure>'):''; }
+      if(info.kind==='heading'){ const lvl=Math.min(6,Math.max(1,info.level||3)); return '<h'+lvl+'>'+esc(info.text)+'</h'+lvl+'>'; }
+      return '<p>'+esc(p)+'</p>';
+    }).join('\n');
     return '<!doctype html><html><head><meta charset="utf-8">'
       +'<meta name="viewport" content="width=device-width,initial-scale=1">'
       +'<style>body{font:16px/1.65 \'Source Serif 4\',Georgia,serif;max-width:640px;margin:0 auto;padding:24px 20px 60px;color:#1e1c19;background:#fff}'
@@ -2068,6 +2544,45 @@ class Component extends DCLogic {
   }
   removeFromMemory(key){ this.setState(s=>{ const cur=(s.memoryBySpace[s.spaceId]||[]).filter(m=>m.key!==key);
     const memoryBySpace={...s.memoryBySpace,[s.spaceId]:cur}; this.save('eo5.memBySpace',memoryBySpace); return {memoryBySpace}; }); }
+
+  // ── seed: a few sources across spaces so recording/toggle/membership are visible on first run ──
+  mkSeed(o){ return { key:o.key, id:o.id, title:o.title, source:o.source||o.key, medium:o.medium,
+    addedAt:Date.now()-(o.age||1)*3600000, words:o.words||0, links:o.links||0,
+    recording:!!o.recording, lastUpdate:Date.now()-(o.recording?45000:(o.age||1)*3600000), newCount:o.newCount||0,
+    ents:(o.ents||[]).map((e,i)=>({name:e,count:6+((i*7)%22),color:this.PALETTE[i%this.PALETTE.length],links:2+i,related:[]})),
+    highlights:o.hi||[], toc:o.toc||[] }; }
+  seedMemory(spaces){
+    const s1=spaces[0].id, s2=(spaces[1]||spaces[0]).id, s3=(spaces[2]||spaces[0]).id;
+    const reuters=this.mkSeed({key:'reuters.com/markets',id:'seed_reuters',title:'Reuters — Markets live wire',medium:'Webpage',words:4200,links:38,recording:true,newCount:3,age:2,ents:['Federal Reserve','ECB','Treasury yields','Nikkei'],hi:['Yields slipped after the auction','The dollar steadied against the yen']});
+    const out={};
+    out[s1]=[ reuters,
+      this.mkSeed({key:'npr.org/politics',id:'seed_npr',title:'NPR Politics feed',medium:'Webpage',words:3100,links:29,recording:true,newCount:1,age:1,ents:['Congress','the White House','the Senate'],hi:['The floor vote was delayed again']}),
+      this.mkSeed({key:'riverton-budget-2026.pdf',id:'seed_pdf',title:'Riverton budget deal (2026).pdf',medium:'PDF',words:8600,links:12,age:20,ents:['Riverton','clinic closures','the budget deal'],hi:['Clinic closures concentrated downtown']}) ];
+    out[s2]=[ this.mkSeed({key:'gutenberg/frankenstein',id:'seed_book',title:'Frankenstein — Mary Shelley',medium:'Book',words:78000,age:72,ents:['Victor','the creature','Elizabeth','Geneva'],toc:['Letters','The making','The pursuit']}),
+      {...reuters} ];
+    out[s3]=[ this.mkSeed({key:'notes/interview-01',id:'seed_notes',title:'Interview — housing caseworker',medium:'Document',words:2400,links:4,age:5,ents:['the caseworker','the waitlist','vouchers'],hi:['The waitlist now exceeds eight months']}) ];
+    return out;
+  }
+
+  // ── multi-space membership + live recording ──
+  findSourceByKey(key){ const mbs=this.state.memoryBySpace||{}; for(const sid in mbs){ const hit=(mbs[sid]||[]).find(m=>m.key===key); if(hit) return hit; } return null; }
+  spacesForKey(key){ const mbs=this.state.memoryBySpace||{}; return (this.state.spaces||[]).filter(sp=>(mbs[sp.id]||[]).some(m=>m.key===key)).map(sp=>sp.id); }
+  toggleMembership(key,sid){ this.setState(s=>{ const mbs={...s.memoryBySpace}; const has=(mbs[sid]||[]).some(m=>m.key===key);
+    if(has){ mbs[sid]=(mbs[sid]||[]).filter(m=>m.key!==key); }
+    else { const item=this.findSourceByKey(key); if(item) mbs[sid]=[{...item},...(mbs[sid]||[])]; }
+    this.save('eo5.memBySpace',mbs); return {memoryBySpace:mbs}; }); }
+  patchSource(key,patch){ this.setState(s=>{ const mbs={...s.memoryBySpace}; for(const sid in mbs){ mbs[sid]=(mbs[sid]||[]).map(m=>m.key===key?{...m,...(typeof patch==='function'?patch(m):patch)}:m); } this.save('eo5.memBySpace',mbs); return {memoryBySpace:mbs}; }); }
+  toggleRecording(key){ this.patchSource(key,m=>({recording:!m.recording,lastUpdate:Date.now()})); }
+  clearNew(key){ this.patchSource(key,{newCount:0}); }
+  setAllRecording(on){ this.setState(s=>{ const keys=new Set((s.memoryBySpace[s.spaceId]||[]).map(m=>m.key)); const mbs={...s.memoryBySpace}; for(const sid in mbs){ mbs[sid]=(mbs[sid]||[]).map(m=>keys.has(m.key)?{...m,recording:on,lastUpdate:Date.now()}:m); } this.save('eo5.memBySpace',mbs); return {memoryBySpace:mbs}; }); }
+  bulkActive(on){ this.setState(s=>{ const structActive={...s.structActive}; (s.memoryBySpace[s.spaceId]||[]).forEach(m=>{ structActive[m.id]=on; }); return {structActive}; }); }
+  recordingTick(){ const mbs0=this.state.memoryBySpace||{}; const recKeys=new Set(); for(const sid in mbs0)(mbs0[sid]||[]).forEach(m=>{ if(m.recording) recKeys.add(m.key); }); if(!recKeys.size) return;
+    const inc={}; recKeys.forEach(k=>{ if(Math.random()<0.5) inc[k]=1; });
+    const mbs={...mbs0}; for(const sid in mbs){ mbs[sid]=(mbs[sid]||[]).map(m=>{ if(!m.recording) return m; const g=inc[m.key]||0; return {...m, lastUpdate:Date.now(), newCount:(m.newCount||0)+g, words:(m.words||0)+(g?Math.floor(30+Math.random()*140):0)}; }); }
+    this.save('eo5.memBySpace',mbs); this.setState({memoryBySpace:mbs,recPulse:Date.now()}); }
+  openSources(){ this.setState({sourcesOpen:true,spacePickerOpen:false,settingsOpen:false,importOpen:false}); }
+  closeSources(){ this.setState({sourcesOpen:false}); }
+  relTime(ts){ if(!ts) return 'never'; const s=Math.max(0,Math.round((Date.now()-ts)/1000)); if(s<5)return 'just now'; if(s<60)return s+'s ago'; const m=Math.floor(s/60); if(m<60)return m+'m ago'; const h=Math.floor(m/60); if(h<24)return h+'h ago'; return Math.floor(h/24)+'d ago'; }
 
   // ── proxy + search ──
   setProxy(patch){ this.setState(s=>{ const proxy={...s.proxy,...patch}; this.save('eo5.proxy',proxy); return {proxy}; }); }
@@ -2157,9 +2672,9 @@ class Component extends DCLogic {
     if(r.kind==='book') return this.openGutenbergBook(r);
     if(r.kind==='article') return this.openWikipediaArticle(r);
     if(r.content && r.content.length>200){
-      const j=this.parseJina(r.content); const body=this.cleanMarkdown(j?j.body:r.content);
+      const j=this.parseJina(r.content); const images=[]; const body=this.cleanMarkdown(j?j.body:r.content, images);
       const linkMap=this.extractLinksFromMd(j?j.body:r.content);
-      this.setDoc({name:r.url,url:r.url,title:r.title||(j&&j.title)||r.url,medium:'Webpage',mode:'text',size:'',analysis:this.analyzeText(body,linkMap)});
+      this.setDoc({name:r.url,url:r.url,title:r.title||(j&&j.title)||r.url,medium:'Webpage',mode:'text',size:'',analysis:this.analyzeText(body,linkMap,images)});
       return;
     }
     this.readUrlValue(r.url, r.title);
@@ -2274,18 +2789,72 @@ class Component extends DCLogic {
   normUrl(q){ return /^https?:\/\//i.test(q)?q:('https://'+q); }
   omni(){ const q=(this.state.searchQ||'').trim(); if(!q) return; if(this.looksUrl(q)){ this.readUrlValue(this.normUrl(q)); } else { this.setState({importOpen:true,spaceEditOpen:false,libraryShelf:'web'}); this.doSearch(); } }
   parseJina(txt){ const m=(txt||'').match(/^Title:\s*(.*)\n+URL Source:\s*(.*?)\n+(?:Published Time:.*\n+)?Markdown Content:\s*([\s\S]*)$/); return m?{title:m[1].trim(),body:m[3].trim()}:null; }
-  cleanMarkdown(s){ return (s||'')
-    .replace(/!\[[^\]]*\]\([^)]*\)/g,'')
-    .replace(/\[([^\]]*)\]\([^)]*\)/g,'$1')
-    .replace(/\*\*/g,'').replace(/\n{3,}/g,'\n\n').trim(); }
+  // cleanMarkdown(md) → normalize a fetched page into a standard, readable document.
+  // Reader-mode extractors (Jina) keep a lot of a structured site's furniture: image
+  // captions ("hide caption"/"toggle caption"), photo credits, "Advertisement",
+  // "Listen · Download · Embed" rails, share links, and blocks that repeat. Left in,
+  // they pollute the reader, the entity harvest, and the outline. We strip them by
+  // shape (not per-site selectors), flatten list/table/quote noise to prose, and
+  // de-duplicate blocks — while preserving "#" headings so structure still derives.
+  cleanMarkdown(s, images){
+    images = images || [];
+    let txt=(s||'')
+      .replace(/!\[([^\]]*)\]\(([^)\s]+)[^)]*\)/g,(m,alt,src)=>{ src=(src||'').trim(); if(!/^https?:\/\//i.test(src)) return ''; const idx=images.length; images.push({src,alt:(alt||'').trim()}); return '\n\n'+eoImgToken(idx)+'\n\n'; }) // images → real image blocks, kept
+      .replace(/\[([^\]]*)\]\((?:[^)]*)\)/g,'$1')          // links → their text
+      .replace(/^\s*\|.*\|\s*$/gm,'')                      // table rows
+      .replace(/^\s*:?-{2,}:?(?:\s*\|\s*:?-{2,}:?)*\s*$/gm,'') // table rules
+      .replace(/^\s{0,3}>\s?/gm,'')                        // blockquote markers
+      .replace(/^\s{0,3}[-*+]\s+/gm,'')                    // unordered bullets
+      .replace(/^\s{0,3}\d+[.)]\s+/gm,'')                  // ordered bullets
+      .replace(/^\s*[-*_]{3,}\s*$/gm,'')                   // horizontal rules
+      .replace(/`{1,3}/g,'')                               // code ticks
+      .replace(/\*\*|__/g,'')                              // bold
+      .replace(/\b(?:hide|toggle)\s+caption\b/gi,'')       // NPR-style caption toggles (inline)
+      .replace(/\benlarge this image\b/gi,'');
+    // agencies/labels that mark a photo-credit or UI fragment rather than prose
+    const AGENCY=/(getty images|reuters|associated press|\bafp\b|bloomberg|shutterstock|\bnpr\b|\bap\b)/i;
+    const UI=/^(hide caption|toggle caption|enlarge(?: this image)?|advertisement|sponsor(?:ed)? (?:message|content)|listen|download|embed|transcript|loading…?|copy link|share(?: this)?|read more|see more|more stories|related(?: stories)?|watch:|photos?:|video:|subscribe|sign up|newsletter|follow us|updated|published|\d+\s*min read|facebook|twitter|instagram|linkedin|whatsapp|reddit|email|print)\b/i;
+    const isCreditLine=(b)=>{
+      const l=b.trim();
+      if(l.length>90 || /[.!?]["”']?$/.test(l)) return false;        // real sentences stay
+      if(/^(photo|image|illustration|credit|source|caption|courtesy)\b[:/]?/i.test(l)) return true;
+      if(AGENCY.test(l) && (/\//.test(l) || l.length<40)) return true; // "Name/Getty Images" or bare agency
+      return false;
+    };
+    const blocks=txt.split(/\n{2,}/).map(b=>b.replace(/[ \t]+/g,' ').replace(/\s*\n\s*/g,'\n').trim()).filter(Boolean);
+    const isFeed=eoIsFeedText(txt);
+    const seen=new Set(), out=[];
+    for(let b of blocks){
+      if(!b) continue;
+      if(EO_IMG_TOKEN_RE.test(b)){ out.push(b); continue; } // real image block — always kept
+      if(isFeed){                                           // homepage/section feed → recover card structure
+        const norm=eoNormalizeFeedBlock(b);
+        if(!norm) continue;
+        if(norm!==b){
+          for(const part of norm.split(/\n{2,}/)){ const p=part.trim(); if(p) out.push(p); }
+          continue;
+        }
+        b=norm;
+      }
+      const first=(b.split('\n')[0]||'').trim();
+      if(UI.test(first) && b.length<160) continue;          // short furniture line
+      if(isCreditLine(b)) continue;                         // photo credit
+      const key=b.toLowerCase().replace(/[^a-z0-9]+/g,' ').trim().slice(0,140);
+      if(key && seen.has(key)) continue;                    // de-duplicate repeated blocks
+      if(key) seen.add(key);
+      out.push(b);
+    }
+    return out.join('\n\n').replace(/[ \t]{2,}/g,' ').replace(/\n{3,}/g,'\n\n').trim();
+  }
   readUrlValue(u,title){
     this.setState({importOpen:false, searchResults:[], searchMsg:''});
     return fetch(this.proxied(u)).then(r=>{ if(!r.ok) throw new Error('HTTP '+r.status); return r.text(); }).then(txt=>{
-      let clean=txt, t=title||u, rawHtml=null, linkMap={};
+      let clean=txt, t=title||u, rawHtml=null, linkMap={}, images=[];
       const j=this.parseJina(txt);
-      if(j){ clean=this.cleanMarkdown(j.body); t=title||j.title||u; linkMap=this.extractLinksFromMd(j.body); }
-      else if(/^\s*</.test(txt)){ rawHtml=txt; try{ const d=this.dechrome(txt); clean=d.text; linkMap=d.linkMap; }catch(_){} }
-      this.setDoc({name:u,url:u,title:t,medium:'Webpage',mode:'text',size:'',rawHtml,analysis:this.analyzeText(clean,linkMap)});
+      if(j){ clean=this.cleanMarkdown(j.body, images); t=title||j.title||u; linkMap=this.extractLinksFromMd(j.body); }
+      else if(/^\s*</.test(txt)){ rawHtml=txt; try{ const d=this.dechrome(txt,u); clean=this.cleanMarkdown(d.text, images=d.images); t=title||d.title||u; linkMap=d.linkMap; }catch(_){ clean=this.cleanMarkdown(txt, images); } }
+      else { clean=this.cleanMarkdown(txt, images); linkMap=this.extractLinksFromMd(txt); }
+      this.setDoc({name:u,url:u,title:t,medium:'Webpage',mode:'text',size:'',rawHtml,analysis:this.analyzeText(clean,linkMap,images)});
     }).catch(err=>this.setDoc({name:u,url:u,title:title||u,medium:'Webpage',mode:'binary',size:'',mime:'could not fetch: '+err.message+' — try routing through your proxy (edit routing in Search & open)'}));
   }
 
@@ -2344,7 +2913,7 @@ class Component extends DCLogic {
     if(vid.includes(ext)||(f.type||'').startsWith('video')){ this.setDoc({name,title:name,medium:'Video',mode:'media',mtype:'video',url:URL.createObjectURL(f),size}); return; }
     if(ext==='pdf'||(f.type||'')==='application/pdf'){ this.ingestPdf(f,name,size); return; }
     if(ext==='epub'||(f.type||'')==='application/epub+zip'){ this.ingestEpub(f,name,size); return; }
-    if(ext==='html'||ext==='htm'){ const r=new FileReader(); r.onload=()=>{ let txt='', linkMap={}; try{ const d=this.dechrome(r.result||''); txt=d.text; linkMap=d.linkMap; }catch(_){txt=r.result||'';} this.setDoc({name,title:name,medium:'Webpage',mode:'text',size,rawHtml:r.result||'',analysis:this.analyzeText(txt,linkMap)}); }; r.readAsText(f); return; }
+    if(ext==='html'||ext==='htm'){ const r=new FileReader(); r.onload=()=>{ let txt='', linkMap={}, images=[], t=name; try{ const d=this.dechrome(r.result||''); txt=d.text; linkMap=d.linkMap; images=d.images; t=d.title||name; }catch(_){txt=r.result||'';} this.setDoc({name,title:t,medium:'Webpage',mode:'text',size,rawHtml:r.result||'',analysis:this.analyzeText(txt,linkMap,images)}); }; r.readAsText(f); return; }
     if(textLike.includes(ext)||(f.type||'').startsWith('text')){ const r=new FileReader(); r.onload=()=>{ const raw=r.result||''; const csv=(ext==='csv'||ext==='tsv')?this.parseCsvRows(raw):null; this.setDoc({name,title:name,medium,mode:'text',size,rawText:raw,csv,analysis:this.analyzeText(raw)}); }; r.readAsText(f); return; }
     const r=new FileReader();
     r.onload=()=>{ const buf=new Uint8Array(r.result), n=Math.min(buf.length,4000); let a=0; for(let i=0;i<n;i++){ const b=buf[i]; if((b>=32&&b<127)||b===9||b===10||b===13)a++; }
@@ -2471,11 +3040,17 @@ class Component extends DCLogic {
     }catch(_){}
     return best||body;
   }
-  dechrome(html){
+  dechrome(html, baseUrl){
     const doc=new DOMParser().parseFromString(html||'','text/html');
     let root=null; try{ root=this.pickMainRoot(doc); }catch(_){}
     root=root||doc.body;
-    return {text:(root&&root.innerText)||'', linkMap:this.extractLinksFromDom(root||doc)};
+    const {text,images}=eoDomToStructuredText(root, baseUrl||'');
+    const ogTitle=doc.querySelector('meta[property="og:title"],meta[name="og:title"]');
+    const h1=doc.querySelector('h1');
+    const title=(doc.querySelector('title')&&doc.querySelector('title').textContent.trim())
+      || (ogTitle&&(ogTitle.getAttribute('content')||'').trim())
+      || (h1&&h1.textContent.trim()) || '';
+    return {text, images, title, linkMap:this.extractLinksFromDom(root||doc)};
   }
   spans(p,prep,kb){
     if(!prep) return [p];
@@ -2484,7 +3059,7 @@ class Component extends DCLogic {
     while((m=prep.re.exec(p))){ if(m.index>last)out.push(p.slice(last,m.index)); const k=prep.kind[m[0]];
       if(k.type==='ent') out.push(h('span',{key:kb+'e'+i,onClick:()=>this.pick(k.id),style:{borderBottom:'2px solid '+k.color,fontWeight:600,cursor:'pointer'}},m[0]));
       else if(k.type==='hi') out.push(h('span',{key:kb+'h'+i,style:{background:'rgba(232,176,74,.42)',borderRadius:'3px',padding:'0 2px'}},m[0]));
-      else if(k.type==='link') out.push(h('span',{key:kb+'l'+i,onClick:()=>this.pickLink(k.url,m[0]),style:{color:t.accent,textDecoration:'underline',textDecorationStyle:'dotted',textUnderlineOffset:'3px',cursor:'pointer',fontWeight:600}},[m[0],h('span',{key:'ic',style:{fontSize:'11px',marginLeft:'1px'}},'↗')]));
+      else if(k.type==='link') out.push(h('span',{key:kb+'l'+i,onPointerDown:()=>this.armLink(k.url,m[0],p),onPointerUp:()=>this.releaseLink(),onPointerLeave:()=>this.cancelLink(),onPointerCancel:()=>this.cancelLink(),style:{color:t.accent,textDecoration:'underline',textDecorationStyle:'dotted',textUnderlineOffset:'3px',cursor:'pointer',fontWeight:600}},[m[0],h('span',{key:'ic',style:{fontSize:'11px',marginLeft:'1px'}},'↗')]));
       else out.push(h('span',{key:kb+'t'+i,style:{background:'rgba(208,71,46,.18)',boxShadow:'inset 0 -2px #d0472e',borderRadius:'2px',padding:'0 2px'}},m[0]));
       last=m.index+m[0].length; i++; if(!m[0].length)prep.re.lastIndex++; }
     if(last<p.length)out.push(p.slice(last));
@@ -2580,10 +3155,34 @@ class Component extends DCLogic {
     );
   }
 
+  buildActiveHereBar(){
+    const S=this.state; if(S.tab!=='reader'||S.view!=='annotated') return null;
+    const d=S.doc, a=d&&d.analysis; if(!a||!(a.list||[]).length) return null;
+    const t=this.theme(), h=React.createElement, list=a.list;
+    let ents=[];
+    if(d.medium==='Webpage'){
+      const ids=S.webFrameActiveIds||[]; const byId=new Map(list.map(e=>[e.id,e]));
+      ents=ids.map(id=>byId.get(id)).filter(Boolean).sort((x,y)=>y.count-x.count).slice(0,5);
+    } else {
+      const paras=a.paras||[], toc=a.toc||[]; let lo=0,hi=paras.length;
+      if(toc.filter(e=>!e.implicit).length>=3){ const ci=Math.max(0,Math.min(S.chap,toc.length-1)); const en=toc[ci]; lo=en.implicit?en.pi:en.pi+1; hi=(ci+1<toc.length)?toc[ci+1].pi:paras.length; }
+      const scene=paras.slice(lo,hi).join(' '), sceneLower=(' '+scene+' ').toLowerCase();
+      ents=entitiesIn(scene,list).map(e=>{ const re=new RegExp('(^|\\b)'+eoEscRe(e.name.toLowerCase())+'(\\b|$)','g'); const n=(sceneLower.match(re)||[]).length; return {...e,active:n}; }).sort((x,y)=>y.active-x.active||y.count-x.count).slice(0,5);
+    }
+    if(!S.layers.en) ents=[];
+    const details=[];
+    if(S.layers.hi && (a.hi||[]).length) details.push('quotes');
+    if(S.layers.nw && (a.tension||[]).length) details.push('claims');
+    return h('div',{style:{display:'flex',alignItems:'center',gap:'9px',minHeight:'36px',background:t.bar,border:'1px solid '+t.border,borderRadius:'12px',padding:'6px 10px',margin:'9px 0 0',fontFamily:'system-ui'}},[
+      h('div',{key:'label',style:{flex:'none',font:"800 8.5px 'IBM Plex Mono',monospace",letterSpacing:'.08em',textTransform:'uppercase',color:t.mut,whiteSpace:'nowrap'}},'Active here'),
+      h('div',{key:'ents',style:{flex:1,minWidth:0,display:'flex',alignItems:'center',gap:'7px',overflowX:'auto'}}, ents.length?ents.map(e=>h('button',{key:e.id,onClick:()=>this.pick(e.id),title:e.role,style:{flex:'none',display:'inline-flex',alignItems:'center',gap:'6px',border:0,background:'transparent',padding:'3px 0',font:'650 12px system-ui',color:t.t2,cursor:'pointer',whiteSpace:'nowrap'}},[h('span',{key:'d',style:{width:'7px',height:'7px',borderRadius:'50%',background:e.color,flex:'none'}}),h('span',{key:'n'},e.name)])):h('span',{style:{font:'600 12px system-ui',color:t.faint,whiteSpace:'nowrap'}},'No named entities in this passage')),
+      h('div',{key:'mode',onClick:()=>this.openExplore(),style:{flex:'none',font:"800 8.5px 'IBM Plex Mono',monospace",letterSpacing:'.08em',color:t.accent,whiteSpace:'nowrap',cursor:'pointer'}}, details.length?'X-RAY · '+details.join(' · '):'X-RAY')
+    ]);
+  }
   buildDoc(){
     const d=this.state.doc; if(!d) return null;
     const t=this.theme(), h=React.createElement, view=this.state.view;
-    const pad={padding:'18px 20px 176px'};
+    const pad={padding:'18px 20px 176px', ...(view==='reader'?{maxWidth:'720px',margin:'0 auto'}:{})};
     const inMem=this.inMemory(d);
     const memBtn=null;
     const kicker = null;
@@ -2598,57 +3197,22 @@ class Component extends DCLogic {
         h('div',{key:2,style:{font:'400 12.5px/1.5 system-ui',color:t.t2,marginTop:'12px'}}, 'Held as-is. No text extractor for this medium is wired in this preview — the file and its bytes are kept; connect the matching ingest organ to read it.')])]);
 
     const a=d.analysis;
-    const activeSceneEntities=()=>{
-      const list=(a&&a.list?a.list:[]);
-      if(!list.length) return [];
-      if(d.medium==='Webpage'){
-        const ids=this.state.webFrameActiveIds||[];
-        if(!ids.length) return [];
-        const byId=new Map(list.map(e=>[e.id,e]));
-        return ids.map(id=>byId.get(id)).filter(Boolean).sort((x,y)=>y.count-x.count).slice(0,5);
-      }
-      const paras=(a&&a.paras?a.paras:[]);
-      const toc=a&&a.toc?a.toc:[];
-      let lo=0, hi=paras.length;
-      if(toc.filter(e=>!e.implicit).length>=3){
-        const ci=Math.max(0,Math.min(this.state.chap,toc.length-1));
-        const en=toc[ci]; lo=en.implicit?en.pi:en.pi+1; hi=(ci+1<toc.length)?toc[ci+1].pi:paras.length;
-      }
-      const scene=paras.slice(lo,hi).join(' ');
-      const sceneLower=(' '+scene+' ').toLowerCase();
-      // Membership itself is computed by the same entitiesIn() that Cards
-      // rung 4 uses (Assembly 4) — only the ranking-by-occurrence-count
-      // below is specific to this bar's "top 5" display.
-      return entitiesIn(scene, list).map(e=>{ const re=new RegExp('(^|\\b)'+eoEscRe(e.name.toLowerCase())+'(\\b|$)','g'); const n=(sceneLower.match(re)||[]).length; return {...e,active:n}; })
-        .sort((x,y)=>y.active-x.active||y.count-x.count).slice(0,5);
-    };
-    const nativePlusOverlay=()=>{
-      const ents=this.state.layers.en?activeSceneEntities():[];
-      const details=[];
-      if(this.state.layers.hi && (a.hi||[]).length) details.push('quotes');
-      if(this.state.layers.nw && (a.tension||[]).length) details.push('claims');
-      return h('div',{key:'eo',style:{position:'sticky',bottom:'12px',margin:'10px 12px 0',zIndex:2,pointerEvents:'none'}},
-        h('div',{style:{pointerEvents:'auto',display:'flex',alignItems:'center',gap:'9px',minHeight:'42px',background:this.state.dark?'rgba(15,20,34,.90)':'rgba(255,255,255,.92)',border:'1px solid '+(this.state.dark?'rgba(255,255,255,.14)':'rgba(30,28,25,.12)'),borderRadius:'18px',padding:'8px 10px',fontFamily:'system-ui',boxShadow:'0 8px 22px rgba(0,0,0,.16)'}},[
-          h('div',{key:'label',style:{flex:'none',font:"800 8.5px 'IBM Plex Mono',monospace",letterSpacing:'.08em',textTransform:'uppercase',color:t.mut,whiteSpace:'nowrap'}},'Active here'),
-          h('div',{key:'ents',style:{flex:1,minWidth:0,display:'flex',alignItems:'center',gap:'7px',overflowX:'auto'}}, ents.length?ents.map(e=>h('button',{key:e.id,onClick:()=>this.pick(e.id),title:e.role,style:{flex:'none',display:'inline-flex',alignItems:'center',gap:'6px',border:0,background:'transparent',padding:'3px 0',font:'650 12px system-ui',color:t.t2,cursor:'pointer',whiteSpace:'nowrap'}},[h('span',{key:'d',style:{width:'7px',height:'7px',borderRadius:'50%',background:e.color,boxShadow:'0 0 0 3px '+(this.state.dark?'rgba(255,255,255,.06)':'rgba(0,0,0,.04)'),flex:'none'}}),h('span',{key:'n'},e.name)])):h('span',{style:{font:'600 12px system-ui',color:t.faint,whiteSpace:'nowrap'}},'No named entities in this passage')),
-          h('div',{key:'mode',onClick:()=>this.openExplore(),style:{flex:'none',font:"800 8.5px 'IBM Plex Mono',monospace",letterSpacing:'.08em',color:t.accent,whiteSpace:'nowrap',cursor:'pointer'}}, details.length?'X-RAY · '+details.join(' · '):'X-RAY')
-        ]));
-    };
-    const nativeWrap=(children,bg)=>h('div',{style:{padding:'0',display:'flex',flexDirection:'column',minHeight:'100%',position:'relative',background:bg||'transparent'}}, view==='annotated'?[...children,nativePlusOverlay()]:children);
+    const panelDocked=!!(this.state.sel||this.state.linkSel||this.state.explore);
+    const nativeWrap=(children,bg)=>h('div',{className:'eo-native-fill'+(panelDocked?' eo-native-clear':''),style:{padding:'0',display:'flex',flexDirection:'column',minHeight:'100%',position:'relative',background:bg||'transparent'}}, children);
     if((view==='native'||view==='annotated') && d.medium==='PDF' && d.pdfUrl){
-      return nativeWrap([h('iframe',{key:'f',src:d.pdfUrl,title:d.name,style:{flex:1,minHeight:'640px',border:'none',width:'100%',background:'#525659'}})], '#525659');
+      return nativeWrap([h('iframe',{key:'f',src:d.pdfUrl,title:d.name,style:{flex:1,minHeight:0,border:'none',width:'100%',background:'#525659'}})], '#525659');
     }
     // Native / Native+: the page's own fetched markup rendered like the real site (nativePageHtml
     // recovery) — real fonts, layout, images. Native+ additionally paints EO entity/quote marks
     // onto it in the iframe (via onWebIframeLoad/syncWebMarks); plain Native shows it unmarked.
     if((view==='native'||view==='annotated') && d.medium==='Webpage' && d.rawHtml){
-      return nativeWrap([h('iframe',{key:'f',srcDoc:this.nativePageHtml(d.rawHtml, d.url),sandbox:'allow-same-origin allow-popups',title:d.title,onLoad:e=>this.onWebIframeLoad(e),style:{flex:1,minHeight:'700px',border:'none',width:'100%',background:'#fff'}})], '#fff');
+      return nativeWrap([h('iframe',{key:'f',srcDoc:this.nativePageHtml(d.rawHtml, d.url),sandbox:'allow-same-origin allow-popups',title:d.title,onLoad:e=>this.onWebIframeLoad(e),style:{flex:1,minHeight:0,border:'none',width:'100%',background:'#fff'}})], '#fff');
     }
     // No raw markup was fetched: rebuild a clean reader-shaped article from extracted text so
     // Native+ still has real HTML to paint structure onto instead of a JSX-rendered stand-in.
     if(view==='annotated' && d.medium==='Webpage' && a && a.paras && a.paras.length){
       const synHtml=this.buildSyntheticWebHtml(d);
-      return nativeWrap([h('iframe',{key:'f',srcDoc:synHtml,sandbox:'allow-same-origin allow-popups',title:d.title,onLoad:e=>this.onWebIframeLoad(e),style:{flex:1,minHeight:'700px',border:'none',width:'100%',background:'#fff'}})], '#fff');
+      return nativeWrap([h('iframe',{key:'f',srcDoc:synHtml,sandbox:'allow-same-origin allow-popups',title:d.title,onLoad:e=>this.onWebIframeLoad(e),style:{flex:1,minHeight:0,border:'none',width:'100%',background:'#fff'}})], '#fff');
     }
     if(d.medium==='Spreadsheet' && d.rawText){ const csvEl=this.buildCsvSource(d,t,h,pad); if(csvEl) return csvEl; }
     if((view==='native'||view==='annotated') && (d.medium==='Text'||d.medium==='Code'||d.medium==='Data') && d.rawText){
@@ -2656,11 +3220,13 @@ class Component extends DCLogic {
         h('pre',{key:'pre',style:{margin:0,font:"13px/1.6 'IBM Plex Mono',ui-monospace,monospace",color:t.text,whiteSpace:'pre-wrap',wordBreak:'break-word'}}, d.rawText)])]);
     }
 
-    const marks=(view==='reader'||view==='annotated'), reader=view==='reader';
+    const reader=view==='reader';
+    const plain=reader&&this.state.plain;
+    const marks=(view==='annotated')||(reader&&!this.state.plain);
     const prep = this.prepMarks(a, marks);
     const mono = (d.medium==='Code'||d.medium==='Data');
     const fam = mono ? "'IBM Plex Mono',ui-monospace,monospace" : "'Source Serif 4',Georgia,serif";
-    const toc=a.toc||[], chapterMode=toc.filter(e=>!e.implicit).length>=3;
+    const toc=a.toc||[], chapterMode=(d.medium!=='Webpage')&&toc.filter(e=>!e.implicit).length>=3;
     const body=[kicker];
     if(view==='native'||view==='annotated'){
       body.push(h('div',{key:'nn',style:{font:'500 12px/1.5 system-ui',color:t.mut,background:t.bar,border:'1px solid '+t.border,borderRadius:'10px',padding:'10px 12px',margin:'2px 0 18px'}}, 'The original couldn’t be preserved for this source — showing extracted text'+(marks?', entities tappable.':', unmarked.')));
@@ -2670,15 +3236,41 @@ class Component extends DCLogic {
     body.push(h('h1',{key:'t',style:{font:(reader?'700 27px':'600 22px')+'/1.26 '+fam,margin:'2px 0 8px',color:t.text,letterSpacing:'-.01em'}}, title));
     if((!chapterMode||toc[ci].implicit) && d.byline) body.push(h('div',{key:'by',style:{font:'500 12.5px system-ui',color:t.mut,marginBottom:reader?'22px':'16px'}}, d.byline));
     if(chapterMode) body.push(h('div',{key:'loc',style:{font:'500 12px system-ui',color:t.mut,marginBottom:reader?'22px':'16px'}}, 'Chapter '+(ci+1)+' of '+toc.length));
-    else if(reader) body.push(h('div',{key:'st',style:{font:'500 12px system-ui',color:t.mut,marginBottom:'20px'}}, a.words+' words · '+a.list.length+' entities'));
+    else if(reader) body.push(h('div',{key:'st',style:{font:'500 12px system-ui',color:t.mut,marginBottom:'20px'}}, a.words+' words'+(plain?'':' · '+a.list.length+' entities')));
+    const isFeed=d.medium==='Webpage';
+    const _lm=a.linkMap||{}; const _lmNorm={};
+    Object.keys(_lm).forEach(k=>{ _lmNorm[k.toLowerCase().replace(/\s+/g,' ').replace(/[\s.,:;!?]+$/,'').trim()]=_lm[k]; });
+    const findLink=(txt)=>{ if(!txt) return null; if(_lm[txt]) return _lm[txt]; const n=(''+txt).toLowerCase().replace(/\s+/g,' ').replace(/[\s.,:;!?]+$/,'').trim(); return _lmNorm[n]||null; };
     for(let i=lo;i<hiIdx;i++){ const p=a.paras[i]; if(!p)continue;
-      const hd=p.match(/^#{1,6}\s+(.*)/);
-      if(hd){ body.push((reader||(marks&&this.state.layers.ch))?this.chapDiv(hd[1],i):h('p',{key:i,style:{font:'700 15px '+fam,margin:'18px 0 8px',color:t.text}}, hd[1])); continue; }
+      if(!isFeed){
+        const hd=p.match(/^#{1,6}\s+(.*)/);
+        if(hd){ body.push((reader||(marks&&this.state.layers.ch))?this.chapDiv(hd[1],i):h('p',{key:i,style:{font:'700 15px '+fam,margin:'18px 0 8px',color:t.text}}, hd[1])); continue; }
+        body.push(h('p',{key:i,id:'eo-p'+i,style:{fontFamily:fam,fontSize:reader?'18px':(mono?'13px':'16.5px'),lineHeight:reader?1.8:1.68,margin:'0 0 16px',color:t.text,whiteSpace:mono?'pre-wrap':'normal'}}, this.spans(p,prep,'p'+i)));
+        continue;
+      }
+      // Webpage sources: block kind comes from real structure only — a markdown/DOM heading
+      // level, or a real <img>/![]() image — never guessed from text shape.
+      const info=(a.blockInfo&&a.blockInfo[i])||eoBlockKind(p);
+      if(info.kind==='image'){
+        const im=(a.images||[])[info.idx];
+        if(im && im.src) body.push(h('div',{key:i,style:{margin:'6px 0 18px'}},[
+          h('img',{key:'i',src:im.src,alt:im.alt||'',loading:'lazy',style:{width:'100%',borderRadius:'12px',display:'block',background:t.bar}}),
+          im.alt?h('div',{key:'c',style:{font:'500 12px system-ui',fontStyle:'italic',color:t.faint,marginTop:'8px'}},im.alt):null
+        ]));
+        continue;
+      }
+      if(info.kind==='heading'){
+        const url=findLink(info.text);
+        const big=info.level<=2;
+        body.push(h('p',{key:i,onPointerDown:url?()=>this.armLink(url,info.text,p):undefined,onPointerUp:url?()=>this.releaseLink():undefined,onPointerLeave:url?()=>this.cancelLink():undefined,onPointerCancel:url?()=>this.cancelLink():undefined,
+          style:{font:(big?'700 21px/1.3 ':'700 17px/1.35 ')+fam,margin:(big?'26px 0 8px':'18px 0 6px'),color:url?t.accent:t.text,cursor:url?'pointer':'default'}}, info.text));
+        continue;
+      }
       body.push(h('p',{key:i,id:'eo-p'+i,style:{fontFamily:fam,fontSize:reader?'18px':(mono?'13px':'16.5px'),lineHeight:reader?1.8:1.68,margin:'0 0 16px',color:t.text,whiteSpace:mono?'pre-wrap':'normal'}}, this.spans(p,prep,'p'+i))); }
     if(chapterMode) body.push(h('div',{key:'nav',style:{display:'flex',gap:'10px',marginTop:'26px'}},[
       h('button',{key:0,onClick:()=>this.gotoChap(ci-1),style:{flex:1,padding:'12px',borderRadius:'11px',border:'1px solid '+t.border,background:t.card,color:ci<=0?t.faint:t.text,font:'600 13px system-ui',cursor:'pointer'}},'‹ Previous'),
       h('button',{key:1,onClick:()=>this.gotoChap(ci+1),style:{flex:1,padding:'12px',borderRadius:'11px',border:'none',background:ci>=toc.length-1?t.bStrong:t.accent,color:'#fff',font:'600 13px system-ui',cursor:'pointer'}},'Next ›')]));
-    return view==='annotated' ? nativeWrap([h('div',{style:pad}, body)]) : h('div',{style:pad}, body);
+    return view==='annotated' ? nativeWrap([h('div',{style:pad}, body)]) : h('div',{className:'eo-reader-doc'+(panelDocked?' eo-panel-open':''),style:pad}, body);
   }
 
 
@@ -2736,7 +3328,8 @@ class Component extends DCLogic {
     const chromeCollapsed = (S.tab==='reader' && !!S.chromeHidden) || sheetFull;
 
     // spaces
-    const spaceTabs=(S.spaces||[]).map(x=>{ const on=x.id===S.spaceId; return {id:x.id,name:x.name,on,
+    const spaceTabs=(S.spaces||[]).map(x=>{ const on=x.id===S.spaceId; const l=(S.memoryBySpace[x.id]||[]); return {id:x.id,name:x.name,on,
+      count:l.length, rec:l.some(m=>m.recording),
       dotSolid:x.accent, rowBg:on?t.accentSoft:'transparent',
       pick:()=>this.switchSpace(x.id), edit:(e)=>{ if(e&&e.stopPropagation)e.stopPropagation(); this.openSpaceEditor(); }}; });
     const palette=this.PALETTE.map(c=>({c, ring:(sp&&sp.accent===c)?('3px '+t.accent):'0 transparent', pick:()=>this.setSpaceField({accent:c})}));
@@ -2774,6 +3367,35 @@ class Component extends DCLogic {
     const mediumFilters=mfDefs.filter(x=>x[0]==='all'||mfCnt(x[0])>0).map(x=>{const on=fl===x[0];return{key:x[0],label:x[1],n:mfCnt(x[0]),bg:on?t.accent:t.bar,bd:on?t.accent:t.border,fg:on?'#fff':t.t2,pick:()=>this.setState({structFilter:x[0]})};});
     const crossInsights=this.crossInsights();
     const crossSources=memList.map(m=>({code:this.medCode(m.medium),dot:this.medColor(m.medium),title:m.title,det:m.words?(m.medium+' · '+this.nf(m.words)+' words'):m.medium}));
+
+    // ── Sources drawer + spaces rail (multi-source recording / membership / toggling) ──
+    void S.recPulse; // recompute on each recording tick
+    const _q=(S.srcQuery||'').toLowerCase();
+    const drawerList=memList.filter(m=>!_q||((m.title||'')+' '+(m.source||'')).toLowerCase().includes(_q));
+    const spacesMeta=(S.spaces||[]).map(x=>{ const l=(S.memoryBySpace[x.id]||[]); const cur=x.id===S.spaceId; return {id:x.id,name:x.name,accent:x.accent,
+      count:l.length, rec:l.some(m=>m.recording), isCur:cur,
+      bg:cur?t.accentSoft:'transparent', bd:cur?t.accentLine:t.border, fg:cur?t.text:t.t2,
+      pick:()=>this.switchSpace(x.id) }; });
+    const sourceRows=drawerList.map(m=>{ const on=S.structActive[m.id]!==false; const code=this.medCode(m.medium), dot=this.medColor(m.medium);
+      const memberIds=this.spacesForKey(m.key);
+      return { id:m.id, key:m.key, code, dot, title:m.title, det:m.words?(m.medium+' · '+this.nf(m.words)+' words'):m.medium,
+        on, track:on?t.accent:t.bStrong, knob:on?'16px':'2px', knobSm:on?'14px':'2px', rowOp:on?1:0.55, rowBgFill:'transparent',
+        recording:!!m.recording, recColor:m.recording?'#2f9e57':t.mut,
+        recLabel:m.recording?('Recording · updated '+this.relTime(m.lastUpdate)):'Not recording',
+        newCount:m.newCount||0, hasNew:(m.newCount||0)>0,
+        recBtnBg:m.recording?'rgba(47,158,87,.12)':t.bar, recBtnFg:m.recording?'#2f9e57':t.mut, recBtnBd:m.recording?'rgba(47,158,87,.42)':t.border, recBtnLabel:m.recording?'Stop recording':'Start recording',
+        toggleOn:()=>this.toggleStructActive(m.id),
+        toggleRec:()=>this.toggleRecording(m.key),
+        open:()=>{ this.clearNew(m.key); this.setState(s=>({sourcesOpen:false,tab:'structure',structExp:{...s.structExp,[m.id]:true}})); },
+        remove:()=>this.removeFromMemory(m.key),
+        expanded:S.srcExpand===m.id, toggleExpand:()=>this.setState(s=>({srcExpand:s.srcExpand===m.id?null:m.id})), chevron:S.srcExpand===m.id?'90deg':'0deg',
+        spaces:(S.spaces||[]).map(x=>{ const inn=memberIds.includes(x.id); return {id:x.id,name:x.name,accent:x.accent, inn,
+          bg:inn?t.accentSoft:'transparent', bd:inn?x.accent:t.border, fg:inn?t.text:t.mut, dotOp:inn?1:0.3,
+          toggle:()=>this.toggleMembership(m.key,x.id)}; }) };
+    });
+    const drawerOnCount=memList.filter(m=>S.structActive[m.id]!==false).length;
+    const drawerRecCount=memList.filter(m=>m.recording).length;
+    const drawerLastTs=memList.filter(m=>m.recording).reduce((a,m)=>Math.max(a,m.lastUpdate||0),0);
 
     const proxyHost=(S.proxy&&S.proxy.on)?('proxy · '+this.hostOf((S.proxy.fetch||'').replace('{url}','').replace('{urlenc}',''))):'direct (no proxy)';
 
@@ -2882,7 +3504,13 @@ class Component extends DCLogic {
         const pi = it.anchor && it.anchor.type==='para' ? it.anchor.pi : 0;
         return {...base, pick:()=>this.cardOpenDivision({title:it.title, anchor:it.anchor, _pi:pi, _nextPi:nextPi})};
       }
-      if(listRungIdx===4) return {...base, pick:()=>this.cardOpenReferent(it.id, it.title)};
+      if(listRungIdx===4){
+        const e=entMap[it.id];
+        return {...base, text:it.title,
+          anchorLabel: e?(e.count+' mention'+(e.count===1?'':'s')):'—', hasAnchor:!!e,
+          ents: e?[{n:e.role||'Detected entity',c:e.color}]:[], hasEnts:!!e,
+          pick:()=>this.cardOpenReferent(it.id, it.title)};
+      }
       return {...base, pick:()=>this.cardOpenUnit(it)};
     });
 
@@ -2920,13 +3548,20 @@ class Component extends DCLogic {
       isStructure:S.tab==='structure', notStructure:S.tab!=='structure',
       setStruct:()=>this.setState({tab:'structure'}),
       tabSB:S.tab==='structure'?activeBg:'transparent', tabSC:S.tab==='structure'?activeC:t.mut,
-      sheetDisp:(S.tab==='structure'||S.tab==='search'||S.tab==='overview'||(!sel&&!linkSel&&!explore))?'none':'flex',
+      sheetDisp:(S.tab==='structure'||S.tab==='search'||S.tab==='overview'||S.tab==='profile'||(!sel&&!linkSel&&!explore))?'none':'flex',
       structSources, corpusStats, sharedEnts, hasShared:sharedEnts.length>0, mediumFilters, crossInsights, crossSources,
       hasCross:crossInsights.length>0, noCross:crossInsights.length===0,
       queryText, onQueryInput:(e)=>this.setState({queryText:e.target.value}), onQueryKey:(e)=>{ if(e.key==='Enter') this.runLocalSearch(e.target.value); }, clearQuery:()=>this.runLocalSearch(''),
       coverageLabel:String(reading.coverage||'absent'), coverageColor, searchSources:(reading.searched_scope.sources||[]).length, searchPassages:(reading.core_evidence||[]).length+(reading.context_evidence||[]).length, searchContrasts:(reading.counterevidence||[]).length,
       projectionTabs, searchScopeChips:scopeChips, showEvidence:projection==='evidence'||projection==='all', showStructure:projection==='structure'||projection==='all', coreEvidence, contextEvidence, hasGaps:gaps.length>0, gapText:gaps.length?('Missing evidence roles: '+gaps.join(', ')):'',
       activeSrcCount:act.length, totalSrcCount:raw.length,
+      sourcesOpen:S.sourcesOpen, openSources:()=>this.openSources(), closeSources:()=>this.closeSources(),
+      srcQuery:S.srcQuery||'', onSrcQuery:(e)=>this.setState({srcQuery:e.target.value}),
+      sourceRows, hasSources:sourceRows.length>0, noSources:memList.length===0,
+      spacesMeta, drawerOnCount, drawerTotal:memList.length, drawerRecCount, drawerHasRec:drawerRecCount>0, drawerLastLabel:this.relTime(drawerLastTs),
+      bulkAllOn:()=>this.bulkActive(true), bulkAllOff:()=>this.bulkActive(false),
+      startAllRec:()=>this.setAllRecording(true), stopAllRec:()=>this.setAllRecording(false),
+      recordNew:()=>this.setState({sourcesOpen:false,importOpen:true}),
       memCount:memList.length, memEmpty:memList.length===0, memHas:memList.length>0, spaceName:sp?sp.name:'',
       t, themeGlyph:dark?'☾':'☀', flipDark:()=>this.setState({dark:!dark}),
       memColor:memIn?'#2f7a55':t.accent, memBg:memIn?'rgba(47,122,85,.10)':t.accentSoft, memBorder:memIn?'#2f7a55':t.accentLine,
@@ -2959,14 +3594,26 @@ class Component extends DCLogic {
       setReader:()=>this.setState({tab:'reader'}), setCross:()=>this.setState({tab:'search'}),
       tabRB:S.tab==='reader'?activeBg:'transparent', tabRC:S.tab==='reader'?activeC:t.mut,
       tabCB:S.tab==='search'?activeBg:'transparent', tabCC:S.tab==='search'?activeC:t.mut,
-      view:S.view, viewLabel:vlabel[S.view], progW:((vi+1)/3*100).toFixed(0)+'%',
+      view:S.view, viewLabel:(S.view==='reader'?(S.plain?'Reader':'Reader+'):vlabel[S.view]), progW:((vi+1)/3*100).toFixed(0)+'%',
+      readerModes:(()=>{ const on=(a)=>({bg:a?t.accent:'transparent',fg:a?'#fff':t.mut});
+        const setRT=(v)=>this.save('eo5.readerType',v);
+        return [
+          {key:'native',title:'Native — the original page',icon:'ph ph-browser',...on(S.view==='native'),pick:()=>{ setRT('native'); this.setState({view:'native'}); }},
+          {key:'annotated',title:'Native + — original with entity marks',icon:'ph ph-sparkle',...on(S.view==='annotated'),pick:()=>{ setRT('annotated'); this.setState({view:'annotated'}); }},
+          {key:'reader',title:'Reader — clean reading, no enrichment',icon:'ph ph-article',...on(S.view==='reader'&&S.plain),pick:()=>{ setRT('reader'); this.save('eo5.readerPlain',true); this.setState({view:'reader',plain:true}); }},
+          {key:'readerplus',title:'Reader + — clean reading with enrichment',icon:'ph ph-highlighter-circle',...on(S.view==='reader'&&!S.plain),pick:()=>{ setRT('reader'); this.save('eo5.readerPlain',false); this.setState({view:'reader',plain:false}); }}
+        ]; })(),
+      showPlain:S.tab==='reader'&&S.view==='reader',
+      plainLabel:S.plain?'Reader':'Reader+', plainColor:S.plain?t.mut:t.accent, plainDot:S.plain?t.faint:t.accent,
+      togglePlain:()=>{ const v=!this.state.plain; this.save('eo5.readerPlain',v); this.setState({plain:v}); },
       scrollPadB:(S.tab==='reader'&&S.view==='annotated')?'calc(66px + env(safe-area-inset-bottom,0px))':'calc(88px + env(safe-area-inset-bottom,0px))',
       dot0:vi>=0?dotOn:dotOff, dot1:vi>=1?dotOn:dotOff, dot2:vi>=2?dotOn:dotOff,
       setV0:()=>{ this.save('eo5.readerType','native'); this.setState({view:'native'}); },
       setV1:()=>{ this.save('eo5.readerType','annotated'); this.setState({view:'annotated'}); },
-      setV2:()=>{ this.save('eo5.readerType','reader'); this.setState({view:'reader'}); },
+      setV2:()=>{ this.save('eo5.readerType','reader'); if(this.state.view==='reader'){ const v=!this.state.plain; this.save('eo5.readerPlain',v); this.setState({plain:v}); } else this.setState({view:'reader'}); },
       cycleView:()=>this.setState({view:order[(vi+1)%3]}),
       docEl:this.buildDoc(),
+      activeHereEl:this.buildActiveHereBar(),
       L, tw:{hi:sw(L.hi),en:sw(L.en),ch:sw(L.ch),ln:sw(L.ln),nw:sw(L.nw)}, appearTrack:sw(dark).track, appearKnob:sw(dark).knob,
       togHi:()=>this.tog('hi'),togEn:()=>this.tog('en'),togCh:()=>this.tog('ch'),togLn:()=>this.tog('ln'),togNw:()=>this.tog('nw'),
       layersOpen:S.layersOpen, openLayers:()=>this.setState({layersOpen:true}), closeLayers:()=>this.setState({layersOpen:false}),
@@ -3017,6 +3664,12 @@ class Component extends DCLogic {
       editName:sp?sp.name:'', onSpaceName:(e)=>this.setSpaceField({name:e.target.value||'Untitled'}),
       palette, canDelete:(S.spaces||[]).length>1, deleteSpace:()=>this.deleteSpace(),
       sel, hasSel:!!sel||!!linkSel, noSel:!sel&&!linkSel&&!explOpen, sheetH,
+      hasMeaningMap:!!(a.list&&a.list.length),
+      solarKey:(d&&(d.url||d.title||d.name))||'doc',
+      isProfile:S.tab==='profile', setProfile:()=>this.setState({tab:'profile'}),
+      tabPB:S.tab==='profile'?activeBg:'transparent', tabPC:S.tab==='profile'?activeC:t.mut,
+      profileNoMap:!(a.list&&a.list.length),
+      profileNoSel:!sel&&!!(a.list&&a.list.length),
       isEntSel:!!sel, isLinkSel:!!linkSel,
       showHalf:!!sel&&(lvl==='half'||lvl==='full'), showFull:!!sel&&lvl==='full', backdrop:(!!sel&&lvl==='full')||explOpen,
       hasConns:!!(sel&&sel.conns&&sel.conns.length), hasNote:!!(sel&&sel.note&&L.nw),
@@ -3024,6 +3677,8 @@ class Component extends DCLogic {
       relatedChips:sel?(sel.related||[]).map(r=>({n:r.n,c:r.c,pick:r.id?(()=>this.pick(r.id)):null})):[],
       flagColor:(sel&&sel.flags>0)?'#c0341a':t.text,
       linkText:linkSel?linkSel.text:'', linkUrl:linkSel?linkSel.url:'#', linkHost:linkSel?this.hostOf(linkSel.url):'',
+      hasLinkFrom:!!(linkSel&&linkSel.from), linkFromText:linkSel?(linkSel.from||''):'', linkFromOpen:S.linkFromOpen,
+      linkFromCaret:S.linkFromOpen?'▾':'▸', toggleLinkFrom:()=>this.setState(s=>({linkFromOpen:!s.linkFromOpen})),
       peekIdle:lp.status==='idle', peekLoading:lp.status==='loading', peekError:lp.status==='error', peekErrorMsg:lp.error||'', peekDone:lp.status==='done',
       peekBtnLabel: lp.status==='loading'?'Reading…':(lp.status==='done'?'Peek again':'Peek ahead'),
       peekTitle:lp.title||'', peekSnippet:lp.snippet||'',
