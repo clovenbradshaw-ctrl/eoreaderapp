@@ -425,6 +425,36 @@
       </sc-if>
 
       <sc-if value="{{ memHas }}">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin:0 2px 12px">
+        <div>
+          <div style="font:800 10px 'IBM Plex Mono',monospace;letter-spacing:.08em;text-transform:uppercase;color:{{ t.mut }}">{{ spaceName }} / Evidence</div>
+          <div style="font:800 24px system-ui;color:{{ t.text }};margin-top:2px">{{ memCount }} sources</div>
+          <div style="font:500 12.5px system-ui;color:{{ t.mut }};margin-top:3px">Focus: Federal Reserve coverage · {{ drawerOnCount }} sources. Membership, workspace reference, and focus are separate states.</div>
+        </div>
+        <span onClick="{{ recordNew }}" style="flex:none;display:flex;align-items:center;gap:6px;background:{{ t.accent }};color:#fff;border-radius:12px;padding:10px 13px;font:800 12px system-ui;cursor:pointer"><i class="ph ph-plus-circle" style="font-size:14px"></i>Add</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;background:{{ t.card }};border:1px solid {{ t.border }};border-radius:14px;padding:10px 12px;margin-bottom:10px">
+        <i class="ph ph-magnifying-glass" style="font-size:15px;color:{{ t.mut }}"></i>
+        <input defaultValue="{{ srcQuery }}" onInput="{{ onSrcQuery }}" placeholder="Search this workspace…" style="flex:1;min-width:0;background:transparent;border:0;outline:none;font:700 13px system-ui;color:{{ t.text }}">
+      </div>
+      <div style="display:flex;gap:7px;overflow-x:auto;margin-bottom:12px">
+        <span style="background:{{ t.accent }};color:#fff;border-radius:18px;padding:7px 11px;font:800 11px system-ui">All {{ memCount }}</span>
+        <span style="background:{{ t.bar }};color:{{ t.t2 }};border:1px solid {{ t.border }};border-radius:18px;padding:7px 11px;font:800 11px system-ui">In focus {{ drawerOnCount }}</span>
+        <span style="background:{{ t.bar }};color:{{ t.t2 }};border:1px solid {{ t.border }};border-radius:18px;padding:7px 11px;font:800 11px system-ui">Unread 0</span>
+        <span style="background:{{ t.bar }};color:{{ t.t2 }};border:1px solid {{ t.border }};border-radius:18px;padding:7px 11px;font:800 11px system-ui">Changed {{ drawerRecCount }}</span>
+      </div>
+      <div style="background:{{ t.card }};border:1px solid {{ t.border }};border-radius:14px;overflow:hidden;margin-bottom:16px">
+        <div style="display:grid;grid-template-columns:32px minmax(0,1fr) 86px 86px 88px;gap:8px;padding:10px 12px;border-bottom:1px solid {{ t.border }};font:800 10px 'IBM Plex Mono',monospace;letter-spacing:.05em;text-transform:uppercase;color:{{ t.mut }}">
+          <span>☐</span><span>Source</span><span>Kind</span><span>Added</span><span>Status</span>
+        </div>
+        <sc-for list="{{ sourceRows }}" as="s" hint-placeholder-count="3">
+          <div style="display:grid;grid-template-columns:32px minmax(0,1fr) 86px 86px 88px;gap:8px;align-items:center;padding:11px 12px;border-top:1px solid {{ t.border }};font:600 12.5px system-ui;color:{{ t.t2 }}">
+            <span style="color:{{ t.mut }}">☐</span>
+            <span onClick="{{ s.open }}" style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:{{ t.text }};cursor:pointer">{{ s.title }}</span>
+            <span>{{ s.kind }}</span><span>{{ s.added }}</span><span style="color:{{ s.statusColor }}">{{ s.status }}</span>
+          </div>
+        </sc-for>
+      </div>
       <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:13px">
         <sc-for list="{{ mediumFilters }}" as="f" hint-placeholder-count="4">
           <span onClick="{{ f.pick }}" style="display:flex;align-items:center;gap:5px;background:{{ f.bg }};border:1px solid {{ f.bd }};border-radius:16px;padding:5px 10px;font:600 11px system-ui;color:{{ f.fg }};cursor:pointer">{{ f.label }}<span style="font:600 9.5px 'IBM Plex Mono',monospace;opacity:.65">{{ f.n }}</span></span>
@@ -732,6 +762,11 @@
 
   <div class="eo-nav" style="position:absolute;left:14px;right:14px;bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:25;background:{{ t.sheet }};border:1px solid {{ t.border }};box-shadow:0 10px 30px rgba(0,0,0,.16);border-radius:22px;padding:6px;display:flex;gap:6px;font-family:system-ui;transform:{{ chromeBottomT }};opacity:{{ chromeBottomOp }};pointer-events:{{ chromeBottomPE }};transition:transform .3s cubic-bezier(.4,0,.2,1),opacity .22s ease">
     <div class="eo-spaces-rail" style="display:none;flex-direction:column;gap:2px;margin-bottom:10px">
+      <div style="display:flex;align-items:center;gap:8px;background:{{ t.bar }};border:1px solid {{ t.border }};border-radius:11px;padding:8px 10px;margin:0 0 10px;color:{{ t.mut }}">
+        <i class="ph ph-magnifying-glass" style="font-size:14px"></i>
+        <span onClick="{{ setCross }}" style="flex:1;font:700 12px system-ui;cursor:pointer">Find anything</span>
+        <span style="font:700 9px 'IBM Plex Mono',monospace;color:{{ t.faint }}">⌘K</span>
+      </div>
       <div style="font:800 9px 'IBM Plex Mono',monospace;letter-spacing:.09em;color:{{ t.mut }};padding:0 6px 7px">WORKSPACES</div>
       <sc-for list="{{ spaceTabs }}" as="sp" hint-placeholder-count="3">
         <div onClick="{{ sp.pick }}" style="display:flex;align-items:center;gap:8px;padding:8px 9px;border-radius:10px;cursor:pointer;background:{{ sp.rowBg }}">
@@ -741,58 +776,22 @@
           <span style="font:700 10px 'IBM Plex Mono',monospace;color:{{ t.mut }};flex:none">{{ sp.count }}</span>
         </div>
         <sc-if value="{{ sp.on }}">
-          <div class="eo-rail-sources" style="display:none;flex-direction:column;gap:3px;margin:1px 0 9px 5px;padding-left:9px;border-left:1.5px solid {{ t.border }}">
-            <div style="display:flex;align-items:center;gap:7px;padding:1px 3px 4px">
-              <span style="font:700 9px 'IBM Plex Mono',monospace;color:{{ t.mut }};letter-spacing:.04em">{{ drawerOnCount }}/{{ drawerTotal }} ON</span>
-              <span onClick="{{ bulkAllOn }}" style="font:700 10px system-ui;color:{{ t.accent }};cursor:pointer;margin-left:auto">All on</span>
-              <span onClick="{{ bulkAllOff }}" style="font:700 10px system-ui;color:{{ t.mut }};cursor:pointer">Off</span>
-              <span onClick="{{ startAllRec }}" title="Record every source" style="color:#2f9e57;cursor:pointer;display:flex;align-items:center"><i class="ph ph-record-fill" style="font-size:11px"></i></span>
-            </div>
-            <sc-if value="{{ noSources }}">
-              <div style="font:500 11px system-ui;color:{{ t.mut }};padding:1px 3px 6px">No sources in this space yet.</div>
-            </sc-if>
-            <div class="eo-rail-source-list" style="display:flex;flex-direction:column;gap:3px;min-height:0">
-            <sc-for list="{{ sourceRows }}" as="s" hint-placeholder-count="2">
-              <div style="flex:none;border-radius:9px;background:{{ s.rowBgFill }};opacity:{{ s.rowOp }};transition:opacity .2s">
-                <div style="display:flex;align-items:center;gap:7px;padding:5px 5px 5px 3px">
-                  <span style="flex:none;font:700 8px 'IBM Plex Mono',monospace;color:#fff;background:{{ s.dot }};border-radius:4px;padding:3px 4px">{{ s.code }}</span>
-                  <div onClick="{{ s.open }}" style="flex:1;min-width:0;cursor:pointer">
-                    <div style="display:flex;align-items:center;gap:5px">
-                      <div style="font:600 11.5px system-ui;color:{{ t.text }};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ s.title }}</div>
-                      <sc-if value="{{ s.hasNew }}"><span style="flex:none;font:800 8px 'IBM Plex Mono',monospace;color:#fff;background:#2f9e57;border-radius:9px;padding:1px 5px">+{{ s.newCount }}</span></sc-if>
-                    </div>
-                    <div style="display:flex;align-items:center;gap:5px;font:500 9.5px system-ui;color:{{ s.recColor }};margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
-                      <sc-if value="{{ s.recording }}"><span class="eo-rec-pulse" style="width:5px;height:5px;border-radius:50%;background:#2f9e57;flex:none"></span></sc-if>
-                      {{ s.recLabel }}
-                    </div>
-                  </div>
-                  <span onClick="{{ s.toggleOn }}" title="On / off in this space" style="flex:none;width:30px;height:18px;border-radius:20px;background:{{ s.track }};position:relative;cursor:pointer;transition:background .18s"><span style="position:absolute;top:2px;left:{{ s.knobSm }};width:14px;height:14px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25);transition:left .18s"></span></span>
-                  <span onClick="{{ s.toggleExpand }}" style="flex:none;color:{{ t.faint }};font-size:10px;transform:rotate({{ s.chevron }});transition:transform .2s;cursor:pointer">▸</span>
-                </div>
-                <sc-if value="{{ s.expanded }}">
-                  <div style="padding:2px 5px 9px 3px">
-                    <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:9px">
-                      <span onClick="{{ s.toggleRec }}" style="display:flex;align-items:center;gap:4px;background:{{ s.recBtnBg }};border:1px solid {{ s.recBtnBd }};color:{{ s.recBtnFg }};border-radius:8px;padding:5px 8px;font:700 10px system-ui;cursor:pointer"><i class="ph ph-record-fill" style="font-size:10px"></i>{{ s.recBtnLabel }}</span>
-                      <span onClick="{{ s.remove }}" style="margin-left:auto;color:#c0341a;font:700 10px system-ui;cursor:pointer;padding:5px 4px">Remove</span>
-                    </div>
-                    <div style="font:700 8px 'IBM Plex Mono',monospace;letter-spacing:.05em;color:{{ t.mut }};margin-bottom:6px">IN WORKSPACES</div>
-                    <div style="display:flex;flex-wrap:wrap;gap:5px">
-                      <sc-for list="{{ s.spaces }}" as="sp2" hint-placeholder-count="3">
-                        <span onClick="{{ sp2.toggle }}" style="display:flex;align-items:center;gap:5px;background:{{ sp2.bg }};border:1px solid {{ sp2.bd }};border-radius:14px;padding:3px 8px;cursor:pointer;font:600 10px system-ui;color:{{ sp2.fg }}">
-                          <span style="width:7px;height:7px;border-radius:50%;background:{{ sp2.accent }};opacity:{{ sp2.dotOp }}"></span>{{ sp2.name }}
-                        </span>
-                      </sc-for>
-                    </div>
-                  </div>
-                </sc-if>
+          <div style="display:flex;flex-direction:column;gap:2px;margin:1px 0 9px 19px;padding-left:9px;border-left:1.5px solid {{ t.border }}">
+            <sc-for list="{{ workspaceDestinations }}" as="d" hint-placeholder-count="4">
+              <div onClick="{{ d.pick }}" style="display:flex;align-items:center;gap:7px;padding:6px 7px;border-radius:9px;background:{{ d.bg }};color:{{ d.fg }};font:700 12px system-ui;cursor:pointer">
+                <i class="{{ d.icon }}" style="font-size:13px;color:{{ d.iconColor }}"></i>
+                <span style="flex:1">{{ d.label }}</span>
               </div>
             </sc-for>
-            </div>
-            <div onClick="{{ recordNew }}" style="flex:none;display:flex;align-items:center;gap:6px;padding:6px 4px;margin-top:2px;color:{{ t.accent }};font:700 10.5px system-ui;cursor:pointer"><i class="ph ph-plus-circle" style="font-size:13px"></i>Record a source</div>
           </div>
         </sc-if>
       </sc-for>
-      <div onClick="{{ addSpace }}" style="display:flex;align-items:center;gap:8px;padding:8px 9px;border-radius:10px;cursor:pointer;color:{{ t.accent }};font:700 13px system-ui"><span style="width:9px;text-align:center;flex:none">+</span>New space</div>
+      <div onClick="{{ addSpace }}" style="display:flex;align-items:center;gap:8px;padding:8px 9px;border-radius:10px;cursor:pointer;color:{{ t.accent }};font:700 13px system-ui"><span style="width:9px;text-align:center;flex:none">+</span>New workspace</div>
+      <div style="height:1px;background:{{ t.border }};margin:11px 6px 5px"></div>
+      <div style="display:flex;align-items:center;gap:8px;padding:8px 9px;border-radius:10px;cursor:pointer;color:{{ t.text }};font:700 13px system-ui">
+        <i class="ph ph-books" style="font-size:14px;color:{{ t.mut }}"></i><span style="flex:1">LIBRARY</span><span style="font:700 10px 'IBM Plex Mono',monospace;color:{{ t.mut }}">{{ libraryCount }}</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;padding:4px 9px 8px 31px;color:{{ t.mut }};font:600 12px system-ui"><span style="flex:1">Unsorted</span><span style="font:700 10px 'IBM Plex Mono',monospace">{{ unsortedCount }}</span></div>
       <div style="height:1px;background:{{ t.border }};margin:11px 6px 5px"></div>
       <div style="font:800 9px 'IBM Plex Mono',monospace;letter-spacing:.09em;color:{{ t.mut }};padding:0 6px 2px">VIEW</div>
     </div>
@@ -5129,6 +5128,7 @@ class Component extends DCLogic {
     const sourceRows=drawerList.map(m=>{ const on=S.structActive[m.id]!==false; const code=this.medCode(m.medium), dot=this.medColor(m.medium);
       const memberIds=this.spacesForKey(m.key);
       return { id:m.id, key:m.key, code, dot, title:m.title, det:m.words?(m.medium+' · '+this.nf(m.words)+' words'):m.medium,
+        kind:m.medium||'Document', added:this.relTime(m.addedAt||m.lastUpdate||Date.now()), status:m.recording?'Changed':'Current', statusColor:m.recording?'#b0842f':'#2f7a55',
         on, track:on?t.accent:t.bStrong, knob:on?'16px':'2px', knobSm:on?'14px':'2px', rowOp:on?1:0.55, rowBgFill:'transparent',
         recording:!!m.recording, recColor:m.recording?'#2f9e57':t.mut,
         recLabel:m.recording?('Recording · last fold '+this.relTime(m.lastUpdate)):'Static',
@@ -5360,6 +5360,8 @@ class Component extends DCLogic {
       bulkAllOn:()=>this.bulkActive(true), bulkAllOff:()=>this.bulkActive(false),
       startAllRec:()=>this.setAllRecording(true), stopAllRec:()=>this.setAllRecording(false),
       recordNew:()=>this.setState({sourcesOpen:false,importOpen:true}),
+      workspaceDestinations:['Brief','Evidence','Questions','Findings'].map(label=>{ const key=label.toLowerCase(); const on=(key==='evidence'&&S.tab==='structure')||(key==='brief'&&S.tab==='overview')||(key==='questions'&&S.tab==='search')||(key==='findings'&&S.tab==='structure'); return {label,icon:key==='brief'?'ph ph-house':key==='evidence'?'ph ph-stack':key==='questions'?'ph ph-question': 'ph ph-seal-check', bg:on?t.accentSoft:'transparent', fg:on?t.accent:t.t2, iconColor:on?t.accent:t.mut, pick:()=>this.setState({tab:key==='brief'?'overview':key==='questions'?'search':'structure'})}; }),
+      libraryCount:this.nf(Object.values(S.memoryBySpace||{}).reduce((n,l)=>n+(Array.isArray(l)?l.length:0),0)), unsortedCount:0,
       memCount:memList.length, memEmpty:memList.length===0, memHas:memList.length>0, spaceName:sp?sp.name:'',
       t, themeGlyph:dark?'☾':'☀', flipDark:()=>this.setState({dark:!dark}),
       memColor:memIn?'#2f7a55':t.accent, memBg:memIn?'rgba(47,122,85,.10)':t.accentSoft, memBorder:memIn?'#2f7a55':t.accentLine,
