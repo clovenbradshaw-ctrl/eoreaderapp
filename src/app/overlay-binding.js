@@ -1,4 +1,4 @@
-const GATE_CLEARED_REFERENT_KINDS = new Set(['holon', 'protogon']);
+const GATE_CLEARED_REFERENT_KINDS = new Set(['holon', 'protogon', 'apparatus']);
 
 export function bindEntityMarks(fold, resolveAnchor) {
   const marks = [];

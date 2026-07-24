@@ -8,6 +8,9 @@ export const ORBIT_VISUAL_FIELD_MAP = Object.freeze({
   bodyMass: 'referent.mass',
   tetherThickness: 'bond.strength',
   bodyColor: 'referent.kind',
+  provenanceRing: 'provenance_layer.referents',
+  ringSegment: 'apparatus.referent',
+  ringTether: 'provenance_layer.tethers',
 });
 
 export function assertOrbitVisualIsMapped(property) {
