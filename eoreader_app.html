@@ -1302,16 +1302,23 @@ function mountEOSolar(root, opts){
 
   var focus = (opts.focusId && byId[opts.focusId]) ? opts.focusId : SUN;
   var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  var timeScale = opts.timeScale || 0.4;   // slower orbital motion (was 1.0)
+  var timeScale = opts.timeScale || 0.15;  // intentionally calm orbital motion
   var t0 = null, raf = null;
 
   // ── draggable camera: pan the universe a bit, clamped so it can't fly away ──
   var panX = 0, panY = 0, dragging = false, sx0 = 0, sy0 = 0, px0 = 0, py0 = 0;
-  var PAN_LIMIT = Math.max(W, H) * 0.85;
+  var zoom = 1, MIN_ZOOM = 0.55, MAX_ZOOM = 2.8;
+  var PAN_LIMIT = Math.max(W, H) * 1.2;
   function clampPan(){
-    panX = Math.max(-PAN_LIMIT, Math.min(PAN_LIMIT, panX));
-    panY = Math.max(-PAN_LIMIT, Math.min(PAN_LIMIT, panY));
+    var limit = PAN_LIMIT * Math.max(1, zoom);
+    panX = Math.max(-limit, Math.min(limit, panX));
+    panY = Math.max(-limit, Math.min(limit, panY));
   }
+  function setZoom(next){
+    zoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, next));
+    clampPan();
+  }
+  function recenter(){ panX = 0; panY = 0; }
 
   var stopped = false;
   function frame(now){
@@ -1322,7 +1329,7 @@ function mountEOSolar(root, opts){
     var cache = {}, pos = {};
     ids.forEach(function(id){ pos[id] = truePos(id, t, cache); });
     var target = pos[focus] || { x: 0, y: 0 };
-    universe.setAttribute('transform', 'translate(' + (cx - target.x + panX).toFixed(1) + ',' + (cy - target.y + panY).toFixed(1) + ')');
+    universe.setAttribute('transform', 'translate(' + (cx + panX).toFixed(1) + ',' + (cy + panY).toFixed(1) + ') scale(' + zoom.toFixed(3) + ') translate(' + (-target.x).toFixed(1) + ',' + (-target.y).toFixed(1) + ')');
     ids.forEach(function(id){
       var p = pos[id], n = byId[id], r = sizeOf(id);
       bodyEls[id].setAttribute('transform', 'translate(' + p.x.toFixed(1) + ',' + p.y.toFixed(1) + ')');
@@ -1347,6 +1354,20 @@ function mountEOSolar(root, opts){
   }
 
   root.appendChild(svg);
+  if (getComputedStyle(root).position === 'static') root.style.position = 'relative';
+  var controls = document.createElement('div');
+  controls.setAttribute('style', 'position:absolute;right:10px;top:10px;display:flex;gap:6px;z-index:2');
+  function controlButton(label, title, fn){
+    var b = document.createElement('button');
+    b.type = 'button'; b.textContent = label; b.title = title;
+    b.setAttribute('style', 'width:30px;height:30px;border-radius:9px;border:1px solid '+edgeColor+';background:'+bgColor+';color:'+textColor+';font:800 13px system-ui;cursor:pointer;box-shadow:0 1px 6px rgba(0,0,0,.08)');
+    b.addEventListener('click', function(ev){ ev.preventDefault(); ev.stopPropagation(); fn(); });
+    controls.appendChild(b);
+  }
+  controlButton('+', 'Zoom in', function(){ setZoom(zoom * 1.2); });
+  controlButton('−', 'Zoom out', function(){ setZoom(zoom / 1.2); });
+  controlButton('⌾', 'Recenter', recenter);
+  root.appendChild(controls);
   svg.style.cursor = 'grab';
   var downId = null, moved = false;
   svg.addEventListener('pointerdown', function(ev){
@@ -1372,11 +1393,19 @@ function mountEOSolar(root, opts){
   }
   svg.addEventListener('pointerup', endDrag);
   svg.addEventListener('pointercancel', endDrag);
+  svg.addEventListener('wheel', function(ev){
+    ev.preventDefault();
+    setZoom(zoom * (ev.deltaY < 0 ? 1.12 : 1 / 1.12));
+  }, { passive: false });
+  svg.addEventListener('dblclick', function(ev){ ev.preventDefault(); recenter(); });
   raf = requestAnimationFrame(frame);
 
   return {
-    destroy: function(){ stopped = true; if (raf) cancelAnimationFrame(raf); if (svg.parentNode) svg.parentNode.removeChild(svg); },
-    focus: function(id){ if (byId[id]) { focus = id; panX = 0; panY = 0; } },
+    destroy: function(){ stopped = true; if (raf) cancelAnimationFrame(raf); if (controls.parentNode) controls.parentNode.removeChild(controls); if (svg.parentNode) svg.parentNode.removeChild(svg); },
+    focus: function(id){ if (byId[id]) { focus = id; recenter(); } },
+    recenter: recenter,
+    zoomIn: function(){ setZoom(zoom * 1.2); },
+    zoomOut: function(){ setZoom(zoom / 1.2); },
   };
 }
 
