@@ -288,7 +288,23 @@
       <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:13px">
         <span onClick="{{ priorAllOn }}" style="background:{{ t.accent }};color:#fff;border-radius:16px;padding:7px 11px;font:800 11px system-ui;cursor:pointer">All priors on</span>
         <span onClick="{{ priorAllOff }}" style="background:{{ t.bar }};border:1px solid {{ t.border }};color:{{ t.t2 }};border-radius:16px;padding:7px 11px;font:800 11px system-ui;cursor:pointer">All priors off</span>
+        <span onClick="{{ openPriorSave }}" style="margin-left:auto;background:{{ t.accentSoft }};border:1px solid {{ t.accentLine }};color:{{ t.accent }};border-radius:16px;padding:7px 11px;font:800 11px system-ui;cursor:pointer">＋ Save to priors</span>
       </div>
+
+      <sc-if value="{{ priorSaveOpen }}">
+        <div style="background:{{ t.card }};border:1px solid {{ t.accentLine }};border-radius:14px;padding:13px 14px;margin-bottom:14px">
+          <div style="font:800 9px system-ui;letter-spacing:.08em;color:{{ t.mut }};text-transform:uppercase;margin-bottom:9px">Save content as a prior</div>
+          <div style="font:400 11.5px/1.5 system-ui;color:{{ t.mut }};margin-bottom:9px">Paste text or add a file. It becomes a toggleable prior; its genre is inferred from its own fold by compression — not typed.</div>
+          <input defaultValue="{{ priorSaveTitle }}" onInput="{{ onPriorSaveTitle }}" placeholder="Title (optional)" style="width:100%;box-sizing:border-box;background:{{ t.bar }};border:1px solid {{ t.border }};border-radius:10px;padding:9px 11px;font:600 13px system-ui;color:{{ t.text }};outline:none;margin-bottom:8px">
+          <textarea onInput="{{ onPriorSaveText }}" placeholder="Paste the text to learn a prior from…" style="width:100%;box-sizing:border-box;min-height:96px;resize:vertical;background:{{ t.bar }};border:1px solid {{ t.border }};border-radius:10px;padding:9px 11px;font:400 13px/1.5 system-ui;color:{{ t.text }};outline:none"></textarea>
+          <div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-top:9px">
+            <label style="background:{{ t.bar }};border:1px solid {{ t.border }};color:{{ t.t2 }};border-radius:14px;padding:7px 11px;font:800 11px system-ui;cursor:pointer">Add a file<input type="file" onChange="{{ onPriorFile }}" style="display:none"></label>
+            <sc-if value="{{ canSaveFromDoc }}"><span onClick="{{ savePriorFromDoc }}" style="background:{{ t.bar }};border:1px solid {{ t.border }};color:{{ t.t2 }};border-radius:14px;padding:7px 11px;font:800 11px system-ui;cursor:pointer">{{ priorSaveTitleForDoc }}</span></sc-if>
+            <span onClick="{{ commitPriorSave }}" style="margin-left:auto;background:{{ t.accent }};color:#fff;border-radius:14px;padding:7px 13px;font:800 11px system-ui;cursor:pointer">Save prior</span>
+          </div>
+          <sc-if value="{{ priorSaveMsg }}"><div style="font:600 11px system-ui;color:#c0392b;margin-top:8px">{{ priorSaveMsg }}</div></sc-if>
+        </div>
+      </sc-if>
 
       <div style="background:{{ t.card }};border:1px solid {{ t.border }};border-radius:14px;padding:13px 14px;margin-bottom:14px">
         <div style="font:800 9px system-ui;letter-spacing:.08em;color:{{ t.mut }};text-transform:uppercase;margin-bottom:9px">Reading surprise · {{ priorTargetLabel }}</div>
@@ -304,6 +320,14 @@
           <div style="font:500 12.5px/1.5 system-ui;color:{{ t.mut }}">No prior active — the reader starts cold at <b style="color:{{ t.text }}">{{ priorOffBits }} bits/span</b> of surprise. Turn a prior on to read this source against prior knowledge.</div>
         </sc-if>
       </div>
+
+      <sc-if value="{{ hasInferredGenre }}">
+        <div style="display:flex;align-items:center;gap:8px;background:{{ t.bar }};border:1px solid {{ t.border }};border-radius:11px;padding:9px 12px;margin-bottom:12px">
+          <span style="flex:none;font:700 8px 'IBM Plex Mono',monospace;letter-spacing:.05em;color:{{ t.accent }};background:{{ t.accentSoft }};border-radius:5px;padding:3px 6px">READS LIKE</span>
+          <div style="flex:1;min-width:0;font:600 13px system-ui;color:{{ t.text }}">{{ priorInferredGenre }}</div>
+          <span style="flex:none;font:600 10px 'IBM Plex Mono',monospace;color:{{ t.mut }}">{{ priorInferredBits }} bits/span</span>
+        </div>
+      </sc-if>
 
       <sc-if value="{{ hasPriorRank }}">
       <div style="font:600 9px system-ui;letter-spacing:.06em;text-transform:uppercase;color:{{ t.mut }};margin:0 2px 9px">Best priors for this source · by compression fit</div>
@@ -357,7 +381,10 @@
                     </div>
                     <sc-if value="{{ cb.excluded }}"><div style="font:500 9px system-ui;color:{{ t.faint }};margin:-2px 0 6px 126px">{{ cb.muteLabel }}</div></sc-if>
                   </sc-for>
-                  <div style="font:500 10px system-ui;color:{{ t.faint }};margin-top:8px">reader {{ p.readerVersion }}</div>
+                  <div style="display:flex;align-items:center;gap:10px;margin-top:8px">
+                    <div style="flex:1;font:500 10px system-ui;color:{{ t.faint }}">reader {{ p.readerVersion }}</div>
+                    <sc-if value="{{ p.userGenerated }}"><span onClick="{{ p.remove }}" style="font:800 10px system-ui;color:#c0392b;cursor:pointer">Remove</span></sc-if>
+                  </div>
                 </div>
               </sc-if>
             </div>
@@ -2190,6 +2217,7 @@ class Component extends DCLogic {
       spaceEditOpen:false, spacePickerOpen:false, _sk:0,
       sourcesOpen:false, srcQuery:'', srcExpand:null, recPulse:0,
       priorActive:this.load('eo5.priorActive',{}), priorExpand:null,
+      userPriors:this.load('eo5.userPriors',[]), priorSaveOpen:false, priorSaveText:'', priorSaveTitle:'', priorSaveMsg:'',
       chromeHidden:false, webFrameActiveIds:[], readPct:0
     };
     this.scrollRef=(el)=>{
@@ -3274,10 +3302,15 @@ class Component extends DCLogic {
     {id:'prior_dataset',genre:'Data',title:'Dataset/table prior',medium:'Prior',summary:'Datasets are read through schema, units, rows, missingness, provenance, sampling frame, and transformations. Column names are evidence about structure.',paras:['Datasets are read through schema, units, rows, missingness, provenance, sampling frame, and transformations.','Column names, units, and null patterns are evidence about structure.'],ents:[{name:'schema',count:6,color:'#2a78d6',links:0},{name:'sampling frame',count:3,color:'#2f8f6b',links:0}]},
     {id:'prior_audio',genre:'Media',title:'Audio/media prior',medium:'Prior',summary:'Audio and media sources carry meaning in segments, speakers, timing, transitions, volume, repetition, and nonverbal cues.',paras:['Audio and media sources carry meaning in segments, speakers, timing, transitions, volume, repetition, and nonverbal cues.','Read moments alongside transcript text when available.'],ents:[{name:'segment',count:5,color:'#8e6fb3',links:0},{name:'speaker',count:4,color:'#c0662e',links:0}]}
   ]; }
-  activePriors(){ const pa=this.state.priorActive||{}; return this.priorCatalog().filter(p=>pa[p.id]!==false); }
+  // Every prior the app knows: the built-in genre catalog plus user-saved
+  // priors (content someone promoted into a prior — see savePriorFromContent).
+  // Every prior operation routes through here, so a saved prior toggles, ranks,
+  // seeds reading, and inspects exactly like a catalog one.
+  allPriors(){ return this.priorCatalog().concat(this.state.userPriors||[]); }
+  activePriors(){ const pa=this.state.priorActive||{}; return this.allPriors().filter(p=>pa[p.id]!==false); }
   setPriorActive(id,on){ this.setState(s=>{ const priorActive={...(s.priorActive||{}),[id]:on}; this.save('eo5.priorActive',priorActive); return {priorActive}; }); }
-  setPriorGenre(genre,on){ this.setState(s=>{ const priorActive={...(s.priorActive||{})}; this.priorCatalog().filter(p=>p.genre===genre).forEach(p=>{ priorActive[p.id]=on; }); this.save('eo5.priorActive',priorActive); return {priorActive}; }); }
-  setAllPriors(on){ this.setState(s=>{ const priorActive={...(s.priorActive||{})}; this.priorCatalog().forEach(p=>{ priorActive[p.id]=on; }); this.save('eo5.priorActive',priorActive); return {priorActive}; }); }
+  setPriorGenre(genre,on){ this.setState(s=>{ const priorActive={...(s.priorActive||{})}; this.allPriors().filter(p=>p.genre===genre).forEach(p=>{ priorActive[p.id]=on; }); this.save('eo5.priorActive',priorActive); return {priorActive}; }); }
+  setAllPriors(on){ this.setState(s=>{ const priorActive={...(s.priorActive||{})}; this.allPriors().forEach(p=>{ priorActive[p.id]=on; }); this.save('eo5.priorActive',priorActive); return {priorActive}; }); }
   openPrior(p){ this.setDoc({name:'Prior · '+p.genre,url:'prior://'+p.id,title:p.title,medium:'Prior',mode:'text',size:'',analysis:{words:p.paras.join(' ').split(/\s+/).length,links:0,paras:p.paras,hi:[p.summary],list:p.ents,toc:[{title:p.genre,implicit:false}]}},{skipRecord:true}); }
   priorMemoryItems(){ return this.activePriors().map(p=>({key:'prior://'+p.id,id:p.id,title:p.title,source:'Prior · '+p.genre,medium:'Prior',words:p.paras.join(' ').split(/\s+/).length,links:0,ents:p.ents,highlights:[p.summary],toc:[p.genre],analysis:{paras:p.paras}})); }
 
@@ -3303,7 +3336,7 @@ class Component extends DCLogic {
     prior_literature:{NUL_Dissecting_Entity:40000,SEG_Dissecting_Link:25000,DEF_Dissecting_Lens:6000,SIG_Binding_Entity:75000,CON_Binding_Link:95000,EVA_Binding_Lens:300000,INS_Making_Entity:110000,SYN_Making_Link:35000,REC_Making_Lens:300000},
     prior_dataset:{NUL_Dissecting_Entity:70000,SEG_Dissecting_Link:160000,DEF_Dissecting_Lens:120000,SIG_Binding_Entity:5000,CON_Binding_Link:20000,EVA_Binding_Lens:270000,INS_Making_Entity:80000,SYN_Composing_Network:5000,REC_Making_Lens:270000},
     prior_audio:{NUL_Dissecting_Entity:60000,SEG_Dissecting_Link:150000,DEF_Dissecting_Lens:10000,SIG_Binding_Entity:40000,CON_Binding_Link:70000,EVA_Binding_Lens:290000,INS_Making_Entity:90000,SYN_Making_Link:10000,REC_Making_Lens:290000},
-  })[id]||{}; }
+  })[id] || ((this.state.userPriors||[]).find(p=>p.id===id)||{}).dist || {}; }
   // Every prior seeds all three Ground channels (priorMass→Void, priorBond→Field,
   // priorProp→Atmosphere).
   priorChannelsFor(id){ return ['priorMass','priorBond','priorProp']; }
@@ -3375,11 +3408,73 @@ class Component extends DCLogic {
   // compression technique finding the best priors for a given source.
   rankPriorsFor(m){
     const src=this.sourceFoldDist(m);
-    return this.priorCatalog()
+    return this.allPriors()
       .map(p=>({ p, fit:this.priorFit(src, this.priorDist(p.id), true) }))
       .sort((a,b)=>b.fit.surpriseReductionBits-a.fit.surpriseReductionBits)
       .map((x,i)=>({ ...x, rank:i+1 }));
   }
+  // The genre a source READS LIKE — its best-fitting catalog prior's genre, by
+  // compression (argmin cross-entropy). This is the genre "determined" rather
+  // than declared: nothing hand-labels the source; the fit does. Scored against
+  // the built-in catalog only, so a saved prior is filed under an established
+  // genre rather than under itself.
+  inferGenreFor(m){
+    const src=this.sourceFoldDist(m);
+    const ranked=this.priorCatalog()
+      .map(p=>({ genre:p.genre, fit:this.priorFit(src, this.priorDist(p.id), true) }))
+      .sort((a,b)=>b.fit.surpriseReductionBits-a.fit.surpriseReductionBits);
+    return ranked.length ? { genre:ranked[0].genre, bits:ranked[0].fit.surpriseReductionBits } : null;
+  }
+  // Build a prior from an analyzed source shape (ents/toc/highlights/words): the
+  // same fold estimate used for scoring becomes the prior's own distribution,
+  // and its genre is INFERRED from the catalog (self-generated, not typed). The
+  // result is a first-class prior — toggleable, rankable, inspectable.
+  commitPrior(m, title){
+    const cells=this.PRIOR_CELLS();
+    const norm=this._priorNorm(this.sourceFoldDist(m), cells);
+    const dist={}; cells.forEach(c=>{ const v=Math.round(norm[c]*1e6); if(v>0) dist[c]=v; });
+    const inferred=this.inferGenreFor(m);
+    const genre=(inferred&&inferred.genre)||'Saved';
+    const topEnt=(m.ents||[])[0];
+    const clean=(title||'').trim() || (topEnt?('Saved · '+topEnt.name):('Saved prior · '+((m.ents||[]).length)+' entities'));
+    const id='prior_user_'+Date.now().toString(36)+Math.floor(Math.random()*1e4).toString(36);
+    const summary='Saved from your content — '+(m.words||0)+' words, '+((m.ents||[]).length)+' entit'+(((m.ents||[]).length)===1?'y':'ies')+(((m.toc||[]).length)?(', '+((m.toc||[]).length)+' section'+(((m.toc||[]).length)===1?'':'s')):'')+'. Reads like '+genre+' by compression fit.';
+    const prior={ id, genre, title:clean, medium:'Prior', userGenerated:true, createdAt:Date.now(),
+      summary, paras:[summary], channels:['priorMass','priorBond','priorProp'], dist,
+      ents:(m.ents||[]).slice(0,6).map(e=>({name:e.name,count:e.count||1,color:e.color||'#8e6fb3',links:e.links||0})) };
+    this.setState(s=>{ const userPriors=[...(s.userPriors||[]), prior]; const priorActive={...(s.priorActive||{}),[id]:true};
+      this.save('eo5.userPriors',userPriors); this.save('eo5.priorActive',priorActive);
+      return { userPriors, priorActive, priorSaveOpen:false, priorSaveText:'', priorSaveTitle:'', priorExpand:id }; });
+    return prior;
+  }
+  // Save pasted/typed text as a prior: analyze it into evidence, then commit.
+  savePriorFromContent(){
+    const text=(this.state.priorSaveText||'').trim();
+    if(!text){ this.setState({priorSaveMsg:'Paste some text or add a file first.'}); return; }
+    const a=this.analyzeText(text);
+    const m={ ents:(a.list||[]), toc:(a.toc||[]).map(x=>x.title||x), highlights:(a.hi||[]), words:a.words||text.split(/\s+/).filter(Boolean).length };
+    this.commitPrior(m, this.state.priorSaveTitle);
+  }
+  // Save the currently open source as a prior, straight from its analysis.
+  savePriorFromDoc(){
+    const d=this.state.doc, a=d&&d.analysis;
+    if(!a){ this.setState({priorSaveMsg:'Open a source first, or paste text.'}); return; }
+    const m={ ents:(a.list||[]), toc:(a.toc||[]).map(x=>x.title||x), highlights:(a.hi||[]), words:a.words||0 };
+    this.commitPrior(m, (d.title||'')+' — as prior');
+  }
+  // Read an added file as text and save it straight to priors (title = filename).
+  handlePriorFile(e){
+    const f=e&&e.target&&e.target.files&&e.target.files[0]; if(!f) return;
+    const r=new FileReader();
+    r.onload=()=>{ const text=String(r.result||''); if(!text.trim()){ this.setState({priorSaveMsg:'That file had no readable text.'}); return; }
+      const a=this.analyzeText(text);
+      const m={ ents:(a.list||[]), toc:(a.toc||[]).map(x=>x.title||x), highlights:(a.hi||[]), words:a.words||text.split(/\s+/).filter(Boolean).length };
+      this.commitPrior(m, f.name.replace(/\.[^.]+$/,'')); };
+    r.onerror=()=>this.setState({priorSaveMsg:'Could not read that file as text.'});
+    try{ r.readAsText(f); }catch(_){ this.setState({priorSaveMsg:'Could not read that file as text.'}); }
+  }
+  removeUserPrior(id){ this.setState(s=>{ const userPriors=(s.userPriors||[]).filter(p=>p.id!==id); const priorActive={...(s.priorActive||{})}; delete priorActive[id]; this.save('eo5.userPriors',userPriors); this.save('eo5.priorActive',priorActive); return {userPriors, priorActive}; }); }
+  openPriorSave(){ this.setState(s=>({priorSaveOpen:!s.priorSaveOpen, priorSaveMsg:''})); }
   // The source the "best priors" ranking is computed against: the open document
   // if it's in memory, else an aggregate of the active (non-prior) sources.
   priorTargetSource(){
@@ -3999,9 +4094,9 @@ class Component extends DCLogic {
     const drawerRecCount=memList.filter(m=>m.recording).length;
     const drawerLastTs=memList.filter(m=>m.recording).reduce((a,m)=>Math.max(a,m.lastUpdate||0),0);
 
-    const priors=this.priorCatalog(), pa=S.priorActive||{};
+    const priors=this.allPriors(), pa=S.priorActive||{};
     const priorOnCount=priors.filter(p=>pa[p.id]!==false).length;
-    const priorGenres=[...new Set(priors.map(p=>p.genre))].map(genre=>{ const rows=priors.filter(p=>p.genre===genre); const onCount=rows.filter(p=>pa[p.id]!==false).length; return {label:genre,total:rows.length,onCount,allOn:()=>this.setPriorGenre(genre,true),allOff:()=>this.setPriorGenre(genre,false),rows:rows.map(p=>{ const on=pa[p.id]!==false, opened=S.priorExpand===p.id; return {title:p.title,det:p.genre+' · '+p.paras.length+' notes',summary:p.summary,dot:t.accent,op:on?1:.55,track:on?t.accent:t.bStrong,knob:on?'16px':'2px',opened,chev:opened?'90deg':'0deg',toggle:()=>this.setPriorActive(p.id,!on),expand:()=>this.setState(s=>({priorExpand:s.priorExpand===p.id?null:p.id})),open:()=>this.openPrior(p),channels:this.priorChannelsFor(p.id).map(ch=>({label:ch,site:({priorMass:'Void',priorBond:'Field',priorProp:'Atmosphere'})[ch]||''})),cells:this.priorCellBars(p.id),readerVersion:'eoreader4.2@1.0.0'};})}; });
+    const priorGenres=[...new Set(priors.map(p=>p.genre))].map(genre=>{ const rows=priors.filter(p=>p.genre===genre); const onCount=rows.filter(p=>pa[p.id]!==false).length; return {label:genre,total:rows.length,onCount,allOn:()=>this.setPriorGenre(genre,true),allOff:()=>this.setPriorGenre(genre,false),rows:rows.map(p=>{ const on=pa[p.id]!==false, opened=S.priorExpand===p.id; return {title:p.title,det:p.genre+' · '+p.paras.length+' notes',summary:p.summary,dot:t.accent,op:on?1:.55,track:on?t.accent:t.bStrong,knob:on?'16px':'2px',opened,chev:opened?'90deg':'0deg',toggle:()=>this.setPriorActive(p.id,!on),expand:()=>this.setState(s=>({priorExpand:s.priorExpand===p.id?null:p.id})),open:()=>this.openPrior(p),channels:this.priorChannelsFor(p.id).map(ch=>({label:ch,site:({priorMass:'Void',priorBond:'Field',priorProp:'Atmosphere'})[ch]||''})),cells:this.priorCellBars(p.id),readerVersion:'eoreader4.2@1.0.0',userGenerated:!!p.userGenerated,remove:()=>this.removeUserPrior(p.id)};})}; });
 
     // ── priors : compression fit + reading surprise ──
     const priorTarget=this.priorTargetSource();
@@ -4016,6 +4111,8 @@ class Component extends DCLogic {
         barCol:best?'#2f8f6b':t.accent, tagBg:best?'rgba(47,143,107,.12)':t.bar, tagFg:best?'#2f8f6b':t.mut, tag:best?'BEST FIT':('#'+x.rank),
         on, track:on?t.accent:t.bStrong, knob:on?'16px':'2px', toggle:()=>this.setPriorActive(x.p.id,!on) }; });
     const priorActiveCount=this.activePriors().length;
+    const priorInferred = priorTarget ? this.inferGenreFor(priorTarget.m) : null;
+    const canSaveFromDoc = !!(d && d.analysis && (d.analysis.list||[]).length);
 
     const proxyHost=(S.proxy&&S.proxy.on)?('proxy · '+this.hostOf((S.proxy.fetch||'').replace('{url}','').replace('{urlenc}',''))):'direct (no proxy)';
 
@@ -4199,6 +4296,14 @@ class Component extends DCLogic {
       priorOffBits:priorReading?priorReading.offBits.toFixed(2):'—', priorOnBits:priorReading?priorReading.onBits.toFixed(2):'—',
       priorReductionBits:priorReading?priorReading.reductionBits.toFixed(2):'0.00', priorReductionPct:priorReading?priorReading.pct:0,
       priorHasReduction:!!(priorReading&&priorReading.active>0), priorNoneActive:priorActiveCount===0,
+      priorInferredGenre:priorInferred?priorInferred.genre:'', hasInferredGenre:!!priorInferred,
+      priorInferredBits:priorInferred?((priorInferred.bits>=0?'+':'−')+Math.abs(priorInferred.bits).toFixed(2)):'',
+      priorSaveOpen:S.priorSaveOpen, openPriorSave:()=>this.openPriorSave(),
+      priorSaveText:S.priorSaveText||'', priorSaveTitle:S.priorSaveTitle||'', priorSaveMsg:S.priorSaveMsg||'',
+      onPriorSaveText:(e)=>this.setState({priorSaveText:e.target.value,priorSaveMsg:''}), onPriorSaveTitle:(e)=>this.setState({priorSaveTitle:e.target.value}),
+      onPriorFile:(e)=>this.handlePriorFile(e), commitPriorSave:()=>this.savePriorFromContent(),
+      canSaveFromDoc, savePriorFromDoc:()=>this.savePriorFromDoc(), priorSaveTitleForDoc:(d&&d.title)?('Save “'+((d.title||'').slice(0,28))+'” as prior'):'Save current source as prior',
+      priorCanCommit:((S.priorSaveText||'').trim().length>0),
       bulkAllOn:()=>this.bulkActive(true), bulkAllOff:()=>this.bulkActive(false),
       startAllRec:()=>this.setAllRecording(true), stopAllRec:()=>this.setAllRecording(false),
       recordNew:()=>this.setState({sourcesOpen:false,importOpen:true}),
