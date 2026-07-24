@@ -99,6 +99,7 @@
     </div>
 
     {{ activeHereEl }}
+    {{ noLlmStatusEl }}
 
     <div style="position:relative;display:flex;align-items:center;gap:4px;flex-wrap:nowrap;margin:9px 0 8px;overflow-x:auto">
       <sc-if value="{{ isReader }}" hint-placeholder-val="{{ true }}">
@@ -218,6 +219,23 @@
             <div style="font:600 11px 'IBM Plex Mono',monospace;color:{{ t.mut }};margin-top:4px">{{ ev.anchor }}</div>
           </div>
         </sc-for>
+      </sc-if>
+
+      <div style="background:{{ t.card }};border:1px solid {{ t.border }};border-radius:14px;padding:12px 13px;margin:12px 0 10px">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px">
+          <div style="font:800 9px system-ui;letter-spacing:.08em;color:{{ t.mut }};text-transform:uppercase">Answer integrity</div>
+          <div style="font:800 9px 'IBM Plex Mono',monospace;color:{{ integrityColor }};text-transform:uppercase">{{ integrityStatus }}</div>
+        </div>
+        <div style="font:700 12.5px/1.45 system-ui;color:{{ t.text }}">{{ integritySummary }}</div>
+        <div style="font:500 11.5px/1.5 system-ui;color:{{ t.mut }};margin-top:7px">{{ integrityDetail }}</div>
+      </div>
+
+      <sc-if value="{{ hasAbstention }}">
+        <div style="background:{{ t.bar }};border:1px dashed {{ t.border }};border-radius:12px;padding:12px 13px;margin-bottom:10px">
+          <div style="font:800 9px system-ui;letter-spacing:.08em;color:{{ t.mut }};text-transform:uppercase;margin-bottom:6px">Why not?</div>
+          <div style="font:700 13px/1.45 system-ui;color:{{ t.text }}">{{ abstentionTitle }}</div>
+          <div style="font:500 12px/1.5 system-ui;color:{{ t.mut }};margin-top:5px">{{ abstentionText }}</div>
+        </div>
       </sc-if>
 
       <sc-if value="{{ hasGaps }}">
@@ -412,6 +430,15 @@
       <sc-if value="{{ ovIsUnit }}">
         <div style="font:800 10px system-ui;letter-spacing:.08em;text-transform:uppercase;color:{{ t.mut }};margin-bottom:12px">{{ ovUnitKicker }}</div>
         <div style="font:400 17px/1.55 'Source Serif 4',Georgia,serif;color:{{ t.text }};margin-bottom:18px">{{ ovUnitText }}</div>
+        <div style="background:{{ t.card }};border:1px solid {{ t.border }};border-radius:14px;padding:12px 13px;margin-bottom:16px">
+          <div style="font:800 9px system-ui;letter-spacing:.08em;text-transform:uppercase;color:{{ t.mut }};margin-bottom:8px">Evidence and derivation</div>
+          <div style="font:700 12.5px/1.45 system-ui;color:{{ t.text }}">Plain finding → claims/relations → source passage → derivation → operations and priors.</div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px">
+            <sc-for list="{{ derivationActions }}" as="da" hint-placeholder-count="5">
+              <span onClick="{{ da.pick }}" style="background:{{ t.bar }};border:1px solid {{ t.border }};border-radius:14px;padding:5px 9px;font:800 10.5px system-ui;color:{{ t.accent }};cursor:pointer">{{ da.label }}</span>
+            </sc-for>
+          </div>
+        </div>
         <div style="height:1px;background:{{ t.border }};margin-bottom:16px"></div>
 
         <div style="font:800 9px system-ui;letter-spacing:.08em;text-transform:uppercase;color:{{ t.mut }};margin-bottom:8px">In source</div>
@@ -3367,6 +3394,14 @@ class Component extends DCLogic {
       h('div',{key:'mode',onClick:()=>this.openExplore(),style:{flex:'none',font:"800 8.5px 'IBM Plex Mono',monospace",letterSpacing:'.08em',color:t.accent,whiteSpace:'nowrap',cursor:'pointer'}}, details.length?'X-RAY · '+details.join(' · '):'X-RAY')
     ]);
   }
+  buildNoLlmStatusBar(){
+    const d=this.state.doc, t=this.theme(), h=React.createElement;
+    const spans=d&&d.analysis?((d.analysis.paras||[]).length+(d.analysis.hi||[]).length+(d.analysis.list||[]).reduce((n,e)=>n+(e.count||0),0)):0;
+    const stages=[['Source parsing','Modality-specific sensing','No'],['Structure discovery','Recurrence and boundary dynamics','No'],['Entity resolution','Referent evidence and abstention','No'],['Significance','Surprise, gravity, relations','No'],['Question answering','Question-conditioned projection','No'],['Prose polishing','Optional constrained renderer','Optional']];
+    const open=!!this.state.noLlmOpen;
+    return h('div',{style:{margin:'8px 0 0',position:'relative'}},[h('button',{key:'b',onClick:()=>this.setState({noLlmOpen:!open}),title:'Show deterministic reading mechanisms',style:{width:'100%',display:'flex',alignItems:'center',gap:'7px',border:'1px solid '+t.border,borderRadius:'12px',background:t.bar,color:t.text,padding:'8px 10px',font:'800 10.5px system-ui',cursor:'pointer'}},[h('span',{key:'dot',style:{width:'7px',height:'7px',borderRadius:'50%',background:'#2f7a55',flex:'none'}}),h('span',{key:'txt',style:{flex:1,textAlign:'left',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}},'Core reading complete · Deterministic · '+this.nf(spans)+' evidence spans'),h('span',{key:'chev',style:{color:t.mut}},open?'⌃':'⌄')]),open?h('div',{key:'p',style:{position:'absolute',left:0,right:0,top:'42px',zIndex:50,background:t.sheet,border:'1px solid '+t.border,borderRadius:'14px',boxShadow:'0 16px 42px rgba(0,0,0,.18)',padding:'12px'}},[h('div',{key:'h',style:{font:'800 10px system-ui',letterSpacing:'.08em',textTransform:'uppercase',color:t.accent,marginBottom:'8px'}},'No LLM is the core mode'),h('div',{key:'d',style:{font:'500 12px/1.45 system-ui',color:t.mut,marginBottom:'10px'}},'EOReader exposes the deterministic fold: evidence enters as source spans, operations update the fold, and projections render cards without generated facts.'),h('div',{key:'rows'},stages.map((r,i)=>h('div',{key:i,style:{display:'grid',gridTemplateColumns:'1.05fr 1.35fr .55fr',gap:'8px',padding:'7px 0',borderTop:i?'1px solid '+t.border:0,alignItems:'start'}},[h('div',{style:{font:'700 11.5px system-ui',color:t.text}},r[0]),h('div',{style:{font:'500 11.5px/1.35 system-ui',color:t.mut}},r[1]),h('div',{style:{font:"800 10px 'IBM Plex Mono',monospace",color:r[2]==='No'?'#2f7a55':t.mut,textAlign:'right'}},r[2])])))]):null]);
+  }
+
   buildDoc(){
     const d=this.state.doc; if(!d) return null;
     const t=this.theme(), h=React.createElement, view=this.state.view;
@@ -3619,6 +3654,17 @@ class Component extends DCLogic {
     const coreEvidence=(reading.core_evidence||[]).map(toCard);
     const contextEvidence=(reading.context_evidence||[]).map(ev=>({label:ev.text,anchor:(ev.source_title||'Source')+' · '+(ev.anchor&&ev.anchor.label||'structure')}));
     const gaps=reading.unfilled_roles||[];
+    const witnessedCount=(reading.core_evidence||[]).length;
+    const inferredCount=(reading.fold_path||[]).filter(x=>x.channel && x.channel!=='exact').length;
+    const evidenceSpanCount=(reading.core_evidence||[]).length+(reading.context_evidence||[]).length;
+    const sourceCount=(reading.searched_scope.sources||[]).length;
+    const integrityStatus=reading.coverage==='sufficient'?'reproducible':(reading.coverage==='absent'?'absent':'thin');
+    const integritySummary=reading.coverage==='sufficient' ? (witnessedCount+' witnessed finding'+(witnessedCount===1?'':'s')+' · '+inferredCount+' inferred connection'+(inferredCount===1?'':'s')+' · '+evidenceSpanCount+' evidence spans · '+sourceCount+' source'+(sourceCount===1?'':'s')+' · no generated facts') : (reading.coverage==='absent'?'0 witnessed findings · no licensed answer from selected record':(witnessedCount+' witnessed finding'+(witnessedCount===1?'':'s')+' · missing '+gaps.length+' role'+(gaps.length===1?'':'s')+' · no licensed resolution'));
+    const integrityDetail=reading.coverage==='sufficient' ? 'Structured answer is projected from stored evidence hits and fold-path operations; narrative wording remains subordinate to this record.' : (reading.coverage==='absent'?'What was found: no matching source spans. Missing: evidence in scope. Answerable when a selected source witnesses the requested claim.':'What was found: related spans. Missing: '+(gaps.join(', ')||'required corroboration')+'. Answerable when those roles are witnessed or the threshold is changed.');
+    const integrityColor=reading.coverage==='sufficient'?'#2f7a55':(reading.coverage==='absent'?'#c0392b':'#b0842f');
+    const hasAbstention=reading.coverage!=='sufficient' || /why|cause|caused|because|merge|same/.test(this.normalizeQuery(queryText));
+    const abstentionTitle=reading.coverage==='absent'?'Why doesn’t EOReader answer this?':'Why not assert more?';
+    const abstentionText=reading.coverage==='absent'?'The requested evidence is absent from the selected record; EOReader will not introduce outside facts.':'The fold can show co-occurrence, similarity, or order, but those alone do not license causality, identity merge, or resolution without witnessed relations.';
 
     // ── explore: progressive disclosure from top-level terrains down to a single entity ──
     const toc=a.toc||[];
@@ -3764,6 +3810,7 @@ class Component extends DCLogic {
       queryText, onQueryInput:(e)=>this.setState({queryText:e.target.value}), onQueryKey:(e)=>{ if(e.key==='Enter') this.runLocalSearch(e.target.value); }, clearQuery:()=>this.runLocalSearch(''),
       coverageLabel:coverageText, coverageColor, searchPlaceholderMain:(searchScopeLabel==='This source'?('Search '+((d&&d.title)||'this source')+'…'):('Search '+(sp?sp.name:'workspace')+'…')), searchSources:(reading.searched_scope.sources||[]).length, searchPassages:(reading.core_evidence||[]).length+(reading.context_evidence||[]).length, searchContrasts:(reading.counterevidence||[]).length,
       projectionTabs, searchScopeChips:scopeChips, showEvidence:projection==='evidence'||projection==='all', showStructure:projection==='structure'||projection==='all', coreEvidence, contextEvidence, hasGaps:gaps.length>0, gapText:gaps.length?('Missing evidence roles: '+gaps.join(', ')):'',
+      integrityStatus, integritySummary, integrityDetail, integrityColor, hasAbstention, abstentionTitle, abstentionText,
       activeSrcCount:act.length, totalSrcCount:raw.length,
       sourcesOpen:S.sourcesOpen, openSources:()=>this.openSources(), closeSources:()=>this.closeSources(),
       srcQuery:S.srcQuery||'', onSrcQuery:(e)=>this.setState({srcQuery:e.target.value}),
@@ -3823,7 +3870,8 @@ class Component extends DCLogic {
       setV2:()=>{ this.save('eo5.readerType','reader'); if(this.state.view==='reader'){ const v=!this.state.plain; this.save('eo5.readerPlain',v); this.setState({plain:v}); } else this.setState({view:'reader'}); },
       cycleView:()=>this.setState({view:order[(vi+1)%3]}),
       docEl:this.buildDoc(),
-      activeHereEl:this.buildActiveHereBar(),
+      activeHereEl:this.buildActiveHereBar(), noLlmStatusEl:this.buildNoLlmStatusBar(),
+      derivationActions:['Show evidence','Show derivation','Show prior','Recompute without this source','Challenge'].map(label=>({label,pick:()=>alert(label+': this preview exposes the deterministic dependency slice for the selected card.')})),
       L, tw:{hi:sw(L.hi),en:sw(L.en),ch:sw(L.ch),ln:sw(L.ln),nw:sw(L.nw)}, appearTrack:sw(dark).track, appearKnob:sw(dark).knob,
       togHi:()=>this.tog('hi'),togEn:()=>this.tog('en'),togCh:()=>this.tog('ch'),togLn:()=>this.tog('ln'),togNw:()=>this.tog('nw'),
       layersOpen:S.layersOpen, openLayers:()=>this.setState({layersOpen:true}), closeLayers:()=>this.setState({layersOpen:false}),
