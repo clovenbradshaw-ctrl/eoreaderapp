@@ -214,8 +214,15 @@ function coverageCardEl(t, coverage) {
   return card;
 }
 
-function orbitCardEl(t, orbit) {
+function orbitCardEl(t, orbit, mountOrbit) {
   const card = cardShell(t, 'ORBIT', `${orbit.suns} sun · ${orbit.planets} planets · ${orbit.moons} moons`);
+  // Let a host inject a live orbit view (the app's real solar map). It owns the
+  // element from here; the built-in mini-SVG below is the fallback.
+  if (typeof mountOrbit === 'function') {
+    const host = el('div', 'width:100%;height:150px;border-radius:10px;overflow:hidden');
+    card.appendChild(host);
+    try { mountOrbit(host, orbit); return card; } catch (_) { host.remove(); }
+  }
   const NS = 'http://www.w3.org/2000/svg';
   const svg = document.createElementNS(NS, 'svg');
   svg.setAttribute('viewBox', '0 0 240 130');
@@ -272,7 +279,7 @@ export function mountOverviewDashboard(root, model, opts = {}) {
   grid.appendChild(referentsCardEl(t, model.referents));
   grid.appendChild(recurrenceCardEl(t, model.recurrence));
   grid.appendChild(coverageCardEl(t, model.coverage));
-  grid.appendChild(orbitCardEl(t, model.orbit));
+  grid.appendChild(orbitCardEl(t, model.orbit, opts.mountOrbit));
   grid.appendChild(readinessCardEl(t, model.readiness));
   shell.appendChild(grid);
 
