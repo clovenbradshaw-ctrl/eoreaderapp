@@ -1469,7 +1469,12 @@ class Component extends DCLogic {
         const entEl=ev.target.closest && ev.target.closest('[data-eo-ent]');
         if(entEl){ ev.preventDefault(); this.pick(entEl.getAttribute('data-eo-ent')); return; }
         const linkEl=ev.target.closest && ev.target.closest('[data-eo-link]');
-        if(linkEl){ ev.preventDefault(); this.pickLink(linkEl.getAttribute('data-eo-link'), linkEl.textContent||''); }
+        if(linkEl){ ev.preventDefault(); this.pickLink(linkEl.getAttribute('data-eo-link'), linkEl.textContent||''); return; }
+        // Real <a> markup from the source page: the injected <base target> would otherwise
+        // hand these off to a real new browser tab. Route them through the same in-app
+        // link-preview sheet as data-eo-link matches instead.
+        const anchorEl=ev.target.closest && ev.target.closest('a[href]');
+        if(anchorEl && anchorEl.href){ ev.preventDefault(); this.pickLink(anchorEl.href, anchorEl.textContent||''); }
       });
       this._webFrameClickBound=true;
     }
