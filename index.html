@@ -425,6 +425,7 @@
       </sc-if>
 
       <sc-if value="{{ memHas }}">
+      <sc-if value="{{ isEvidencePage }}">
       <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin:0 2px 12px">
         <div>
           <div style="font:800 10px 'IBM Plex Mono',monospace;letter-spacing:.08em;text-transform:uppercase;color:{{ t.mut }}">{{ spaceName }} / Evidence</div>
@@ -455,6 +456,8 @@
           </div>
         </sc-for>
       </div>
+      </sc-if>
+      <sc-if value="{{ isFindingsPage }}">
       <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:13px">
         <sc-for list="{{ mediumFilters }}" as="f" hint-placeholder-count="4">
           <span onClick="{{ f.pick }}" style="display:flex;align-items:center;gap:5px;background:{{ f.bg }};border:1px solid {{ f.bd }};border-radius:16px;padding:5px 10px;font:600 11px system-ui;color:{{ f.fg }};cursor:pointer">{{ f.label }}<span style="font:600 9.5px 'IBM Plex Mono',monospace;opacity:.65">{{ f.n }}</span></span>
@@ -563,6 +566,7 @@
           </sc-if>
         </div>
       </sc-for>
+      </sc-if>
       </sc-if>
 
     </div>
@@ -1027,7 +1031,7 @@
         </div>
       </sc-for>
       <div onClick="{{ addSpace }}" style="display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:10px;cursor:pointer;color:{{ t.accent }};font:600 13px system-ui">
-        <span style="width:9px;text-align:center;flex:none">+</span>New space
+        <span style="width:9px;text-align:center;flex:none">+</span>New workspace
       </div>
       <div onClick="{{ openSources }}" style="display:flex;align-items:center;gap:8px;padding:9px 10px;margin-top:4px;border-top:1px solid {{ t.border }};border-radius:0 0 10px 10px;cursor:pointer;color:{{ t.t2 }};font:600 13px system-ui">
         <i class="ph ph-stack" style="font-size:14px"></i>Manage sources
@@ -2478,7 +2482,7 @@ class Component extends DCLogic {
       proxy, proxyOpen:false,
       searchQ:'', searchResults:[], mediaResults:[], searching:false, searchMsg:'', libraryShelf:'web', _exTick:0,
       spaceEditOpen:false, spacePickerOpen:false, _sk:0,
-      sourcesOpen:false, srcQuery:'', srcExpand:null, recPulse:0,
+      sourcesOpen:false, srcQuery:'', srcExpand:null, recPulse:0, workspaceSection:'brief',
       priorActive:this.load('eo5.priorActive',{}), priorExpand:null,
       userPriors:this.load('eo5.userPriors',[]), priorSaveOpen:false, priorSaveText:'', priorSaveTitle:'', priorSaveMsg:'',
       chromeHidden:false, webFrameActiveIds:[], readPct:0
@@ -2580,12 +2584,12 @@ class Component extends DCLogic {
   hexArr(h){ const m=(''+h).replace('#','').match(/.{2}/g)||['c0','66','2e']; return m.slice(0,3).map(x=>parseInt(x,16)); }
   hexRgb(h){ return this.hexArr(h).join(', '); }
   mix(a,b,ta){ const x=this.hexArr(a),y=this.hexArr(b); return '#'+x.map((v,i)=>Math.round(v*ta+y[i]*(1-ta)).toString(16).padStart(2,'0')).join(''); }
-  switchSpace(id){ this.save('eo5.space',id); this.setState({spaceId:id,sel:null,level:'prompt',structFilter:'all',spacePickerOpen:false}); }
+  switchSpace(id){ this.save('eo5.space',id); this.setState({spaceId:id,sel:null,level:'prompt',structFilter:'all',spacePickerOpen:false,workspaceSection:'brief',tab:'overview'}); }
   openSpacePicker(){ this.setState(s=>({spacePickerOpen:!s.spacePickerOpen})); }
   closeSpacePicker(){ this.setState({spacePickerOpen:false}); }
   openSpaceEditor(){ this.setState(s=>({spaceEditOpen:true,spacePickerOpen:false,importOpen:false,_sk:s._sk+1})); }
   closeSpaceEditor(){ this.setState({spaceEditOpen:false}); }
-  addSpace(){ this.setState(s=>{ const used=new Set(s.spaces.map(x=>x.accent)); const acc=this.PALETTE.find(c=>!used.has(c))||this.PALETTE[s.spaces.length%this.PALETTE.length]; const id='sp'+Date.now().toString(36); const spaces=[...s.spaces,{id,name:'New space',accent:acc}]; this.save('eo5.spaces',spaces); this.save('eo5.space',id); return {spaces,spaceId:id,spaceEditOpen:true,tab:'reader',sel:null,_sk:s._sk+1}; }); }
+  addSpace(){ this.setState(s=>{ const used=new Set(s.spaces.map(x=>x.accent)); const acc=this.PALETTE.find(c=>!used.has(c))||this.PALETTE[s.spaces.length%this.PALETTE.length]; const id='sp'+Date.now().toString(36); const spaces=[...s.spaces,{id,name:'New workspace',accent:acc}]; this.save('eo5.spaces',spaces); this.save('eo5.space',id); return {spaces,spaceId:id,spaceEditOpen:true,tab:'overview',workspaceSection:'brief',sel:null,_sk:s._sk+1}; }); }
   setSpaceField(patch){ this.setState(s=>{ const spaces=s.spaces.map(x=>x.id===s.spaceId?{...x,...patch}:x); this.save('eo5.spaces',spaces); return {spaces}; }); }
   deleteSpace(){ this.setState(s=>{ if(s.spaces.length<=1) return {}; const spaces=s.spaces.filter(x=>x.id!==s.spaceId); const memoryBySpace={...s.memoryBySpace}; delete memoryBySpace[s.spaceId]; this.save('eo5.spaces',spaces); this.save('eo5.memBySpace',memoryBySpace); this.save('eo5.space',spaces[0].id); return {spaces,memoryBySpace,spaceId:spaces[0].id,spaceEditOpen:false}; }); }
 
@@ -5360,7 +5364,8 @@ class Component extends DCLogic {
       bulkAllOn:()=>this.bulkActive(true), bulkAllOff:()=>this.bulkActive(false),
       startAllRec:()=>this.setAllRecording(true), stopAllRec:()=>this.setAllRecording(false),
       recordNew:()=>this.setState({sourcesOpen:false,importOpen:true}),
-      workspaceDestinations:['Brief','Evidence','Questions','Findings'].map(label=>{ const key=label.toLowerCase(); const on=(key==='evidence'&&S.tab==='structure')||(key==='brief'&&S.tab==='overview')||(key==='questions'&&S.tab==='search')||(key==='findings'&&S.tab==='structure'); return {label,icon:key==='brief'?'ph ph-house':key==='evidence'?'ph ph-stack':key==='questions'?'ph ph-question': 'ph ph-seal-check', bg:on?t.accentSoft:'transparent', fg:on?t.accent:t.t2, iconColor:on?t.accent:t.mut, pick:()=>this.setState({tab:key==='brief'?'overview':key==='questions'?'search':'structure'})}; }),
+      workspaceDestinations:['Brief','Evidence','Questions','Findings'].map(label=>{ const key=label.toLowerCase(); const tabFor={brief:'overview',evidence:'structure',questions:'search',findings:'structure'}[key]; const on=S.workspaceSection===key&&S.tab===tabFor; return {label,icon:key==='brief'?'ph ph-house':key==='evidence'?'ph ph-stack':key==='questions'?'ph ph-question': 'ph ph-seal-check', bg:on?t.accentSoft:'transparent', fg:on?t.accent:t.t2, iconColor:on?t.accent:t.mut, pick:()=>this.setState({workspaceSection:key,tab:tabFor})}; }),
+      isEvidencePage:S.workspaceSection==='evidence', isFindingsPage:S.workspaceSection!=='evidence',
       libraryCount:this.nf(Object.values(S.memoryBySpace||{}).reduce((n,l)=>n+(Array.isArray(l)?l.length:0),0)), unsortedCount:0,
       memCount:memList.length, memEmpty:memList.length===0, memHas:memList.length>0, spaceName:sp?sp.name:'',
       t, themeGlyph:dark?'☾':'☀', flipDark:()=>this.setState({dark:!dark}),
