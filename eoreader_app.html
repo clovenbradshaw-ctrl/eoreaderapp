@@ -2505,7 +2505,7 @@ class Component extends DCLogic {
       tab:'reader',
       betaPrompt:'', betaOrgans:{text:true,image:true,audio:true,video:false,math:false}, betaTurn:null,
       searchProjection:'evidence', searchScope:'all', queryText:'', queryReading:null, queryWhy:null,
-      view: vmap[props.view]||'annotated',
+      view: this.load('eo5.readerType',null)||vmap[props.view]||'annotated',
       layersOpen:false, settingsOpen:false, importOpen:false, urlVal:'', engineLive:false,
       layers:{hi:true,en:true,ch:true,ln:true,nw:props.candidates!==false},
       sel:null, linkSel:null, linkPeek:{status:'idle'}, linkFromOpen:true, level:'prompt', chap:0, tocOpen:false, explore:null,
