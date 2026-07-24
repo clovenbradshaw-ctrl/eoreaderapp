@@ -20,7 +20,7 @@
 <script>if(window.pdfjsLib){pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';}</script>
 <style>
   *{box-sizing:border-box}
-  body{margin:0;background:#fbfbfa;-webkit-font-smoothing:antialiased}
+  body{margin:0;background:#fafaf8;-webkit-font-smoothing:antialiased}
   a{color:inherit;text-decoration:none}a:hover{text-decoration:underline}
   /* Native/annotated source views fill the full reading area rather than the capped reader column. */
   .eo-native-fill{max-width:none!important;width:100%!important;height:100%}
@@ -34,7 +34,7 @@
      removed here so the deployed product reads as an application rather than
      a mockup. The mobile-first component hierarchy is retained — the column
      is simply capped for readable line lengths and centered on wide screens. */
-  .eo-shell{min-height:100svh!important;padding:0!important;align-items:stretch;justify-content:center;background:#fbfbfa}
+  .eo-shell{min-height:100svh!important;padding:0!important;align-items:stretch;justify-content:center;background:#fafaf8}
   .eo-device{width:100%!important;min-height:100svh!important;padding:0!important;border-radius:0!important;box-shadow:none!important;background:transparent!important}
   .eo-screen{width:100%!important;height:100svh!important;min-height:100svh!important;border-radius:0!important}
   /* Phone-width band: keep the original single-column reader capped for line length. */
@@ -228,10 +228,11 @@
     </sc-if>
 
     <sc-if value="{{ mapExpanded }}">
-      <div style="position:absolute;inset:0;z-index:60;background:{{ t.screen }};display:flex;flex-direction:column">
+      <div onClick="{{ closeMap }}" style="position:absolute;inset:0;background:rgba(8,10,20,.5);z-index:60"></div>
+      <div style="position:absolute;top:4%;bottom:4%;left:50%;transform:translateX(-50%);width:92%;max-width:920px;z-index:61;background:{{ t.sheet }};border:1px solid {{ t.border }};border-radius:20px;box-shadow:0 24px 60px rgba(0,0,0,.32);display:flex;flex-direction:column;overflow:hidden">
         <div style="flex:none;display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid {{ t.border }}">
           <i class="ph ph-graph" style="font-size:19px;color:{{ t.accent }}"></i>
-          <div style="flex:1;min-width:0"><div style="font:800 15px system-ui;color:{{ t.text }}">Entity map</div><div style="font:500 11px system-ui;color:{{ t.mut }};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ mapScopeLabel }} · tap a body to focus it</div></div>
+          <div style="flex:1;min-width:0"><div style="font:800 15px system-ui;color:{{ t.text }}">Who's connected</div><div style="font:500 11px system-ui;color:{{ t.mut }};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ mapScopeLabel }} · tap a name to focus it</div></div>
           <span onClick="{{ closeMap }}" style="flex:none;display:flex;align-items:center;gap:6px;background:{{ t.card }};border:1px solid {{ t.border }};border-radius:12px;padding:8px 13px;font:800 11px system-ui;color:{{ t.text }};cursor:pointer"><i class="ph ph-arrows-in" style="font-size:14px"></i>Close</span>
         </div>
         <div key="{{ solarKeyBig }}" ref="{{ solarRef }}" style="flex:1;min-height:0;background:{{ t.bar }}"></div>
@@ -2165,7 +2166,7 @@ function eoOrbitBodies(fold){
 const EO_OV_TYPE_ORDER=['holon','emanon','protogon','field','apparatus'];
 const EO_OV_CAST_TYPES=['holon','emanon','protogon','field'];
 const EO_OV_TYPE_NOTE={holon:'named, massive, coupled',emanon:'unnamed, ambient',protogon:'orbited, never present',field:'relational, not a figure',apparatus:'nav, byline, promo, footer'};
-const EO_OV_DERIV={novelty:{id:'novelty',label:'novelty curve (SSM checkerboard)'},dom:{id:'dom',label:'DOM headings (web perceiver)'},strain:{id:'strain',label:'strain spine (deviation waveform)'}};
+const EO_OV_DERIV={novelty:{id:'novelty',label:'where the topic shifts'},dom:{id:'dom',label:'the page\'s own headings'},strain:{id:'strain',label:'where the tone changes'}};
 function eoReconcileDivisions(derivations, opts){
   const tol=(opts&&opts.tolerance)||0.045;
   const present=(derivations||[]).filter(Boolean);
@@ -2299,26 +2300,26 @@ function eoRenderOverviewDash(root, model, opts){
   root.innerHTML='';
   root.setAttribute('style',(root.getAttribute('style')||'')+';max-width:100%;overflow-x:hidden;box-sizing:border-box');
   const shell=eoOvEl('div','display:flex;flex-direction:column;gap:12px;min-width:0;max-width:100%');
-  // STORY header
+  // Header: what this is, and how ready we are to read it against background knowledge
   const s=model.story;
   const hdr=eoOvEl('header','display:flex;flex-wrap:wrap;align-items:flex-end;gap:6px 18px;padding:0 2px 2px');
   const hl=eoOvEl('div','display:flex;flex-direction:column;gap:2px;min-width:0');
-  hl.appendChild(eoOvEl('div','font:800 10px '+EO_OV_UI+';letter-spacing:.12em;color:'+P.mut,'STORY'));
+  hl.appendChild(eoOvEl('div','font:800 10px '+EO_OV_UI+';letter-spacing:.12em;color:'+P.mut,'ABOUT THIS'));
   hl.appendChild(eoOvEl('div','font:800 20px '+EO_OV_UI+';color:'+P.text+';line-height:1.1',s.publisher||'Source'));
   hl.appendChild(eoOvEl('div','font:500 11.5px '+EO_OV_UI+';color:'+P.mut,[s.medium,s.words!=null?(s.words+' words'):null,s.readAtLabel].filter(Boolean).join(' · ')));
   hdr.appendChild(hl);
   const hr=eoOvEl('div','display:flex;flex-direction:column;gap:3px;margin-left:auto;text-align:right');
-  if(s.prior) hr.appendChild(eoOvEl('div','font:700 11px '+EO_OV_MONO+';color:'+P.accent,'prior: '+s.prior));
-  hr.appendChild(eoOvEl('div','font:600 11px '+EO_OV_MONO+';color:'+P.mut,'readiness: '+s.readiness));
-  hr.appendChild(eoOvEl('div','font:600 11px '+EO_OV_MONO+';color:'+P.faint,'apparatus demoted: '+s.apparatusDemoted));
+  if(s.prior) hr.appendChild(eoOvEl('div','font:700 11px '+EO_OV_MONO+';color:'+P.accent,'background knowledge: '+s.prior));
+  hr.appendChild(eoOvEl('div','font:600 11px '+EO_OV_MONO+';color:'+P.mut,'how ready: '+s.readiness));
+  hr.appendChild(eoOvEl('div','font:600 11px '+EO_OV_MONO+';color:'+P.faint,'site furniture set aside: '+s.apparatusDemoted));
   hdr.appendChild(hr); shell.appendChild(hdr);
-  // FRAME
-  const fr=model.frame; const fc=eoOvShell(P,'FRAME',fr.overrideAvailable?'override ⃝':null);
-  fc.appendChild(eoOvEl('div','font:600 12px '+EO_OV_MONO+';color:'+P.text,[fr.kind,fr.dispersion!=null?('ρ-dispersion '+fr.dispersion):null,'subject re-entry: '+fr.subjectReentry].filter(Boolean).join('   ·   ')));
+  // What kind of piece this is
+  const fr=model.frame; const fc=eoOvShell(P,'WHAT KIND OF PIECE THIS IS',fr.overrideAvailable?'change this ⃝':null);
+  fc.appendChild(eoOvEl('div','font:600 12px '+EO_OV_MONO+';color:'+P.text,[fr.kind,fr.dispersion!=null?('spread evenly through the piece: '+fr.dispersion):null,'returns to its main subject: '+fr.subjectReentry].filter(Boolean).join('   ·   ')));
   if(fr.apparatusNote) fc.appendChild(eoOvEl('div','font:500 12px '+EO_OV_UI+';color:'+P.mut,fr.apparatusNote));
   shell.appendChild(fc);
-  // DIVISIONS
-  const dv=model.divisions; const dc=eoOvShell(P,'DIVISIONS',dv.candidateSets+' candidate sets ›',open.divisions);
+  // Sections: three independent ways of splitting the piece into parts, shown side by side
+  const dv=model.divisions; const dc=eoOvShell(P,'SECTIONS',dv.candidateSets+' ways of splitting this ›',open.divisions);
   dv.derivations.forEach(d=>{ const row=eoOvEl('div','display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;min-width:0');
     row.appendChild(eoOvEl('div','font:700 12px '+EO_OV_UI+';color:'+(d.id==='dom'?P.warn:P.text)+';flex:1 1 auto;min-width:0',d.label));
     row.appendChild(eoOvEl('div','font:700 11px '+EO_OV_MONO+';color:'+P.mut+';white-space:nowrap',d.beatCount+' '+d.unit));
@@ -2328,57 +2329,61 @@ function eoRenderOverviewDash(root, model, opts){
   const strip=eoOvEl('div','display:flex;gap:3px'), votes=eoOvEl('div','display:flex;gap:3px');
   dv.beats.forEach(b=>{ const col=b.domOnly?P.warn:(b.contested?P.faint:P.good);
     strip.appendChild(eoOvEl('div','flex:1;height:8px;border-radius:2px;background:'+col+';opacity:'+(b.domOnly?1:0.55)));
-    votes.appendChild(eoOvEl('div','flex:1;text-align:center;font:600 9.5px '+EO_OV_MONO+';color:'+(b.domOnly?P.warn:P.mut),b.agree+'/'+b.total+(b.domOnly?' ⚠':''))); });
+    votes.appendChild(eoOvEl('div','flex:1;text-align:center;font:600 9.5px '+EO_OV_MONO+';color:'+(b.domOnly?P.warn:P.mut),b.agree+'/'+b.total+' agree'+(b.domOnly?' ⚠':''))); });
   stripWrap.appendChild(strip); stripWrap.appendChild(votes); dc.appendChild(stripWrap);
-  dv.smuggled.forEach(b=>{ dc.appendChild(eoOvEl('div','font:500 11px '+EO_OV_UI+';color:'+P.warn+';background:'+P.bar+';border-radius:8px;padding:6px 8px','beat '+b.index+': '+b.note)); });
+  dv.smuggled.forEach(b=>{ dc.appendChild(eoOvEl('div','font:500 11px '+EO_OV_UI+';color:'+P.warn+';background:'+P.bar+';border-radius:8px;padding:6px 8px','part '+b.index+': '+b.note)); });
   shell.appendChild(dc);
   // grid of the smaller cards
   const grid=eoOvEl('div','display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;align-items:start;min-width:0');
-  // UNITS
-  const u=model.units; const uc=eoOvShell(P,'UNITS',u.count+' passages ›',open.units); uc.appendChild(eoOvSpark(u.surprise,P.accent));
-  const leg=eoOvEl('div','display:flex;justify-content:space-between'); leg.appendChild(eoOvEl('div','font:500 10px '+EO_OV_MONO+';color:'+P.faint,'boilerplate')); leg.appendChild(eoOvEl('div','font:500 10px '+EO_OV_MONO+';color:'+P.faint,'substance')); uc.appendChild(leg);
+  // Reading mix: how much of the text is reporting vs. quotes vs. boilerplate
+  const u=model.units; const uc=eoOvShell(P,'READING MIX',u.count+' passages ›',open.units); uc.appendChild(eoOvSpark(u.surprise,P.accent));
+  const leg=eoOvEl('div','display:flex;justify-content:space-between'); leg.appendChild(eoOvEl('div','font:500 10px '+EO_OV_MONO+';color:'+P.faint,'routine')); leg.appendChild(eoOvEl('div','font:500 10px '+EO_OV_MONO+';color:'+P.faint,'noteworthy')); uc.appendChild(leg);
   const reg=eoOvEl('div','display:flex;flex-direction:column;gap:5px;margin-top:2px'); const rtot=Math.max(1,u.register.reported+u.register.quoted+u.register.chrome);
-  ['reported','quoted','chrome'].forEach(name=>{ const r=eoOvEl('div','display:grid;grid-template-columns:60px minmax(0,1fr) 40px;align-items:center;gap:8px'); r.appendChild(eoOvEl('div','font:600 10.5px '+EO_OV_UI+';color:'+P.mut,name));
+  const regLabel={reported:'reporting',quoted:'quotes',chrome:'boilerplate'};
+  ['reported','quoted','chrome'].forEach(name=>{ const r=eoOvEl('div','display:grid;grid-template-columns:74px minmax(0,1fr) 40px;align-items:center;gap:8px'); r.appendChild(eoOvEl('div','font:600 10.5px '+EO_OV_UI+';color:'+P.mut,regLabel[name]));
     r.appendChild(eoOvMeter(u.register[name]/rtot,P,EO_OV_REGCOLOR[name])); r.appendChild(eoOvEl('div','font:700 10.5px '+EO_OV_MONO+';color:'+P.text+';text-align:right',String(u.register[name]))); reg.appendChild(r); });
-  uc.appendChild(reg); uc.appendChild(eoOvEl('div','font:500 11px '+EO_OV_UI+';color:'+P.mut,u.boilerplateNote)); grid.appendChild(uc);
-  // REFERENTS
-  const rf=model.referents; const rc=eoOvShell(P,'REFERENTS',rf.sightings+' sightings  →  '+rf.survivors,open.referents);
+  uc.appendChild(reg); uc.appendChild(eoOvEl('div','font:500 11px '+EO_OV_UI+';color:'+P.mut,u.boilerplateNote.replace('below the boilerplate null','are routine filler, not real content'))); grid.appendChild(uc);
+  // People, places & things mentioned — how many mentions collapse into how many distinct things
+  const rf=model.referents; const rc=eoOvShell(P,'PEOPLE, PLACES & THINGS',rf.sightings+' mentions  →  '+rf.survivors+' distinct',open.referents);
   const head=eoOvEl('div','display:flex;align-items:baseline;gap:8px'); head.appendChild(eoOvEl('div','font:800 20px '+EO_OV_MONO+';color:'+P.text,String(rf.sightings)));
   head.appendChild(eoOvEl('div','font:700 16px '+EO_OV_MONO+';color:'+P.faint,'→')); head.appendChild(eoOvEl('div','font:800 20px '+EO_OV_MONO+';color:'+P.good,String(rf.survivors)));
-  head.appendChild(eoOvEl('div','font:500 11px '+EO_OV_UI+';color:'+P.mut,'survived individuation')); rc.appendChild(head);
+  head.appendChild(eoOvEl('div','font:500 11px '+EO_OV_UI+';color:'+P.mut,'distinct things, after merging repeats')); rc.appendChild(head);
   const maxCast=Math.max(1,...rf.byType.filter(x=>!x.demoted).map(x=>x.count));
+  const typeLabel={holon:'named & central',emanon:'present but unnamed',protogon:'talked about, never shown',field:'context, not a character',apparatus:'site furniture'};
+  const typeNote={holon:'named, comes up a lot',emanon:'referred to without a name',protogon:'mentioned but never actually appears',field:'sets the scene, not a person or thing',apparatus:'nav, byline, ads, footer'};
   rf.byType.forEach(row=>{ const line=eoOvEl('div','display:flex;align-items:center;gap:8px'+(row.demoted?';opacity:.7':''));
-    line.appendChild(eoOvEl('div','font:700 10.5px '+EO_OV_MONO+';color:'+EO_OV_TYPECOLOR[row.type]+';min-width:64px',row.type));
+    line.appendChild(eoOvEl('div','font:700 10.5px '+EO_OV_UI+';color:'+EO_OV_TYPECOLOR[row.type]+';min-width:112px',typeLabel[row.type]||row.type));
     const track=eoOvEl('div','flex:1;height:8px;border-radius:4px;overflow:hidden;background:'+P.track);
     const width=row.demoted?100:Math.round((row.count/maxCast)*100);
     const fill=eoOvEl('div','width:'+width+'%;height:100%;background:'+EO_OV_TYPECOLOR[row.type]);
     if(row.demoted) fill.setAttribute('style',fill.getAttribute('style')+';background:repeating-linear-gradient(90deg,'+EO_OV_TYPECOLOR[row.type]+' 0 2px,transparent 2px 5px);opacity:.6');
     track.appendChild(fill); line.appendChild(track);
     line.appendChild(eoOvEl('div','font:700 10.5px '+EO_OV_MONO+';color:'+P.text+';min-width:26px;text-align:right',String(row.count)));
-    line.appendChild(eoOvEl('div','font:500 10px '+EO_OV_UI+';color:'+P.faint+';min-width:110px',row.note)); rc.appendChild(line); });
-  if(rf.apparatus.count>0) rc.appendChild(eoOvEl('div','font:500 10.5px '+EO_OV_UI+';color:'+P.warn,rf.apparatus.count+' apparatus sightings demoted — the publisher is a frame, not the biggest node'));
+    line.appendChild(eoOvEl('div','font:500 10px '+EO_OV_UI+';color:'+P.faint+';min-width:110px',typeNote[row.type]||row.note)); rc.appendChild(line); });
+  if(rf.apparatus.count>0) rc.appendChild(eoOvEl('div','font:500 10.5px '+EO_OV_UI+';color:'+P.warn,rf.apparatus.count+' mentions of site furniture set aside — so the publisher\'s own byline/nav/ads don\'t crowd out what the piece is actually about'));
   grid.appendChild(rc);
-  // RECURRENCE
-  const re=model.recurrence; const rec=eoOvShell(P,'RECURRENCE',re.families+' motif families'+(re.families?' ›':''));
-  if(re.families){ re.motifs.forEach(m=>{ const row=eoOvEl('div','display:flex;align-items:center;gap:8px'); row.appendChild(eoOvEl('div','font:700 11px '+EO_OV_UI+';color:'+P.text+';flex:1',m.id||'motif'));
-    row.appendChild(eoOvEl('div','font:600 10px '+EO_OV_MONO+';color:'+P.mut,'period '+m.period+' · ×'+m.instances)); if(m.regularity!=null) row.appendChild(eoOvMeter(m.regularity,P,P.good)); rec.appendChild(row); }); }
-  else rec.appendChild(eoOvEl('div','font:500 11px '+EO_OV_UI+';color:'+P.faint,'no recurring motifs detected'));
+  // Repeating patterns — things that come up more than once, in a regular way
+  const re=model.recurrence; const rec=eoOvShell(P,'REPEATING PATTERNS',re.families+' found'+(re.families?' ›':''));
+  if(re.families){ re.motifs.forEach(m=>{ const row=eoOvEl('div','display:flex;align-items:center;gap:8px'); row.appendChild(eoOvEl('div','font:700 11px '+EO_OV_UI+';color:'+P.text+';flex:1',m.id||'pattern'));
+    row.appendChild(eoOvEl('div','font:600 10px '+EO_OV_MONO+';color:'+P.mut,'every '+m.period+' · seen ×'+m.instances)); if(m.regularity!=null) row.appendChild(eoOvMeter(m.regularity,P,P.good)); rec.appendChild(row); }); }
+  else rec.appendChild(eoOvEl('div','font:500 11px '+EO_OV_UI+';color:'+P.faint,'nothing repeats in a regular way'));
   grid.appendChild(rec);
-  // COVERAGE
-  const cv=model.coverage; const cc=eoOvShell(P,'COVERAGE',cv.refoldable?'all re-foldable':null);
-  const f1=eoOvEl('div','display:flex;align-items:center;gap:8px'); f1.appendChild(eoOvEl('div','font:600 10.5px '+EO_OV_UI+';color:'+P.mut+';min-width:64px','folded')); f1.appendChild(eoOvMeter(cv.foldedPct/100,P,P.good)); f1.appendChild(eoOvEl('div','font:700 10.5px '+EO_OV_MONO+';color:'+P.text,cv.foldedPct+'%')); cc.appendChild(f1);
-  const f2=eoOvEl('div','display:flex;align-items:center;gap:8px'); f2.appendChild(eoOvEl('div','font:600 10.5px '+EO_OV_UI+';color:'+P.mut+';min-width:64px','discarded')); f2.appendChild(eoOvMeter(cv.discardedPct/100,P,P.faint)); f2.appendChild(eoOvEl('div','font:700 10.5px '+EO_OV_MONO+';color:'+P.text,cv.discardedPct+'%')); cc.appendChild(f2);
-  cc.appendChild(eoOvEl('div','font:600 10.5px '+EO_OV_MONO+';color:'+P.mut,'chrome '+cv.buckets.chrome+' · dup '+cv.buckets.dup+' · nul '+cv.buckets.nul)); grid.appendChild(cc);
-  // ORBIT (hosts the live solar map when opts.mountOrbit is given)
-  const ob=model.orbit; const oc=eoOvShell(P,'ORBIT',ob.suns+' sun · '+ob.planets+' planets · '+ob.moons+' moons');
+  // How much of the text mattered vs. was skipped as filler
+  const cv=model.coverage; const cc=eoOvShell(P,'WHAT WAS KEPT',cv.refoldable?'can redo anytime':null);
+  const f1=eoOvEl('div','display:flex;align-items:center;gap:8px'); f1.appendChild(eoOvEl('div','font:600 10.5px '+EO_OV_UI+';color:'+P.mut+';min-width:64px','kept')); f1.appendChild(eoOvMeter(cv.foldedPct/100,P,P.good)); f1.appendChild(eoOvEl('div','font:700 10.5px '+EO_OV_MONO+';color:'+P.text,cv.foldedPct+'%')); cc.appendChild(f1);
+  const f2=eoOvEl('div','display:flex;align-items:center;gap:8px'); f2.appendChild(eoOvEl('div','font:600 10.5px '+EO_OV_UI+';color:'+P.mut+';min-width:64px','skipped')); f2.appendChild(eoOvMeter(cv.discardedPct/100,P,P.faint)); f2.appendChild(eoOvEl('div','font:700 10.5px '+EO_OV_MONO+';color:'+P.text,cv.discardedPct+'%')); cc.appendChild(f2);
+  cc.appendChild(eoOvEl('div','font:600 10.5px '+EO_OV_MONO+';color:'+P.mut,'site furniture '+cv.buckets.chrome+' · repeats '+cv.buckets.dup+' · empty '+cv.buckets.nul)); grid.appendChild(cc);
+  // Who's connected (hosts the live map when opts.mountOrbit is given)
+  const ob=model.orbit; const oc=eoOvShell(P,"WHO'S CONNECTED",ob.planets+' key names · '+ob.moons+' related mentions');
   const ohost=eoOvEl('div','width:100%;height:190px;border-radius:10px;overflow:hidden;background:'+P.bar);
   oc.appendChild(ohost); if(typeof opts.mountOrbit==='function'){ try{ opts.mountOrbit(ohost,ob); }catch(_){ } }
   grid.appendChild(oc);
-  // READINESS
-  const rd=model.readiness; const rdc=eoOvShell(P,'READINESS',rd.summary);
-  rd.channels.forEach(ch=>{ const row=eoOvEl('div','display:flex;align-items:center;gap:8px'); row.appendChild(eoOvEl('div','font:700 10.5px '+EO_OV_MONO+';color:'+P.text+';min-width:74px',ch.id));
-    row.appendChild(eoOvEl('div','font:600 9.5px '+EO_OV_UI+';color:'+(ch.thin?P.warn:P.good)+';min-width:44px',ch.thin?'THIN':'ready')); row.appendChild(eoOvMeter(ch.level,P,ch.thin?P.warn:P.good)); rdc.appendChild(row); });
-  if(rd.surpriseWeightsProvisional) rdc.appendChild(eoOvEl('div','font:500 10.5px '+EO_OV_UI+';color:'+P.warn,'⚠ surprise weights provisional'));
+  // Background knowledge readiness — how much prior context we have to read this against
+  const rd=model.readiness; const rdc=eoOvShell(P,'BACKGROUND KNOWLEDGE',rd.summary);
+  const chLabel={priorMass:'familiarity',priorBond:'connections',priorProp:'context'};
+  rd.channels.forEach(ch=>{ const row=eoOvEl('div','display:flex;align-items:center;gap:8px'); row.appendChild(eoOvEl('div','font:700 10.5px '+EO_OV_UI+';color:'+P.text+';min-width:74px',chLabel[ch.id]||ch.id));
+    row.appendChild(eoOvEl('div','font:600 9.5px '+EO_OV_UI+';color:'+(ch.thin?P.warn:P.good)+';min-width:44px',ch.thin?'thin':'ready')); row.appendChild(eoOvMeter(ch.level,P,ch.thin?P.warn:P.good)); rdc.appendChild(row); });
+  if(rd.surpriseWeightsProvisional) rdc.appendChild(eoOvEl('div','font:500 10.5px '+EO_OV_UI+';color:'+P.warn,'⚠ these numbers are provisional, not final'));
   grid.appendChild(rdc);
   shell.appendChild(grid); root.appendChild(shell);
 }
@@ -2678,11 +2683,11 @@ class Component extends DCLogic {
   resetCustomColors(){ this.save('eo5.customBg', null); this.save('eo5.customText', null); this.setState({customBg:null, customText:null}); }
 
   theme(){
-    const light={bg:'#fbfbfa',screen:'#ffffff',bar:'#f3f3f2',border:'#e4e4e2',bStrong:'#cfcfcb',text:'#1e1e1c',t2:'#5c5c58',mut:'#96968f',faint:'#adada6',card:'#ffffff',sheet:'#ffffff'};
+    const light={bg:'#fafaf8',screen:'#fdfaf4',bar:'#f4f1ea',border:'#e7e3d9',bStrong:'#d3cec2',text:'#1e1c19',t2:'#5c574d',mut:'#9a9385',faint:'#b0a99a',card:'#ffffff',sheet:'#ffffff'};
     const night={bg:'#05060c',screen:'#0e1322',bar:'#171d30',border:'#242e4a',bStrong:'#333d5c',text:'#eef1fb',t2:'#b8c0da',mut:'#828bab',faint:'#68719a',card:'#161d31',sheet:'#151b2c'};
     const themed=this.state.dark?night:light;
     const base={...themed, bg:this.state.customBg||themed.bg, screen:this.state.customBg||themed.screen, text:this.state.customText||themed.text};
-    const sp=this.curSpace(); const acc=(sp&&sp.accent)||'#8a8a83'; const rgb=this.hexRgb(acc);
+    const sp=this.curSpace(); const acc=(sp&&sp.accent)||'#c0662e'; const rgb=this.hexRgb(acc);
     return {...base, accent:acc,
       accentSoft:`rgba(${rgb},.12)`, accentWash:`rgba(${rgb},.07)`, accentLine:`rgba(${rgb},.34)`,
       accentTop:this.mix(acc, base.screen, this.state.dark?0.16:0.10)};
