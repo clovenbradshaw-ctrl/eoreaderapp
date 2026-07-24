@@ -50,7 +50,9 @@
     .eo-nav{position:fixed!important;left:0!important;top:0!important;bottom:0!important;right:auto!important;width:264px!important;flex-direction:column!important;align-items:stretch!important;justify-content:flex-start!important;gap:3px!important;border:0!important;border-right:1px solid rgba(0,0,0,.09)!important;border-radius:0!important;box-shadow:none!important;padding:70px 14px 18px!important;background:transparent!important;transform:none!important;opacity:1!important;pointer-events:auto!important}
     .eo-nav button{flex:0 0 auto!important;text-align:left!important;padding:11px 15px!important;border-radius:11px!important;font:700 14px system-ui!important}
     .eo-nav{overflow-y:auto!important}
-    .eo-spaces-rail{display:flex!important}
+    .eo-spaces-rail{display:flex!important;min-height:0!important}
+    .eo-rail-sources{max-height:clamp(220px,42vh,430px)!important;overflow:hidden!important}
+    .eo-rail-source-list{flex:1 1 auto!important;min-height:0!important;overflow-y:auto!important;padding-right:2px!important}
     .eo-main > div{max-width:940px;margin-left:auto;margin-right:auto}
     .eo-main > div:has(> .eo-native-fill){max-width:none!important;margin:0!important}
     .eo-main > div:has(> .eo-reader-doc.eo-panel-open){max-width:none!important;margin:0!important;padding-right:min(460px,42vw)!important}
@@ -560,8 +562,9 @@
             <sc-if value="{{ noSources }}">
               <div style="font:500 11px system-ui;color:{{ t.mut }};padding:1px 3px 6px">No sources in this space yet.</div>
             </sc-if>
+            <div class="eo-rail-source-list" style="display:flex;flex-direction:column;gap:3px;min-height:0">
             <sc-for list="{{ sourceRows }}" as="s" hint-placeholder-count="2">
-              <div style="border-radius:9px;background:{{ s.rowBgFill }};opacity:{{ s.rowOp }};transition:opacity .2s">
+              <div style="flex:none;border-radius:9px;background:{{ s.rowBgFill }};opacity:{{ s.rowOp }};transition:opacity .2s">
                 <div style="display:flex;align-items:center;gap:7px;padding:5px 5px 5px 3px">
                   <span style="flex:none;font:700 8px 'IBM Plex Mono',monospace;color:#fff;background:{{ s.dot }};border-radius:4px;padding:3px 4px">{{ s.code }}</span>
                   <div onClick="{{ s.open }}" style="flex:1;min-width:0;cursor:pointer">
@@ -595,7 +598,8 @@
                 </sc-if>
               </div>
             </sc-for>
-            <div onClick="{{ recordNew }}" style="display:flex;align-items:center;gap:6px;padding:6px 4px;margin-top:2px;color:{{ t.accent }};font:700 10.5px system-ui;cursor:pointer"><i class="ph ph-plus-circle" style="font-size:13px"></i>Record a source</div>
+            </div>
+            <div onClick="{{ recordNew }}" style="flex:none;display:flex;align-items:center;gap:6px;padding:6px 4px;margin-top:2px;color:{{ t.accent }};font:700 10.5px system-ui;cursor:pointer"><i class="ph ph-plus-circle" style="font-size:13px"></i>Record a source</div>
           </div>
         </sc-if>
       </sc-for>
