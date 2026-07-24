@@ -88,3 +88,27 @@ test('provenance panel preserves engine reason and audit fields', () => {
   assert.equal(panel[0].priorPocketVersion, 'v2');
   assert.equal(panel[0].archiveStatus, 'captured');
 });
+
+import { EOT_OPERATOR_DEFINITIONS, EOT_OPERATORS, EOT_ENVELOPES, EOT_OPERATOR_COLORS, assertEotVocabulary, tokenClass } from '../../src/app/eot-grammar.js';
+
+test('EOT grammar reserves exactly nine saturated operators distinct from envelopes', () => {
+  assert.equal(EOT_OPERATOR_DEFINITIONS.length, 9);
+  assert.equal(EOT_OPERATORS.has('OBS'), false);
+  assert.equal(EOT_ENVELOPES.has('OBS'), true);
+  assert.equal(new Set(Object.values(EOT_OPERATOR_COLORS)).size, 9);
+  assert.equal(assertEotVocabulary(), true);
+});
+
+test('EOT token classes keep OBS and section labels out of the operator class', () => {
+  assert.equal(tokenClass('SIG'), 'operator');
+  assert.equal(tokenClass('OBS'), 'envelope');
+  assert.equal(tokenClass('INPUT'), 'section');
+  assert.equal(tokenClass('@referent:fed_01'), 'referent');
+  assert.equal(tokenClass('0.82'), 'number');
+});
+
+test('EOT vocabulary rejects tenth operators, envelope operators, and nonoperator color reuse', () => {
+  assert.throws(() => assertEotVocabulary({ operators: [...EOT_OPERATOR_DEFINITIONS, { symbol: 'TENTH', signature: 'x', color: '#000' }] }), /exactly nine/);
+  assert.throws(() => assertEotVocabulary({ operators: EOT_OPERATOR_DEFINITIONS.map((op, i) => i === 0 ? { ...op, symbol: 'OBS' } : op) }), /Envelope OBS/);
+  assert.throws(() => assertEotVocabulary({ colorRequests: [{ className: 'envelope', color: EOT_OPERATOR_COLORS.SIG }] }), /Nonoperator/);
+});

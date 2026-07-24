@@ -183,6 +183,32 @@
       </sc-if>
     </div>
     </sc-if>
+
+    <sc-if value="{{ isEot }}">
+    <div style="padding:14px 14px 44px;font-family:system-ui;max-width:1100px;margin:0 auto">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px">
+        <div>
+          <div style="font:800 10px 'IBM Plex Mono',monospace;letter-spacing:.09em;text-transform:uppercase;color:{{ t.mut }}">Under the hood · EOT Inspector</div>
+          <div style="font:500 13px/1.45 system-ui;color:{{ t.mut }};margin-top:4px">Raw EOT is rendered as a language: muted envelopes, saturated reserved operators, restrained operands, references, and metadata.</div>
+        </div>
+        <span style="font:800 10px system-ui;color:{{ t.accent }};border:1px solid {{ t.accentLine }};background:{{ t.accentSoft }};border-radius:16px;padding:7px 10px">Operators only</span>
+      </div>
+      <div style="display:flex;gap:7px;overflow-x:auto;margin:12px 0">
+        <span style="background:{{ t.accent }};color:#fff;border-radius:18px;padding:7px 11px;font:800 11px system-ui">Stream</span><span style="background:{{ t.bar }};color:{{ t.t2 }};border:1px solid {{ t.border }};border-radius:18px;padding:7px 11px;font:800 11px system-ui">Fold</span><span style="background:{{ t.bar }};color:{{ t.t2 }};border:1px solid {{ t.border }};border-radius:18px;padding:7px 11px;font:800 11px system-ui">Derivation</span><span style="background:{{ t.bar }};color:{{ t.t2 }};border:1px solid {{ t.border }};border-radius:18px;padding:7px 11px;font:800 11px system-ui">Grammar</span>
+      </div>
+      <div style="display:grid;grid-template-columns:minmax(0,1.2fr) minmax(280px,.8fr);gap:12px">
+        <div style="background:{{ t.card }};border:1px solid {{ t.border }};border-radius:15px;overflow:hidden">
+          <div style="font:800 9px 'IBM Plex Mono',monospace;letter-spacing:.08em;color:{{ t.mut }};padding:11px 13px;border-bottom:1px solid {{ t.border }}">STREAM · APPEND-ONLY RECORD</div>
+          {{ eotStreamEl }}
+        </div>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div style="background:{{ t.card }};border:1px solid {{ t.border }};border-radius:15px;padding:13px">{{ eotFoldEl }}</div>
+          <div style="background:{{ t.card }};border:1px solid {{ t.border }};border-radius:15px;padding:13px">{{ eotDerivationEl }}</div>
+          <div style="background:{{ t.card }};border:1px solid {{ t.border }};border-radius:15px;padding:13px">{{ eotGrammarEl }}</div>
+        </div>
+      </div>
+    </div>
+    </sc-if>
     <sc-if value="{{ isSearch }}">
     <div style="padding:14px 14px 40px;font-family:system-ui">
       <div style="display:flex;align-items:center;gap:8px;background:{{ t.card }};border:1px solid {{ t.border }};border-radius:14px;padding:9px 10px;margin-bottom:10px">
@@ -612,6 +638,7 @@
     <button onClick="{{ setStruct }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;min-height:44px;display:flex;align-items:center;justify-content:center;background:{{ tabSB }};color:{{ tabSC }};font:800 12px system-ui;cursor:pointer">Workspace</button>
     <button onClick="{{ setProfile }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;min-height:44px;display:flex;align-items:center;justify-content:center;background:{{ tabPB }};color:{{ tabPC }};font:800 12px system-ui;cursor:pointer">Map</button>
     <button onClick="{{ setCross }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;min-height:44px;display:flex;align-items:center;justify-content:center;background:{{ tabCB }};color:{{ tabCC }};font:800 12px system-ui;cursor:pointer">Search</button>
+    <button onClick="{{ setEot }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;min-height:44px;display:flex;align-items:center;justify-content:center;background:{{ tabEB }};color:{{ tabEC }};font:800 12px system-ui;cursor:pointer">Under the hood</button>
   </div>
 
   <sc-if value="{{ backdrop }}">
@@ -3405,6 +3432,21 @@ class Component extends DCLogic {
     );
   }
 
+
+  buildEotInspector(){
+    const t=this.theme(), h=React.createElement;
+    const ops={DIS:'#FF5C5C',IND:'#FF9F43',CON:'#FFD93D',REF:'#52D273',SIG:'#20C9B5',REV:'#4D9FFF',NUL:'#8B7CF6',REC:'#D767D7',COL:'#F06A9B'};
+    const glyph={DIS:'◇',IND:'▸',CON:'─',REF:'@',SIG:'✦',REV:'↺',NUL:'∅',REC:'⟳',COL:'◆'};
+    const tok=(text,cls,op)=>h('span',{key:text+Math.random(),title:op?(op+' signature'):undefined,style:{color:cls==='operator'?ops[text]:(cls==='envelope'?'#8290a3':cls==='ref'?'#7fa2b8':cls==='number'?'#b8c7a4':cls==='meta'?t.mut:t.t2),fontWeight:cls==='operator'?800:(cls==='envelope'?600:500),letterSpacing:cls==='envelope'?'.08em':0,textDecoration:cls==='ref'?'underline':'none'}},text);
+    const rows=[['000184','OBS','DIS','"Federal Reserve" | "the Fed"','#FF5C5C'],['000185','OBS','REF','@surface:the_Fed → @referent:fed_01','#52D273'],['000186','OBS','CON','@fed_01 → held → @rates','#FFD93D'],['000187','DER','SIG','@claim:held_rates weight:0.81','#20C9B5']];
+    const stream=h('div',{style:{font:"500 12px/1.7 'IBM Plex Mono',monospace",padding:'10px 0'}},rows.map((r,i)=>h('div',{key:r[0],style:{display:'grid',gridTemplateColumns:'14px 58px 48px 48px 1fr',gap:'8px',alignItems:'baseline',padding:'5px 13px',borderLeft:'3px solid '+r[4]}},[
+      h('span',{key:'g',style:{display:'flex',flexDirection:i===3?'column':'row',gap:'2px'}},[h('span',{style:{width:'7px',height:'7px',borderRadius:'50%',background:r[4],display:'inline-block'}})]),tok(r[0],'number'),tok(r[1],'envelope'),tok(r[2],'operator',r[2]),tok(r[3],r[3].startsWith('@')?'ref':'operand')])));
+    const fold=h('div',{},[h('div',{style:{font:"800 9px 'IBM Plex Mono',monospace",letterSpacing:'.08em',color:t.mut,marginBottom:'8px'}},'FOLD · Projection at event 187'),h('pre',{style:{margin:0,whiteSpace:'pre-wrap',font:"500 12px/1.6 'IBM Plex Mono',monospace",color:t.t2}},'REFERENT @fed_01\n  surfaces  ["Federal Reserve", "the Fed"]\n  claims    [@claim:held_rates]\n  evidence  [000184..000186]\n  standing  witnessed')]);
+    const deriv=h('div',{},[h('div',{style:{font:"800 9px 'IBM Plex Mono',monospace",letterSpacing:'.08em',color:t.mut,marginBottom:'8px'}},'DERIVATION · finding:004'),h('div',{style:{font:"500 12px/1.65 'IBM Plex Mono',monospace",color:t.t2}},[h('div',{key:'i'},'INPUT  [000184, 000185, 000186]'),h('div',{key:'a',style:{color:t.mut}},'APPLY'),h('div',{key:'r'},[tok('REF','operator','REF'),' @surface:the_Fed → @referent:fed_01']),h('div',{key:'c'},[tok('CON','operator','CON'),' @fed_01 → held → @rates']),h('div',{key:'s'},[tok('SIG','operator','SIG'),' @claim:held_rates weight:0.81']),h('div',{key:'o'},'OUTPUT "The Federal Reserve held rates steady."'),h('div',{key:'af'},'ADDED_FACTS 0')])]);
+    const grammar=h('div',{},[h('div',{style:{font:"800 9px 'IBM Plex Mono',monospace",letterSpacing:'.08em',color:t.mut,marginBottom:'8px'}},'GRAMMAR · nine reserved operators'),h('div',{style:{display:'grid',gridTemplateColumns:'repeat(3,minmax(0,1fr))',gap:'6px'}},Object.keys(ops).map(k=>h('div',{key:k,title:k+' signature; click filters stream',style:{border:'1px solid '+t.border,borderLeft:'4px solid '+ops[k],borderRadius:'9px',padding:'7px',font:'700 11px system-ui',color:t.text}},[h('span',{style:{color:ops[k],marginRight:'5px'}},glyph[k]),k]))) ]);
+    return {stream, fold, derivation:deriv, grammar};
+  }
+
   buildActiveHereBar(){
     const S=this.state; if(S.tab!=='reader'||S.view!=='annotated') return null;
     const d=S.doc, a=d&&d.analysis; if(!a||!(a.list||[]).length) return null;
@@ -3838,8 +3880,8 @@ class Component extends DCLogic {
       isStructure:S.tab==='structure', notStructure:S.tab!=='structure',
       setStruct:()=>this.setState({tab:'structure'}),
       tabSB:S.tab==='structure'?activeBg:'transparent', tabSC:S.tab==='structure'?activeC:t.mut,
-      sheetDisp:(S.tab==='structure'||S.tab==='search'||S.tab==='overview'||S.tab==='profile'||(!sel&&!linkSel&&!explore))?'none':'flex',
-      panelOpenClass:(S.tab==='structure'||S.tab==='search'||S.tab==='overview'||S.tab==='profile'||(!sel&&!linkSel&&!explore))?'':'eo-panel-docked',
+      sheetDisp:(S.tab==='structure'||S.tab==='search'||S.tab==='overview'||S.tab==='profile'||S.tab==='eot'||(!sel&&!linkSel&&!explore))?'none':'flex',
+      panelOpenClass:(S.tab==='structure'||S.tab==='search'||S.tab==='overview'||S.tab==='profile'||S.tab==='eot'||(!sel&&!linkSel&&!explore))?'':'eo-panel-docked',
       structSources, corpusStats, sharedEnts, hasShared:sharedEnts.length>0, mediumFilters, crossInsights, crossSources,
       hasCross:crossInsights.length>0, noCross:crossInsights.length===0,
       queryText, onQueryInput:(e)=>this.setState({queryText:e.target.value}), onQueryKey:(e)=>{ if(e.key==='Enter') this.runLocalSearch(e.target.value); }, clearQuery:()=>this.runLocalSearch(''),
@@ -3907,6 +3949,7 @@ class Component extends DCLogic {
       docEl:this.buildDoc(),
       activeHereEl:this.buildActiveHereBar(), noLlmStatusEl:this.buildNoLlmStatusBar(),
       derivationActions:['Show evidence','Show derivation','Show prior','Recompute without this source','Challenge'].map(label=>({label,pick:()=>alert(label+': this preview exposes the deterministic dependency slice for the selected card.')})),
+      ...(()=>{ const e=this.buildEotInspector(); return { eotStreamEl:e.stream, eotFoldEl:e.fold, eotDerivationEl:e.derivation, eotGrammarEl:e.grammar }; })(),
       L, tw:{hi:sw(L.hi),en:sw(L.en),ch:sw(L.ch),ln:sw(L.ln),nw:sw(L.nw)}, appearTrack:sw(dark).track, appearKnob:sw(dark).knob,
       togHi:()=>this.tog('hi'),togEn:()=>this.tog('en'),togCh:()=>this.tog('ch'),togLn:()=>this.tog('ln'),togNw:()=>this.tog('nw'),
       layersOpen:S.layersOpen, openLayers:()=>this.setState({layersOpen:true}), closeLayers:()=>this.setState({layersOpen:false}),
@@ -3960,7 +4003,9 @@ class Component extends DCLogic {
       hasMeaningMap:!!(a.list&&a.list.length), mapScopeLabel:'This source: '+((d&&d.title)||'Untitled'),
       solarKey:(d&&(d.url||d.title||d.name))||'doc',
       isProfile:S.tab==='profile', setProfile:()=>this.setState({tab:'profile'}),
+      isEot:S.tab==='eot', setEot:()=>this.setState({tab:'eot'}),
       tabPB:S.tab==='profile'?activeBg:'transparent', tabPC:S.tab==='profile'?activeC:t.mut,
+      tabEB:S.tab==='eot'?activeBg:'transparent', tabEC:S.tab==='eot'?activeC:t.mut,
       profileNoMap:!(a.list&&a.list.length),
       profileNoSel:!sel&&!!(a.list&&a.list.length),
       isEntSel:!!sel, isLinkSel:!!linkSel,
