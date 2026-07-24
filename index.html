@@ -281,7 +281,7 @@
         <i class="ph ph-books" style="font-size:20px;color:{{ t.accent }}"></i>
         <div style="flex:1;min-width:0">
           <div style="font:800 18px system-ui;color:{{ t.text }}">Priors</div>
-          <div style="font:500 12.5px/1.45 system-ui;color:{{ t.mut }}">Inspectable prior sources, grouped by genre. Turn them on/off to include or exclude them from workspace structure and search.</div>
+          <div style="font:500 12.5px/1.45 system-ui;color:{{ t.mut }}">Inspectable prior sources, grouped by genre. Read them in the reader, review their notes inline, and turn them on/off to include or exclude them from workspace structure and search.</div>
         </div>
         <span style="font:800 10px 'IBM Plex Mono',monospace;color:{{ t.mut }}">{{ priorOnCount }}/{{ priorTotal }} ON</span>
       </div>
@@ -301,14 +301,29 @@
             <div style="padding:10px 12px;border-top:1px solid {{ t.border }};opacity:{{ p.op }}">
               <div style="display:flex;align-items:center;gap:9px">
                 <span style="font:800 9px 'IBM Plex Mono',monospace;color:#fff;background:{{ p.dot }};border-radius:5px;padding:4px 6px">PR</span>
-                <div onClick="{{ p.open }}" style="flex:1;min-width:0;cursor:pointer">
-                  <div style="font:700 13px system-ui;color:{{ t.text }};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ p.title }}</div>
+                <div style="flex:1;min-width:0">
+                  <div onClick="{{ p.open }}" style="font:700 13px system-ui;color:{{ t.text }};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer">{{ p.title }}</div>
                   <div style="font:500 10.5px system-ui;color:{{ t.mut }};margin-top:2px">{{ p.det }}</div>
                 </div>
+                <span onClick="{{ p.open }}" title="Open this prior in the reader" style="flex:none;border:1px solid {{ t.border }};background:{{ t.bar }};color:{{ t.t2 }};border-radius:14px;padding:6px 9px;font:800 10px system-ui;cursor:pointer">Read</span>
+                <span onClick="{{ p.expand }}" title="Review this prior inline" style="flex:none;border:1px solid {{ t.border }};background:{{ p.reviewBg }};color:{{ p.reviewColor }};border-radius:14px;padding:6px 9px;font:800 10px system-ui;cursor:pointer">Review</span>
                 <span onClick="{{ p.toggle }}" title="Use this prior" style="flex:none;width:34px;height:20px;border-radius:20px;background:{{ p.track }};position:relative;cursor:pointer"><span style="position:absolute;top:2px;left:{{ p.knob }};width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25)"></span></span>
                 <span onClick="{{ p.expand }}" style="color:{{ t.faint }};cursor:pointer;transform:rotate({{ p.chev }});font-size:12px">▸</span>
               </div>
-              <sc-if value="{{ p.opened }}"><div style="margin:10px 0 0 43px;font:400 13px/1.55 'Source Serif 4',Georgia,serif;color:{{ t.t2 }}">{{ p.summary }}</div></sc-if>
+              <sc-if value="{{ p.opened }}">
+                <div style="margin:10px 0 0 43px;padding:11px 12px;border:1px solid {{ t.border }};border-radius:12px;background:{{ t.bar }}">
+                  <div style="font:800 9px 'IBM Plex Mono',monospace;letter-spacing:.08em;text-transform:uppercase;color:{{ t.mut }};margin-bottom:7px">Prior summary</div>
+                  <div style="font:400 13px/1.55 'Source Serif 4',Georgia,serif;color:{{ t.t2 }}">{{ p.summary }}</div>
+                  <div style="font:800 9px 'IBM Plex Mono',monospace;letter-spacing:.08em;text-transform:uppercase;color:{{ t.mut }};margin:12px 0 7px">Notes</div>
+                  <sc-for list="{{ p.notes }}" as="n" hint-placeholder-count="2">
+                    <div style="font:400 13px/1.55 'Source Serif 4',Georgia,serif;color:{{ t.text }};margin:0 0 7px">{{ n }}</div>
+                  </sc-for>
+                  <div style="font:800 9px 'IBM Plex Mono',monospace;letter-spacing:.08em;text-transform:uppercase;color:{{ t.mut }};margin:12px 0 7px">Signals to review</div>
+                  <div style="display:flex;gap:6px;flex-wrap:wrap">
+                    <sc-for list="{{ p.signals }}" as="e" hint-placeholder-count="2"><span style="font:800 10px system-ui;color:#fff;background:{{ e.color }};border-radius:12px;padding:5px 8px">{{ e.name }} · {{ e.count }}</span></sc-for>
+                  </div>
+                </div>
+              </sc-if>
             </div>
           </sc-for>
         </div>
@@ -4130,7 +4145,7 @@ class Component extends DCLogic {
 
     const priors=this.priorCatalog(), pa=S.priorActive||{};
     const priorOnCount=priors.filter(p=>pa[p.id]!==false).length;
-    const priorGenres=[...new Set(priors.map(p=>p.genre))].map(genre=>{ const rows=priors.filter(p=>p.genre===genre); const onCount=rows.filter(p=>pa[p.id]!==false).length; return {label:genre,total:rows.length,onCount,allOn:()=>this.setPriorGenre(genre,true),allOff:()=>this.setPriorGenre(genre,false),rows:rows.map(p=>{ const on=pa[p.id]!==false, opened=S.priorExpand===p.id; return {title:p.title,det:p.genre+' · '+p.paras.length+' notes',summary:p.summary,dot:t.accent,op:on?1:.55,track:on?t.accent:t.bStrong,knob:on?'16px':'2px',opened,chev:opened?'90deg':'0deg',toggle:()=>this.setPriorActive(p.id,!on),expand:()=>this.setState(s=>({priorExpand:s.priorExpand===p.id?null:p.id})),open:()=>this.openPrior(p)};})}; });
+    const priorGenres=[...new Set(priors.map(p=>p.genre))].map(genre=>{ const rows=priors.filter(p=>p.genre===genre); const onCount=rows.filter(p=>pa[p.id]!==false).length; return {label:genre,total:rows.length,onCount,allOn:()=>this.setPriorGenre(genre,true),allOff:()=>this.setPriorGenre(genre,false),rows:rows.map(p=>{ const on=pa[p.id]!==false, opened=S.priorExpand===p.id; return {title:p.title,det:p.genre+' · '+p.paras.length+' notes',summary:p.summary,notes:p.paras,signals:p.ents,dot:t.accent,op:on?1:.55,track:on?t.accent:t.bStrong,knob:on?'16px':'2px',opened,chev:opened?'90deg':'0deg',reviewBg:opened?t.accent:t.bar,reviewColor:opened?'#fff':t.t2,toggle:()=>this.setPriorActive(p.id,!on),expand:()=>this.setState(s=>({priorExpand:s.priorExpand===p.id?null:p.id})),open:()=>this.openPrior(p)};})}; });
 
     const proxyHost=(S.proxy&&S.proxy.on)?('proxy · '+this.hostOf((S.proxy.fetch||'').replace('{url}','').replace('{urlenc}',''))):'direct (no proxy)';
 
