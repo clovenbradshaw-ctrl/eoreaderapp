@@ -11,6 +11,8 @@
 <title>EOReader — read the meaning and structure of a source</title>
 <meta name="description" content="EOReader loads a source and shows its meaning and structure — sections, claims, actors, and moments — so you can read what a document actually says and how it is organized.">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="icon" href="./favicon.svg" type="image/svg+xml">
+<link rel="shortcut icon" href="./favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600;8..60,700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/@phosphor-icons/web"></script>
@@ -48,7 +50,9 @@
     .eo-nav{position:fixed!important;left:0!important;top:0!important;bottom:0!important;right:auto!important;width:264px!important;flex-direction:column!important;align-items:stretch!important;justify-content:flex-start!important;gap:3px!important;border:0!important;border-right:1px solid rgba(0,0,0,.09)!important;border-radius:0!important;box-shadow:none!important;padding:70px 14px 18px!important;background:transparent!important;transform:none!important;opacity:1!important;pointer-events:auto!important}
     .eo-nav button{flex:0 0 auto!important;text-align:left!important;padding:11px 15px!important;border-radius:11px!important;font:700 14px system-ui!important}
     .eo-nav{overflow-y:auto!important}
-    .eo-spaces-rail{display:flex!important}
+    .eo-spaces-rail{display:flex!important;min-height:0!important}
+    .eo-rail-sources{max-height:clamp(220px,42vh,430px)!important;overflow:hidden!important}
+    .eo-rail-source-list{flex:1 1 auto!important;min-height:0!important;overflow-y:auto!important;padding-right:2px!important}
     .eo-main > div{max-width:940px;margin-left:auto;margin-right:auto}
     .eo-main > div:has(> .eo-native-fill){max-width:none!important;margin:0!important}
     .eo-main > div:has(> .eo-reader-doc.eo-panel-open){max-width:none!important;margin:0!important;padding-right:min(460px,42vw)!important}
@@ -66,9 +70,9 @@
 </style>
 </helmet>
 
-<div class="eo-shell" style="min-height:100vh;background:{{ t.bg }};display:flex;align-items:flex-start;justify-content:center;padding:26px 16px 44px;font-family:system-ui,-apple-system,sans-serif;transition:background .3s">
-<div class="eo-device" style="width:402px;padding:6px;background:#0c0d10;border-radius:54px;box-shadow:0 22px 60px rgba(0,0,0,.4),inset 0 0 0 2px #24262c">
-<div class="eo-screen {{ panelOpenClass }}" style="position:relative;width:390px;height:844px;border-radius:48px;overflow:hidden;background:linear-gradient(180deg,{{ t.accentTop }} 0%,{{ t.screen }} 270px);display:flex;flex-direction:column;transition:background .35s">
+<div class="eo-shell" style="min-height:100vh;background:{{ t.bg }};display:flex;align-items:flex-start;justify-content:center;font-family:system-ui,-apple-system,sans-serif;transition:background .3s">
+<div class="eo-device">
+<div class="eo-screen {{ panelOpenClass }}" style="position:relative;overflow:hidden;background:linear-gradient(180deg,{{ t.accentTop }} 0%,{{ t.screen }} 270px);display:flex;flex-direction:column;transition:background .35s">
 
   <!-- Real safe-area spacer (respects notches/status bars on device) —
        replaces the former simulated iOS status bar (9:41 / Dynamic Island / 5G). -->
@@ -99,6 +103,7 @@
     </div>
 
     {{ activeHereEl }}
+    {{ noLlmStatusEl }}
 
     <div style="position:relative;display:flex;align-items:center;gap:4px;flex-wrap:nowrap;margin:9px 0 8px;overflow-x:auto">
       <sc-if value="{{ isReader }}" hint-placeholder-val="{{ true }}">
@@ -244,6 +249,23 @@
             <div style="font:600 11px 'IBM Plex Mono',monospace;color:{{ t.mut }};margin-top:4px">{{ ev.anchor }}</div>
           </div>
         </sc-for>
+      </sc-if>
+
+      <div style="background:{{ t.card }};border:1px solid {{ t.border }};border-radius:14px;padding:12px 13px;margin:12px 0 10px">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px">
+          <div style="font:800 9px system-ui;letter-spacing:.08em;color:{{ t.mut }};text-transform:uppercase">Answer integrity</div>
+          <div style="font:800 9px 'IBM Plex Mono',monospace;color:{{ integrityColor }};text-transform:uppercase">{{ integrityStatus }}</div>
+        </div>
+        <div style="font:700 12.5px/1.45 system-ui;color:{{ t.text }}">{{ integritySummary }}</div>
+        <div style="font:500 11.5px/1.5 system-ui;color:{{ t.mut }};margin-top:7px">{{ integrityDetail }}</div>
+      </div>
+
+      <sc-if value="{{ hasAbstention }}">
+        <div style="background:{{ t.bar }};border:1px dashed {{ t.border }};border-radius:12px;padding:12px 13px;margin-bottom:10px">
+          <div style="font:800 9px system-ui;letter-spacing:.08em;color:{{ t.mut }};text-transform:uppercase;margin-bottom:6px">Why not?</div>
+          <div style="font:700 13px/1.45 system-ui;color:{{ t.text }}">{{ abstentionTitle }}</div>
+          <div style="font:500 12px/1.5 system-ui;color:{{ t.mut }};margin-top:5px">{{ abstentionText }}</div>
+        </div>
       </sc-if>
 
       <sc-if value="{{ hasGaps }}">
@@ -438,6 +460,15 @@
       <sc-if value="{{ ovIsUnit }}">
         <div style="font:800 10px system-ui;letter-spacing:.08em;text-transform:uppercase;color:{{ t.mut }};margin-bottom:12px">{{ ovUnitKicker }}</div>
         <div style="font:400 17px/1.55 'Source Serif 4',Georgia,serif;color:{{ t.text }};margin-bottom:18px">{{ ovUnitText }}</div>
+        <div style="background:{{ t.card }};border:1px solid {{ t.border }};border-radius:14px;padding:12px 13px;margin-bottom:16px">
+          <div style="font:800 9px system-ui;letter-spacing:.08em;text-transform:uppercase;color:{{ t.mut }};margin-bottom:8px">Evidence and derivation</div>
+          <div style="font:700 12.5px/1.45 system-ui;color:{{ t.text }}">Plain finding → claims/relations → source passage → derivation → operations and priors.</div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px">
+            <sc-for list="{{ derivationActions }}" as="da" hint-placeholder-count="5">
+              <span onClick="{{ da.pick }}" style="background:{{ t.bar }};border:1px solid {{ t.border }};border-radius:14px;padding:5px 9px;font:800 10.5px system-ui;color:{{ t.accent }};cursor:pointer">{{ da.label }}</span>
+            </sc-for>
+          </div>
+        </div>
         <div style="height:1px;background:{{ t.border }};margin-bottom:16px"></div>
 
         <div style="font:800 9px system-ui;letter-spacing:.08em;text-transform:uppercase;color:{{ t.mut }};margin-bottom:8px">In source</div>
@@ -557,8 +588,9 @@
             <sc-if value="{{ noSources }}">
               <div style="font:500 11px system-ui;color:{{ t.mut }};padding:1px 3px 6px">No sources in this space yet.</div>
             </sc-if>
+            <div class="eo-rail-source-list" style="display:flex;flex-direction:column;gap:3px;min-height:0">
             <sc-for list="{{ sourceRows }}" as="s" hint-placeholder-count="2">
-              <div style="border-radius:9px;background:{{ s.rowBgFill }};opacity:{{ s.rowOp }};transition:opacity .2s">
+              <div style="flex:none;border-radius:9px;background:{{ s.rowBgFill }};opacity:{{ s.rowOp }};transition:opacity .2s">
                 <div style="display:flex;align-items:center;gap:7px;padding:5px 5px 5px 3px">
                   <span style="flex:none;font:700 8px 'IBM Plex Mono',monospace;color:#fff;background:{{ s.dot }};border-radius:4px;padding:3px 4px">{{ s.code }}</span>
                   <div onClick="{{ s.open }}" style="flex:1;min-width:0;cursor:pointer">
@@ -592,7 +624,8 @@
                 </sc-if>
               </div>
             </sc-for>
-            <div onClick="{{ recordNew }}" style="display:flex;align-items:center;gap:6px;padding:6px 4px;margin-top:2px;color:{{ t.accent }};font:700 10.5px system-ui;cursor:pointer"><i class="ph ph-plus-circle" style="font-size:13px"></i>Record a source</div>
+            </div>
+            <div onClick="{{ recordNew }}" style="flex:none;display:flex;align-items:center;gap:6px;padding:6px 4px;margin-top:2px;color:{{ t.accent }};font:700 10.5px system-ui;cursor:pointer"><i class="ph ph-plus-circle" style="font-size:13px"></i>Record a source</div>
           </div>
         </sc-if>
       </sc-for>
@@ -1329,16 +1362,23 @@ function mountEOSolar(root, opts){
 
   var focus = (opts.focusId && byId[opts.focusId]) ? opts.focusId : SUN;
   var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  var timeScale = opts.timeScale || 0.4;   // slower orbital motion (was 1.0)
+  var timeScale = opts.timeScale || 0.15;  // intentionally calm orbital motion
   var t0 = null, raf = null;
 
   // ── draggable camera: pan the universe a bit, clamped so it can't fly away ──
   var panX = 0, panY = 0, dragging = false, sx0 = 0, sy0 = 0, px0 = 0, py0 = 0;
-  var PAN_LIMIT = Math.max(W, H) * 0.85;
+  var zoom = 1, MIN_ZOOM = 0.55, MAX_ZOOM = 2.8;
+  var PAN_LIMIT = Math.max(W, H) * 1.2;
   function clampPan(){
-    panX = Math.max(-PAN_LIMIT, Math.min(PAN_LIMIT, panX));
-    panY = Math.max(-PAN_LIMIT, Math.min(PAN_LIMIT, panY));
+    var limit = PAN_LIMIT * Math.max(1, zoom);
+    panX = Math.max(-limit, Math.min(limit, panX));
+    panY = Math.max(-limit, Math.min(limit, panY));
   }
+  function setZoom(next){
+    zoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, next));
+    clampPan();
+  }
+  function recenter(){ panX = 0; panY = 0; }
 
   var stopped = false;
   function frame(now){
@@ -1349,7 +1389,7 @@ function mountEOSolar(root, opts){
     var cache = {}, pos = {};
     ids.forEach(function(id){ pos[id] = truePos(id, t, cache); });
     var target = pos[focus] || { x: 0, y: 0 };
-    universe.setAttribute('transform', 'translate(' + (cx - target.x + panX).toFixed(1) + ',' + (cy - target.y + panY).toFixed(1) + ')');
+    universe.setAttribute('transform', 'translate(' + (cx + panX).toFixed(1) + ',' + (cy + panY).toFixed(1) + ') scale(' + zoom.toFixed(3) + ') translate(' + (-target.x).toFixed(1) + ',' + (-target.y).toFixed(1) + ')');
     ids.forEach(function(id){
       var p = pos[id], n = byId[id], r = sizeOf(id);
       bodyEls[id].setAttribute('transform', 'translate(' + p.x.toFixed(1) + ',' + p.y.toFixed(1) + ')');
@@ -1374,6 +1414,20 @@ function mountEOSolar(root, opts){
   }
 
   root.appendChild(svg);
+  if (getComputedStyle(root).position === 'static') root.style.position = 'relative';
+  var controls = document.createElement('div');
+  controls.setAttribute('style', 'position:absolute;right:10px;top:10px;display:flex;gap:6px;z-index:2');
+  function controlButton(label, title, fn){
+    var b = document.createElement('button');
+    b.type = 'button'; b.textContent = label; b.title = title;
+    b.setAttribute('style', 'width:30px;height:30px;border-radius:9px;border:1px solid '+edgeColor+';background:'+bgColor+';color:'+textColor+';font:800 13px system-ui;cursor:pointer;box-shadow:0 1px 6px rgba(0,0,0,.08)');
+    b.addEventListener('click', function(ev){ ev.preventDefault(); ev.stopPropagation(); fn(); });
+    controls.appendChild(b);
+  }
+  controlButton('+', 'Zoom in', function(){ setZoom(zoom * 1.2); });
+  controlButton('−', 'Zoom out', function(){ setZoom(zoom / 1.2); });
+  controlButton('⌾', 'Recenter', recenter);
+  root.appendChild(controls);
   svg.style.cursor = 'grab';
   var downId = null, moved = false;
   svg.addEventListener('pointerdown', function(ev){
@@ -1399,11 +1453,19 @@ function mountEOSolar(root, opts){
   }
   svg.addEventListener('pointerup', endDrag);
   svg.addEventListener('pointercancel', endDrag);
+  svg.addEventListener('wheel', function(ev){
+    ev.preventDefault();
+    setZoom(zoom * (ev.deltaY < 0 ? 1.12 : 1 / 1.12));
+  }, { passive: false });
+  svg.addEventListener('dblclick', function(ev){ ev.preventDefault(); recenter(); });
   raf = requestAnimationFrame(frame);
 
   return {
-    destroy: function(){ stopped = true; if (raf) cancelAnimationFrame(raf); if (svg.parentNode) svg.parentNode.removeChild(svg); },
-    focus: function(id){ if (byId[id]) { focus = id; panX = 0; panY = 0; } },
+    destroy: function(){ stopped = true; if (raf) cancelAnimationFrame(raf); if (controls.parentNode) controls.parentNode.removeChild(controls); if (svg.parentNode) svg.parentNode.removeChild(svg); },
+    focus: function(id){ if (byId[id]) { focus = id; recenter(); } },
+    recenter: recenter,
+    zoomIn: function(){ setZoom(zoom * 1.2); },
+    zoomOut: function(){ setZoom(zoom / 1.2); },
   };
 }
 
@@ -2016,7 +2078,7 @@ class Component extends DCLogic {
       searchQ:'', searchResults:[], mediaResults:[], searching:false, searchMsg:'', libraryShelf:'web', _exTick:0,
       spaceEditOpen:false, spacePickerOpen:false, _sk:0,
       sourcesOpen:false, srcQuery:'', srcExpand:null, recPulse:0,
-      chromeHidden:false, webFrameActiveIds:[]
+      chromeHidden:false, webFrameActiveIds:[], readPct:0
     };
     this.scrollRef=(el)=>{
       if(!el) return;
@@ -2032,6 +2094,7 @@ class Component extends DCLogic {
           const y=el.scrollTop, dy=y-lastY;
           lastY=y;
           const reading=this.state.tab==='reader';
+          if(reading) this.updateReadingProgress();
           if(reading && y>56 && dy>4){ if(!this.state.chromeHidden) this.setState({chromeHidden:true}); }
           else if(!reading || dy<-4 || y<40){ if(this.state.chromeHidden) this.setState({chromeHidden:false}); }
         });
@@ -2216,7 +2279,27 @@ class Component extends DCLogic {
     if(toc.length && toc[0].pi>0) toc.unshift({title:'',level:0,pi:0,implicit:true});
     return toc;
   }
-  gotoChap(i){ const toc=(this.state.doc&&this.state.doc.analysis&&this.state.doc.analysis.toc)||[]; const n=toc.length||1; const ci=Math.max(0,Math.min(i,n-1)); this.setState({chap:ci,tocOpen:false}); requestAnimationFrame(()=>{ if(this._scroll) this._scroll.scrollTop=0; }); }
+  updateReadingProgress(){
+    const el=this._scroll; if(!el) return;
+    const max=Math.max(1, el.scrollHeight-el.clientHeight);
+    const local=Math.max(0,Math.min(1,el.scrollTop/max));
+    const d=this.state.doc, a=(d&&d.analysis)||{}, toc=a.toc||[];
+    const chapterMode=(d&&d.medium!=='Webpage')&&toc.filter(e=>!e.implicit).length>=3;
+    const pct=chapterMode&&toc.length ? ((Math.max(0,Math.min(this.state.chap,toc.length-1))+local)/toc.length*100) : (local*100);
+    const rounded=Math.max(0,Math.min(100,Math.round(pct)));
+    if(rounded!==this.state.readPct) this.setState({readPct:rounded});
+  }
+  gotoChap(i){ const toc=(this.state.doc&&this.state.doc.analysis&&this.state.doc.analysis.toc)||[]; const n=toc.length||1; const ci=Math.max(0,Math.min(i,n-1)); this.setState({chap:ci,tocOpen:false,readPct:n?Math.round(ci/n*100):0}); requestAnimationFrame(()=>{ if(this._scroll) this._scroll.scrollTop=0; this.updateReadingProgress(); }); }
+  jumpSegment(seg){
+    if(!seg) return;
+    const d=this.state.doc, toc=(d&&d.analysis&&d.analysis.toc)||[];
+    const chapterMode=(d&&d.medium!=='Webpage')&&toc.filter(e=>!e.implicit).length>=3;
+    if(chapterMode) return this.gotoChap(seg.i);
+    this.setState({tocOpen:false,tab:'reader'},()=>requestAnimationFrame(()=>{
+      anchorJump({type:'para',pi:seg.pi}, this.state.view);
+      this.updateReadingProgress();
+    }));
+  }
   analyzeText(raw, linkMap, images){
     const text=(raw||'').replace(/\r/g,'').slice(0,3000000);
     let paras=text.split(/\n{2,}/).map(s=>s.trim()).filter(Boolean);
@@ -2607,7 +2690,7 @@ class Component extends DCLogic {
     this.setState(s=>{
       const next={doc:d, importOpen:false, searchResults:[], mediaResults:[], searchMsg:'', sel:null, level:'prompt', chap:0, tab:'reader',
         searchProjection:'evidence', searchScope:'all', queryText:'', queryReading:null, queryWhy:null,
-        view:(opts&&opts.view)||this.load('eo5.readerType','native'), webFrameActiveIds:[], cardPath:[], lensByRung:{},
+        view:(opts&&opts.view)||this.load('eo5.readerType','native'), webFrameActiveIds:[], cardPath:[], lensByRung:{}, readPct:0, tocOpen:false,
         src:{label:d.name||d.title, det, dot:this.medColor(d.medium)}};
       if(!autoRecord) return next;
       const key=this.docKey(d);
@@ -3388,6 +3471,14 @@ class Component extends DCLogic {
       h('div',{key:'mode',onClick:()=>this.openExplore(),style:{flex:'none',font:"800 8.5px 'IBM Plex Mono',monospace",letterSpacing:'.08em',color:t.accent,whiteSpace:'nowrap',cursor:'pointer'}}, details.length?'X-RAY · '+details.join(' · '):'X-RAY')
     ]);
   }
+  buildNoLlmStatusBar(){
+    const d=this.state.doc, t=this.theme(), h=React.createElement;
+    const spans=d&&d.analysis?((d.analysis.paras||[]).length+(d.analysis.hi||[]).length+(d.analysis.list||[]).reduce((n,e)=>n+(e.count||0),0)):0;
+    const stages=[['Source parsing','Modality-specific sensing','No'],['Structure discovery','Recurrence and boundary dynamics','No'],['Entity resolution','Referent evidence and abstention','No'],['Significance','Surprise, gravity, relations','No'],['Question answering','Question-conditioned projection','No'],['Prose polishing','Optional constrained renderer','Optional']];
+    const open=!!this.state.noLlmOpen;
+    return h('div',{style:{margin:'8px 0 0',position:'relative'}},[h('button',{key:'b',onClick:()=>this.setState({noLlmOpen:!open}),title:'Show deterministic reading mechanisms',style:{width:'100%',display:'flex',alignItems:'center',gap:'7px',border:'1px solid '+t.border,borderRadius:'12px',background:t.bar,color:t.text,padding:'8px 10px',font:'800 10.5px system-ui',cursor:'pointer'}},[h('span',{key:'dot',style:{width:'7px',height:'7px',borderRadius:'50%',background:'#2f7a55',flex:'none'}}),h('span',{key:'txt',style:{flex:1,textAlign:'left',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}},'Core reading complete · Deterministic · '+this.nf(spans)+' evidence spans'),h('span',{key:'chev',style:{color:t.mut}},open?'⌃':'⌄')]),open?h('div',{key:'p',style:{position:'absolute',left:0,right:0,top:'42px',zIndex:50,background:t.sheet,border:'1px solid '+t.border,borderRadius:'14px',boxShadow:'0 16px 42px rgba(0,0,0,.18)',padding:'12px'}},[h('div',{key:'h',style:{font:'800 10px system-ui',letterSpacing:'.08em',textTransform:'uppercase',color:t.accent,marginBottom:'8px'}},'No LLM is the core mode'),h('div',{key:'d',style:{font:'500 12px/1.45 system-ui',color:t.mut,marginBottom:'10px'}},'EOReader exposes the deterministic fold: evidence enters as source spans, operations update the fold, and projections render cards without generated facts.'),h('div',{key:'rows'},stages.map((r,i)=>h('div',{key:i,style:{display:'grid',gridTemplateColumns:'1.05fr 1.35fr .55fr',gap:'8px',padding:'7px 0',borderTop:i?'1px solid '+t.border:0,alignItems:'start'}},[h('div',{style:{font:'700 11.5px system-ui',color:t.text}},r[0]),h('div',{style:{font:'500 11.5px/1.35 system-ui',color:t.mut}},r[1]),h('div',{style:{font:"800 10px 'IBM Plex Mono',monospace",color:r[2]==='No'?'#2f7a55':t.mut,textAlign:'right'}},r[2])])))]):null]);
+  }
+
   buildDoc(){
     const d=this.state.doc; if(!d) return null;
     const t=this.theme(), h=React.createElement, view=this.state.view;
@@ -3444,8 +3535,27 @@ class Component extends DCLogic {
     if(chapterMode){ ci=Math.max(0,Math.min(this.state.chap,toc.length-1)); const en=toc[ci]; title=en.implicit?(d.title||'Opening'):en.title; lo=en.implicit?en.pi:en.pi+1; hiIdx=(ci+1<toc.length)?toc[ci+1].pi:a.paras.length; }
     body.push(h('h1',{key:'t',style:{font:(reader?'700 27px':'600 22px')+'/1.26 '+fam,margin:'2px 0 8px',color:t.text,letterSpacing:'-.01em'}}, title));
     if((!chapterMode||toc[ci].implicit) && d.byline) body.push(h('div',{key:'by',style:{font:'500 12.5px system-ui',color:t.mut,marginBottom:reader?'22px':'16px'}}, d.byline));
-    if(chapterMode) body.push(h('div',{key:'loc',style:{font:'500 12px system-ui',color:t.mut,marginBottom:reader?'22px':'16px'}}, 'Chapter '+(ci+1)+' of '+toc.length));
-    else if(reader) body.push(h('div',{key:'st',style:{font:'500 12px system-ui',color:t.mut,marginBottom:'20px'}}, a.words+' words'+(plain?'':' · '+a.list.length+' entities')));
+    const segments=toc.map((c,i)=>({i,pi:c.pi,title:c.implicit?(d.title||'Opening'):c.title}));
+    const pct=Math.max(0,Math.min(100,Number.isFinite(this.state.readPct)?this.state.readPct:0));
+    const curSeg=chapterMode ? segments[ci] : segments.slice().reverse().find(x=>{
+      if(!this._scroll) return false; const el=document.getElementById('eo-p'+x.pi); return el && el.getBoundingClientRect().top<160;
+    }) || segments[0];
+    if(chapterMode) body.push(h('div',{key:'loc',style:{font:'500 12px system-ui',color:t.mut,marginBottom:reader?'10px':'10px'}}, 'Chapter '+(ci+1)+' of '+toc.length));
+    else if(reader) body.push(h('div',{key:'st',style:{font:'500 12px system-ui',color:t.mut,marginBottom:'10px'}}, a.words+' words'+(plain?'':' · '+a.list.length+' entities')));
+    if(reader) body.push(h('div',{key:'where',style:{position:'sticky',top:'0',zIndex:3,background:'linear-gradient(180deg,'+t.screen+' 72%,rgba(0,0,0,0))',padding:'0 0 14px',margin:'0 0 14px'}},[
+      h('div',{key:'card',style:{background:t.bar,border:'1px solid '+t.border,borderRadius:'14px',boxShadow:'0 8px 22px rgba(0,0,0,.05)',overflow:'hidden'}},[
+        h('div',{key:'row',onClick:()=>segments.length?this.setState({tocOpen:!this.state.tocOpen}):null,style:{display:'flex',alignItems:'center',gap:'10px',padding:'10px 12px',cursor:segments.length?'pointer':'default'}},[
+          h('div',{key:'pct',style:{font:"800 11px 'IBM Plex Mono',monospace",color:t.accent,minWidth:'38px'}}, pct+'%'),
+          h('div',{key:'txt',style:{flex:1,minWidth:0}},[
+            h('div',{key:'a',style:{font:'800 9px system-ui',letterSpacing:'.08em',textTransform:'uppercase',color:t.mut}},'You are here'),
+            h('div',{key:'b',style:{font:'700 12.5px system-ui',color:t.text,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}, curSeg?curSeg.title:'Continuous source')
+          ]),
+          segments.length?h('i',{key:'ic',className:'ph ph-list-bullets',style:{fontSize:'16px',color:t.mut}}):null
+        ]),
+        h('div',{key:'bar',style:{height:'3px',background:t.bStrong}}, h('div',{style:{height:'100%',width:pct+'%',background:t.accent,transition:'width .18s ease'}}))
+      ]),
+      (this.state.tocOpen&&segments.length)?h('div',{key:'toc',style:{display:'flex',gap:'7px',overflowX:'auto',padding:'9px 1px 1px'}},segments.map((s,i)=>h('button',{key:s.i,onClick:()=>this.jumpSegment(s),style:{flex:'0 0 auto',maxWidth:'240px',border:'1px solid '+(curSeg&&curSeg.i===s.i?t.accentLine:t.border),background:curSeg&&curSeg.i===s.i?t.accentSoft:t.card,color:t.text,borderRadius:'999px',padding:'7px 10px',font:'700 11px system-ui',cursor:'pointer',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}},(i+1)+'. '+s.title))):null
+    ]));
     const isFeed=d.medium==='Webpage';
     const _lm=a.linkMap||{}; const _lmNorm={};
     Object.keys(_lm).forEach(k=>{ _lmNorm[k.toLowerCase().replace(/\s+/g,' ').replace(/[\s.,:;!?]+$/,'').trim()]=_lm[k]; });
@@ -3621,6 +3731,17 @@ class Component extends DCLogic {
     const coreEvidence=(reading.core_evidence||[]).map(toCard);
     const contextEvidence=(reading.context_evidence||[]).map(ev=>({label:ev.text,anchor:(ev.source_title||'Source')+' · '+(ev.anchor&&ev.anchor.label||'structure')}));
     const gaps=reading.unfilled_roles||[];
+    const witnessedCount=(reading.core_evidence||[]).length;
+    const inferredCount=(reading.fold_path||[]).filter(x=>x.channel && x.channel!=='exact').length;
+    const evidenceSpanCount=(reading.core_evidence||[]).length+(reading.context_evidence||[]).length;
+    const sourceCount=(reading.searched_scope.sources||[]).length;
+    const integrityStatus=reading.coverage==='sufficient'?'reproducible':(reading.coverage==='absent'?'absent':'thin');
+    const integritySummary=reading.coverage==='sufficient' ? (witnessedCount+' witnessed finding'+(witnessedCount===1?'':'s')+' · '+inferredCount+' inferred connection'+(inferredCount===1?'':'s')+' · '+evidenceSpanCount+' evidence spans · '+sourceCount+' source'+(sourceCount===1?'':'s')+' · no generated facts') : (reading.coverage==='absent'?'0 witnessed findings · no licensed answer from selected record':(witnessedCount+' witnessed finding'+(witnessedCount===1?'':'s')+' · missing '+gaps.length+' role'+(gaps.length===1?'':'s')+' · no licensed resolution'));
+    const integrityDetail=reading.coverage==='sufficient' ? 'Structured answer is projected from stored evidence hits and fold-path operations; narrative wording remains subordinate to this record.' : (reading.coverage==='absent'?'What was found: no matching source spans. Missing: evidence in scope. Answerable when a selected source witnesses the requested claim.':'What was found: related spans. Missing: '+(gaps.join(', ')||'required corroboration')+'. Answerable when those roles are witnessed or the threshold is changed.');
+    const integrityColor=reading.coverage==='sufficient'?'#2f7a55':(reading.coverage==='absent'?'#c0392b':'#b0842f');
+    const hasAbstention=reading.coverage!=='sufficient' || /why|cause|caused|because|merge|same/.test(this.normalizeQuery(queryText));
+    const abstentionTitle=reading.coverage==='absent'?'Why doesn’t EOReader answer this?':'Why not assert more?';
+    const abstentionText=reading.coverage==='absent'?'The requested evidence is absent from the selected record; EOReader will not introduce outside facts.':'The fold can show co-occurrence, similarity, or order, but those alone do not license causality, identity merge, or resolution without witnessed relations.';
 
     // ── explore: progressive disclosure from top-level terrains down to a single entity ──
     const toc=a.toc||[];
@@ -3766,6 +3887,7 @@ class Component extends DCLogic {
       queryText, onQueryInput:(e)=>this.setState({queryText:e.target.value}), onQueryKey:(e)=>{ if(e.key==='Enter') this.runLocalSearch(e.target.value); }, clearQuery:()=>this.runLocalSearch(''),
       coverageLabel:coverageText, coverageColor, searchPlaceholderMain:(searchScopeLabel==='This source'?('Search '+((d&&d.title)||'this source')+'…'):('Search '+(sp?sp.name:'workspace')+'…')), searchSources:(reading.searched_scope.sources||[]).length, searchPassages:(reading.core_evidence||[]).length+(reading.context_evidence||[]).length, searchContrasts:(reading.counterevidence||[]).length,
       projectionTabs, searchScopeChips:scopeChips, showEvidence:projection==='evidence'||projection==='all', showStructure:projection==='structure'||projection==='all', coreEvidence, contextEvidence, hasGaps:gaps.length>0, gapText:gaps.length?('Missing evidence roles: '+gaps.join(', ')):'',
+      integrityStatus, integritySummary, integrityDetail, integrityColor, hasAbstention, abstentionTitle, abstentionText,
       activeSrcCount:act.length, totalSrcCount:raw.length,
       sourcesOpen:S.sourcesOpen, openSources:()=>this.openSources(), closeSources:()=>this.closeSources(),
       srcQuery:S.srcQuery||'', onSrcQuery:(e)=>this.setState({srcQuery:e.target.value}),
@@ -3825,7 +3947,8 @@ class Component extends DCLogic {
       setV2:()=>{ this.save('eo5.readerType','reader'); if(this.state.view==='reader'){ const v=!this.state.plain; this.save('eo5.readerPlain',v); this.setState({plain:v}); } else this.setState({view:'reader'}); },
       cycleView:()=>this.setState({view:order[(vi+1)%3]}),
       docEl:this.buildDoc(),
-      activeHereEl:this.buildActiveHereBar(),
+      activeHereEl:this.buildActiveHereBar(), noLlmStatusEl:this.buildNoLlmStatusBar(),
+      derivationActions:['Show evidence','Show derivation','Show prior','Recompute without this source','Challenge'].map(label=>({label,pick:()=>alert(label+': this preview exposes the deterministic dependency slice for the selected card.')})),
       ...(()=>{ const e=this.buildEotInspector(); return { eotStreamEl:e.stream, eotFoldEl:e.fold, eotDerivationEl:e.derivation, eotGrammarEl:e.grammar }; })(),
       L, tw:{hi:sw(L.hi),en:sw(L.en),ch:sw(L.ch),ln:sw(L.ln),nw:sw(L.nw)}, appearTrack:sw(dark).track, appearKnob:sw(dark).knob,
       togHi:()=>this.tog('hi'),togEn:()=>this.tog('en'),togCh:()=>this.tog('ch'),togLn:()=>this.tog('ln'),togNw:()=>this.tog('nw'),
