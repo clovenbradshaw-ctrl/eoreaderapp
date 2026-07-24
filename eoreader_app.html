@@ -466,6 +466,10 @@
         <sc-if value="{{ cdHasProvenance }}">
           <div onClick="{{ cdProvenanceOpen }}" style="display:flex;align-items:center;gap:6px;font:600 11.5px system-ui;color:{{ t.accent }};cursor:pointer;margin-bottom:10px">{{ cdProvenanceText }}</div>
         </sc-if>
+        <sc-if value="{{ ovDashActive }}">
+          <div key="{{ overviewDashKey }}" ref="{{ overviewDashRef }}" style="min-height:440px"></div>
+        </sc-if>
+        <sc-if value="{{ ovDashFallback }}">
         <div style="font:800 10px system-ui;letter-spacing:.08em;text-transform:uppercase;color:{{ t.mut }};margin-bottom:10px">{{ ovFrameKicker }}</div>
         <div style="font:700 21px/1.28 'Source Serif 4',Georgia,serif;color:{{ t.text }};margin-bottom:8px">{{ ovTitle }}</div>
         <div style="font:500 12.5px system-ui;color:{{ t.mut }};margin-bottom:20px">{{ ovMeta }}</div>
@@ -495,6 +499,7 @@
             </div>
           </div>
         </sc-for>
+        </sc-if>
       </sc-if>
 
       <sc-if value="{{ ovIsList }}">
@@ -1968,6 +1973,241 @@ function deriveRung(terrainId, rungIdx, d, a, scope){
   return { absent:true, reason:'unknown rung', perceiver:null };
 }
 
+// ── OVERVIEW dashboard: model + renderer ─────────────────────────────────────
+// Mirrors the node-tested contract in src/app/overview-dashboard.js and its
+// renderer in src/outputs/structure-cards/overview-render.js. Inlined because
+// the shipped bundle is one compiled dc-runtime script, not an ES module graph;
+// the model half is proven byte-for-byte equivalent to the canonical module,
+// and tests/app/overview-dashboard.test.mjs is the checkpoint. Change the
+// projection rules there too when you change them here.
+function eoIsProvenanceReferent(r){ return !!(r && (r.individuation_type==='apparatus' || r.kind==='apparatus')); }
+function eoOrbitBodies(fold){
+  const referents=(fold&&(fold.referents||(fold.fold&&fold.fold.referents)))||[];
+  const provIds=new Set(((fold&&fold.provenance_layer&&fold.provenance_layer.referents)||[]).map(i=>i.id||i.referent_id));
+  const planets=[];
+  for(const r of referents){ if(!(provIds.has(r.id)||eoIsProvenanceReferent(r))) planets.push(r); }
+  return {planets};
+}
+const EO_OV_TYPE_ORDER=['holon','emanon','protogon','field','apparatus'];
+const EO_OV_CAST_TYPES=['holon','emanon','protogon','field'];
+const EO_OV_TYPE_NOTE={holon:'named, massive, coupled',emanon:'unnamed, ambient',protogon:'orbited, never present',field:'relational, not a figure',apparatus:'nav, byline, promo, footer'};
+const EO_OV_DERIV={novelty:{id:'novelty',label:'novelty curve (SSM checkerboard)'},dom:{id:'dom',label:'DOM headings (web perceiver)'},strain:{id:'strain',label:'strain spine (deviation waveform)'}};
+function eoReconcileDivisions(derivations, opts){
+  const tol=(opts&&opts.tolerance)||0.045;
+  const present=(derivations||[]).filter(Boolean);
+  const total=present.length;
+  const marks=[];
+  for(const d of present) for(const at of (d.cuts||[])) marks.push({at,id:d.id});
+  marks.sort((a,b)=>a.at-b.at);
+  const clusters=[];
+  for(const m of marks){
+    const last=clusters[clusters.length-1];
+    if(last && m.at-last.mean<=tol){ last.marks.push(m); last.ids.add(m.id); last.mean=last.marks.reduce((s,x)=>s+x.at,0)/last.marks.length; }
+    else clusters.push({mean:m.at,marks:[m],ids:new Set([m.id])});
+  }
+  const beats=clusters.map((c,i)=>{
+    const agree=c.ids.size, domOnly=agree===1&&c.ids.has('dom');
+    return {index:i+1,at:Number(c.mean.toFixed(3)),agree,total,sources:[...c.ids],contested:agree<total,domOnly,
+      note:domOnly?'DOM asserts a section; novelty and strain show no change — likely a promo insert or a smuggled passage':null};
+  });
+  return {beats,total};
+}
+function eoOvFrameCard(fold){
+  const f=fold.frame||{};
+  return {kind:f.kind||'news article',dispersion:Number.isFinite(f.dispersion)?f.dispersion:null,
+    subjectReentry:f.subject_reentry||'fail',apparatusNote:f.apparatus_note||null,
+    overrideAvailable:f.override_available!=null?f.override_available:true};
+}
+function eoOvDivisionsCard(fold){
+  const raw=(fold.divisions&&fold.divisions.derivations)||[];
+  const derivations=raw.map(d=>{
+    const meta=EO_OV_DERIV[d.id]||{id:d.id,label:d.label||d.id};
+    return {id:meta.id,label:d.label||meta.label,beatCount:Number.isFinite(d.beats)?d.beats:(d.cuts||[]).length,
+      unit:d.unit||(d.id==='strain'?'turns':'beats'),sparkline:[...(d.sparkline||[])],cuts:[...(d.cuts||[])]};
+  });
+  const agreement=eoReconcileDivisions(raw,{tolerance:fold.divisions&&fold.divisions.tolerance});
+  const contested=agreement.beats.filter(b=>b.contested);
+  const smuggled=agreement.beats.filter(b=>b.domOnly);
+  return {candidateSets:derivations.length,derivations,agreement,beats:agreement.beats,contestedCount:contested.length,smuggled};
+}
+const EO_OV_REGISTERS=['reported','quoted','chrome'];
+function eoOvUnitsCard(fold){
+  const passages=(fold.units&&fold.units.passages)||[];
+  const register={}; EO_OV_REGISTERS.forEach(r=>{register[r]=0;});
+  let belowNull=0;
+  for(const p of passages){ if(register[p.register]!=null) register[p.register]+=1; if(p.belowNull||p.below_null) belowNull+=1; }
+  const surprise=(fold.signals&&fold.signals.surprise&&fold.signals.surprise.doc)||passages.map(p=>Number.isFinite(p.surprise)?p.surprise:0);
+  return {count:passages.length,surprise:[...surprise],register,belowNull,boilerplateNote:belowNull+' of '+passages.length+' passages below the boilerplate null'};
+}
+function eoOvReferentsCard(fold){
+  const referents=fold.referents||[];
+  const planets=eoOrbitBodies(fold).planets;
+  const cast=referents.filter(r=>!eoIsProvenanceReferent(r));
+  const frameItems=(fold.provenance_layer&&fold.provenance_layer.referents)||referents.filter(eoIsProvenanceReferent);
+  const survivors=cast.length;
+  const sightings=Number.isFinite(fold.sightings)?fold.sightings:(fold.referent_sightings!=null?fold.referent_sightings:survivors);
+  const apparatusSightings=Number.isFinite(fold.apparatus_sightings)?fold.apparatus_sightings:frameItems.reduce((s,i)=>s+(i.count||i.sightings||0),0);
+  const byType=EO_OV_TYPE_ORDER.map(type=>{
+    const isCast=EO_OV_CAST_TYPES.includes(type);
+    const count=isCast?cast.filter(r=>(r.individuation_type||r.kind)===type).length:apparatusSightings;
+    return {type,count,demoted:!isCast,note:EO_OV_TYPE_NOTE[type]};
+  });
+  const largest=[...cast].sort((a,b)=>(b.mass||0)-(a.mass||0))[0]||null;
+  return {header:sightings+' sightings → '+survivors,sightings,survivors,byType,
+    cast:cast.map(r=>({id:r.id,name:r.name,type:r.individuation_type||r.kind,mass:r.mass||0})),
+    apparatus:{count:apparatusSightings,demoted:true,note:EO_OV_TYPE_NOTE.apparatus},
+    largestSurvivor:largest?{id:largest.id,name:largest.name,type:largest.individuation_type||largest.kind}:null,
+    apparatusInCast:planets.some(eoIsProvenanceReferent)};
+}
+function eoOvRecurrenceCard(fold){
+  const motifs=fold.motifs||[];
+  return {families:motifs.length,motifs:motifs.map(m=>({id:m.id||null,period:m.period_units!=null?m.period_units:(m.period!=null?m.period:null),
+    instances:Array.isArray(m.instances)?m.instances.length:(m.instances||0),regularity:m.regularity!=null?m.regularity:null}))};
+}
+function eoOvCoverageCard(fold){
+  const cov=fold.coverage||{}; const buckets=cov.buckets||cov.discarded_buckets||{};
+  const discardedPct=Number.isFinite(cov.discarded_pct)?cov.discarded_pct:(cov.discardedPct!=null?cov.discardedPct:0);
+  const foldedPct=Number.isFinite(cov.folded_pct)?cov.folded_pct:(cov.foldedPct!=null?cov.foldedPct:(100-discardedPct));
+  return {foldedPct,discardedPct,buckets:{chrome:buckets.chrome||0,dup:buckets.dup||0,nul:buckets.nul||0},refoldable:cov.refoldable!=null?cov.refoldable:true};
+}
+function eoOvOrbitCard(fold){
+  const orbit=fold.orbit;
+  if(orbit&&Array.isArray(orbit.nodes)){
+    const planets=orbit.nodes.filter(n=>n.kind==='paradigm'||n.kind==='planet');
+    const moons=orbit.nodes.filter(n=>n.kind!=='paradigm'&&n.kind!=='planet');
+    return {suns:orbit.suns!=null?orbit.suns:1,planets:planets.length,moons:moons.length,nodes:orbit.nodes.map(n=>({...n}))};
+  }
+  const planets=eoOrbitBodies(fold).planets;
+  return {suns:1,planets:planets.length,moons:0,nodes:[]};
+}
+const EO_OV_READY=['priorMass','priorBond','priorProp'];
+const EO_OV_FACE={priorMass:'Void · novelty',priorBond:'Field · coupling',priorProp:'Atmosphere · what holds'};
+function eoOvReadinessCard(fold){
+  const prior=fold.prior||{}, readiness=prior.readiness||{};
+  const channels=EO_OV_READY.map(id=>{ const ch=readiness[id]||{}, ready=ch.ready===true;
+    return {id,face:EO_OV_FACE[id],ready,thin:!ready,level:Number.isFinite(ch.level)?ch.level:(ready?1:0.25)}; });
+  const readyCount=channels.filter(c=>c.ready).length;
+  return {snapshot:prior.snapshot||prior.pocket||null,channels,readyCount,total:channels.length,summary:readyCount+'/'+channels.length+' ready',
+    surpriseWeightsProvisional:prior.surprise_weights_provisional!=null?prior.surprise_weights_provisional:false};
+}
+function eoOverviewModel(fold){
+  fold=fold||{};
+  const source=fold.source||{};
+  const referents=eoOvReferentsCard(fold);
+  const readiness=eoOvReadinessCard(fold);
+  return {
+    story:{publisher:source.publisher||null,medium:source.medium||'Webpage',words:source.words!=null?source.words:null,
+      readAtLabel:source.read_at_label||source.readAtLabel||null,prior:readiness.snapshot,readiness:readiness.summary,apparatusDemoted:referents.apparatus.count},
+    frame:eoOvFrameCard(fold),divisions:eoOvDivisionsCard(fold),units:eoOvUnitsCard(fold),referents,
+    recurrence:eoOvRecurrenceCard(fold),coverage:eoOvCoverageCard(fold),orbit:eoOvOrbitCard(fold),readiness};
+}
+
+// ── OVERVIEW dashboard renderer (imperative DOM; mirrors overview-render.js) ──
+const EO_OV_TYPECOLOR={holon:'#5fae7f',emanon:'#5b9bd5',protogon:'#c77dba',field:'#8a8a95',apparatus:'#9a7b52'};
+const EO_OV_REGCOLOR={reported:'#5fae7f',quoted:'#5b9bd5',chrome:'#9a7b52'};
+const EO_OV_MONO="'IBM Plex Mono','SFMono-Regular',ui-monospace,monospace";
+const EO_OV_UI='system-ui,-apple-system,sans-serif';
+function eoOvEl(tag,style,text){ const n=document.createElement(tag); if(style) n.setAttribute('style',style); if(text!=null) n.textContent=text; return n; }
+function eoOvSpark(values,color){ const w=eoOvEl('div','display:flex;align-items:flex-end;gap:2px;height:34px'); const max=Math.max(1,...values);
+  values.forEach(v=>{ const h=Math.max(2,Math.round((v/max)*32)); w.appendChild(eoOvEl('div','flex:1;min-width:3px;height:'+h+'px;background:'+color+';border-radius:1px;opacity:'+(0.35+0.65*(v/max)))); }); return w; }
+function eoOvMeter(frac,P,color){ const t=eoOvEl('div','flex:1;height:7px;background:'+P.track+';border-radius:4px;overflow:hidden');
+  t.appendChild(eoOvEl('div','width:'+Math.round(Math.max(0,Math.min(1,frac))*100)+'%;height:100%;background:'+(color||P.accent))); return t; }
+function eoOvShell(P,title,right,onClick){ const c=eoOvEl('section','background:'+P.card+';border:1px solid '+P.border+';border-radius:14px;padding:13px 14px;display:flex;flex-direction:column;gap:10px;min-width:0');
+  const head=eoOvEl('div','display:flex;align-items:center;gap:8px'); head.appendChild(eoOvEl('div','font:800 10px '+EO_OV_UI+';letter-spacing:.1em;color:'+P.mut,title));
+  if(right){ const r=eoOvEl('div','margin-left:auto;font:600 10.5px '+EO_OV_MONO+';color:'+P.faint+(onClick?';cursor:pointer':''),right); if(onClick){ r.onclick=onClick; } head.appendChild(r); }
+  c.appendChild(head); return c; }
+function eoRenderOverviewDash(root, model, opts){
+  opts=opts||{}; const th=opts.t||{};
+  const P={bg:th.screen||'#fbfaf7',card:th.card||'#fff',border:th.border||'#e7e3d9',bar:th.bar||'#f4f1ea',text:th.text||'#1e1c19',
+    mut:th.mut||'#6d6a60',faint:th.faint||'#b0a99a',accent:th.accent||'#c0662e',t2:th.t2||'#5c574d',
+    warn:opts.dark?'#e0b24c':'#b8791f',track:th.bStrong||th.bar||'#e7e2d5',good:opts.dark?'#5fae7f':'#3f7a55'};
+  const open=opts.onOpen||{};
+  root.innerHTML='';
+  const shell=eoOvEl('div','display:flex;flex-direction:column;gap:12px');
+  // STORY header
+  const s=model.story;
+  const hdr=eoOvEl('header','display:flex;flex-wrap:wrap;align-items:flex-end;gap:6px 18px;padding:0 2px 2px');
+  const hl=eoOvEl('div','display:flex;flex-direction:column;gap:2px;min-width:0');
+  hl.appendChild(eoOvEl('div','font:800 10px '+EO_OV_UI+';letter-spacing:.12em;color:'+P.mut,'STORY'));
+  hl.appendChild(eoOvEl('div','font:800 20px '+EO_OV_UI+';color:'+P.text+';line-height:1.1',s.publisher||'Source'));
+  hl.appendChild(eoOvEl('div','font:500 11.5px '+EO_OV_UI+';color:'+P.mut,[s.medium,s.words!=null?(s.words+' words'):null,s.readAtLabel].filter(Boolean).join(' · ')));
+  hdr.appendChild(hl);
+  const hr=eoOvEl('div','display:flex;flex-direction:column;gap:3px;margin-left:auto;text-align:right');
+  if(s.prior) hr.appendChild(eoOvEl('div','font:700 11px '+EO_OV_MONO+';color:'+P.accent,'prior: '+s.prior));
+  hr.appendChild(eoOvEl('div','font:600 11px '+EO_OV_MONO+';color:'+P.mut,'readiness: '+s.readiness));
+  hr.appendChild(eoOvEl('div','font:600 11px '+EO_OV_MONO+';color:'+P.faint,'apparatus demoted: '+s.apparatusDemoted));
+  hdr.appendChild(hr); shell.appendChild(hdr);
+  // FRAME
+  const fr=model.frame; const fc=eoOvShell(P,'FRAME',fr.overrideAvailable?'override ⃝':null);
+  fc.appendChild(eoOvEl('div','font:600 12px '+EO_OV_MONO+';color:'+P.text,[fr.kind,fr.dispersion!=null?('ρ-dispersion '+fr.dispersion):null,'subject re-entry: '+fr.subjectReentry].filter(Boolean).join('   ·   ')));
+  if(fr.apparatusNote) fc.appendChild(eoOvEl('div','font:500 12px '+EO_OV_UI+';color:'+P.mut,fr.apparatusNote));
+  shell.appendChild(fc);
+  // DIVISIONS
+  const dv=model.divisions; const dc=eoOvShell(P,'DIVISIONS',dv.candidateSets+' candidate sets ›',open.divisions);
+  dv.derivations.forEach(d=>{ const row=eoOvEl('div','display:flex;align-items:center;gap:10px');
+    row.appendChild(eoOvEl('div','font:700 12px '+EO_OV_UI+';color:'+(d.id==='dom'?P.warn:P.text)+';flex:1;min-width:0',d.label));
+    row.appendChild(eoOvEl('div','font:700 11px '+EO_OV_MONO+';color:'+P.mut+';white-space:nowrap',d.beatCount+' '+d.unit));
+    if(d.sparkline&&d.sparkline.length){ const sp=eoOvSpark(d.sparkline,P.mut); sp.setAttribute('style',sp.getAttribute('style')+';width:120px;flex:none;height:22px'); row.appendChild(sp); }
+    dc.appendChild(row); });
+  const stripWrap=eoOvEl('div','display:flex;flex-direction:column;gap:4px;margin-top:2px');
+  const strip=eoOvEl('div','display:flex;gap:3px'), votes=eoOvEl('div','display:flex;gap:3px');
+  dv.beats.forEach(b=>{ const col=b.domOnly?P.warn:(b.contested?P.faint:P.good);
+    strip.appendChild(eoOvEl('div','flex:1;height:8px;border-radius:2px;background:'+col+';opacity:'+(b.domOnly?1:0.55)));
+    votes.appendChild(eoOvEl('div','flex:1;text-align:center;font:600 9.5px '+EO_OV_MONO+';color:'+(b.domOnly?P.warn:P.mut),b.agree+'/'+b.total+(b.domOnly?' ⚠':''))); });
+  stripWrap.appendChild(strip); stripWrap.appendChild(votes); dc.appendChild(stripWrap);
+  dv.smuggled.forEach(b=>{ dc.appendChild(eoOvEl('div','font:500 11px '+EO_OV_UI+';color:'+P.warn+';background:'+P.bar+';border-radius:8px;padding:6px 8px','beat '+b.index+': '+b.note)); });
+  shell.appendChild(dc);
+  // grid of the smaller cards
+  const grid=eoOvEl('div','display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;align-items:start');
+  // UNITS
+  const u=model.units; const uc=eoOvShell(P,'UNITS',u.count+' passages ›',open.units); uc.appendChild(eoOvSpark(u.surprise,P.accent));
+  const leg=eoOvEl('div','display:flex;justify-content:space-between'); leg.appendChild(eoOvEl('div','font:500 10px '+EO_OV_MONO+';color:'+P.faint,'boilerplate')); leg.appendChild(eoOvEl('div','font:500 10px '+EO_OV_MONO+';color:'+P.faint,'substance')); uc.appendChild(leg);
+  const reg=eoOvEl('div','display:flex;flex-direction:column;gap:5px;margin-top:2px'); const rtot=Math.max(1,u.register.reported+u.register.quoted+u.register.chrome);
+  ['reported','quoted','chrome'].forEach(name=>{ const r=eoOvEl('div','display:flex;align-items:center;gap:8px'); r.appendChild(eoOvEl('div','font:600 10.5px '+EO_OV_UI+';color:'+P.mut+';min-width:60px',name));
+    r.appendChild(eoOvMeter(u.register[name]/rtot,P,EO_OV_REGCOLOR[name])); r.appendChild(eoOvEl('div','font:700 10.5px '+EO_OV_MONO+';color:'+P.text+';min-width:20px;text-align:right',String(u.register[name]))); reg.appendChild(r); });
+  uc.appendChild(reg); uc.appendChild(eoOvEl('div','font:500 11px '+EO_OV_UI+';color:'+P.mut,u.boilerplateNote)); grid.appendChild(uc);
+  // REFERENTS
+  const rf=model.referents; const rc=eoOvShell(P,'REFERENTS',rf.sightings+' sightings  →  '+rf.survivors,open.referents);
+  const head=eoOvEl('div','display:flex;align-items:baseline;gap:8px'); head.appendChild(eoOvEl('div','font:800 20px '+EO_OV_MONO+';color:'+P.text,String(rf.sightings)));
+  head.appendChild(eoOvEl('div','font:700 16px '+EO_OV_MONO+';color:'+P.faint,'→')); head.appendChild(eoOvEl('div','font:800 20px '+EO_OV_MONO+';color:'+P.good,String(rf.survivors)));
+  head.appendChild(eoOvEl('div','font:500 11px '+EO_OV_UI+';color:'+P.mut,'survived individuation')); rc.appendChild(head);
+  const maxCast=Math.max(1,...rf.byType.filter(x=>!x.demoted).map(x=>x.count));
+  rf.byType.forEach(row=>{ const line=eoOvEl('div','display:flex;align-items:center;gap:8px'+(row.demoted?';opacity:.7':''));
+    line.appendChild(eoOvEl('div','font:700 10.5px '+EO_OV_MONO+';color:'+EO_OV_TYPECOLOR[row.type]+';min-width:64px',row.type));
+    const track=eoOvEl('div','flex:1;height:8px;border-radius:4px;overflow:hidden;background:'+P.track);
+    const width=row.demoted?100:Math.round((row.count/maxCast)*100);
+    const fill=eoOvEl('div','width:'+width+'%;height:100%;background:'+EO_OV_TYPECOLOR[row.type]);
+    if(row.demoted) fill.setAttribute('style',fill.getAttribute('style')+';background:repeating-linear-gradient(90deg,'+EO_OV_TYPECOLOR[row.type]+' 0 2px,transparent 2px 5px);opacity:.6');
+    track.appendChild(fill); line.appendChild(track);
+    line.appendChild(eoOvEl('div','font:700 10.5px '+EO_OV_MONO+';color:'+P.text+';min-width:26px;text-align:right',String(row.count)));
+    line.appendChild(eoOvEl('div','font:500 10px '+EO_OV_UI+';color:'+P.faint+';min-width:110px',row.note)); rc.appendChild(line); });
+  if(rf.apparatus.count>0) rc.appendChild(eoOvEl('div','font:500 10.5px '+EO_OV_UI+';color:'+P.warn,rf.apparatus.count+' apparatus sightings demoted — the publisher is a frame, not the biggest node'));
+  grid.appendChild(rc);
+  // RECURRENCE
+  const re=model.recurrence; const rec=eoOvShell(P,'RECURRENCE',re.families+' motif families'+(re.families?' ›':''));
+  if(re.families){ re.motifs.forEach(m=>{ const row=eoOvEl('div','display:flex;align-items:center;gap:8px'); row.appendChild(eoOvEl('div','font:700 11px '+EO_OV_UI+';color:'+P.text+';flex:1',m.id||'motif'));
+    row.appendChild(eoOvEl('div','font:600 10px '+EO_OV_MONO+';color:'+P.mut,'period '+m.period+' · ×'+m.instances)); if(m.regularity!=null) row.appendChild(eoOvMeter(m.regularity,P,P.good)); rec.appendChild(row); }); }
+  else rec.appendChild(eoOvEl('div','font:500 11px '+EO_OV_UI+';color:'+P.faint,'no recurring motifs detected'));
+  grid.appendChild(rec);
+  // COVERAGE
+  const cv=model.coverage; const cc=eoOvShell(P,'COVERAGE',cv.refoldable?'all re-foldable':null);
+  const f1=eoOvEl('div','display:flex;align-items:center;gap:8px'); f1.appendChild(eoOvEl('div','font:600 10.5px '+EO_OV_UI+';color:'+P.mut+';min-width:64px','folded')); f1.appendChild(eoOvMeter(cv.foldedPct/100,P,P.good)); f1.appendChild(eoOvEl('div','font:700 10.5px '+EO_OV_MONO+';color:'+P.text,cv.foldedPct+'%')); cc.appendChild(f1);
+  const f2=eoOvEl('div','display:flex;align-items:center;gap:8px'); f2.appendChild(eoOvEl('div','font:600 10.5px '+EO_OV_UI+';color:'+P.mut+';min-width:64px','discarded')); f2.appendChild(eoOvMeter(cv.discardedPct/100,P,P.faint)); f2.appendChild(eoOvEl('div','font:700 10.5px '+EO_OV_MONO+';color:'+P.text,cv.discardedPct+'%')); cc.appendChild(f2);
+  cc.appendChild(eoOvEl('div','font:600 10.5px '+EO_OV_MONO+';color:'+P.mut,'chrome '+cv.buckets.chrome+' · dup '+cv.buckets.dup+' · nul '+cv.buckets.nul)); grid.appendChild(cc);
+  // ORBIT (hosts the live solar map when opts.mountOrbit is given)
+  const ob=model.orbit; const oc=eoOvShell(P,'ORBIT',ob.suns+' sun · '+ob.planets+' planets · '+ob.moons+' moons');
+  const ohost=eoOvEl('div','width:100%;height:190px;border-radius:10px;overflow:hidden;background:'+P.bar);
+  oc.appendChild(ohost); if(typeof opts.mountOrbit==='function'){ try{ opts.mountOrbit(ohost,ob); }catch(_){ } }
+  grid.appendChild(oc);
+  // READINESS
+  const rd=model.readiness; const rdc=eoOvShell(P,'READINESS',rd.summary);
+  rd.channels.forEach(ch=>{ const row=eoOvEl('div','display:flex;align-items:center;gap:8px'); row.appendChild(eoOvEl('div','font:700 10.5px '+EO_OV_MONO+';color:'+P.text+';min-width:74px',ch.id));
+    row.appendChild(eoOvEl('div','font:600 9.5px '+EO_OV_UI+';color:'+(ch.thin?P.warn:P.good)+';min-width:44px',ch.thin?'THIN':'ready')); row.appendChild(eoOvMeter(ch.level,P,ch.thin?P.warn:P.good)); rdc.appendChild(row); });
+  if(rd.surpriseWeightsProvisional) rdc.appendChild(eoOvEl('div','font:500 10.5px '+EO_OV_UI+';color:'+P.warn,'⚠ surprise weights provisional'));
+  grid.appendChild(rdc);
+  shell.appendChild(grid); root.appendChild(shell);
+}
+
 // ── EPUB (zip) reading ──────────────────────────────────────────────────────────────────────
 // An EPUB is a ZIP of XHTML chapter files plus an OPF manifest naming their reading order. No
 // dependency: this is a minimal store/deflate ZIP directory reader, and modern browsers already
@@ -2173,6 +2413,7 @@ class Component extends DCLogic {
       },{passive:true});
     };
     this.solarRef=(el)=>this.mountSolar(el);
+    this.overviewDashRef=(el)=>this.mountOverviewDash(el);
     this._sid=1;
     this._prevSel=this.state.sel; this._prevDoc=this.state.doc; this._prevView=this.state.view; this._prevLayers=this.state.layers;
   }
@@ -2182,6 +2423,7 @@ class Component extends DCLogic {
     // it re-analyzes fixture text through the same pipeline every other
     // ingest path uses via this one bridge, same idea as the EOReader5 bridge below.
     window.__eoAnalyzeText = (raw, linkMap)=>this.analyzeText(raw, linkMap);
+    window.__eoApp = this;  // debug/test handle (same spirit as __eoAnalyzeText above)
     const set=()=>this.setState({engineLive:!!this.engineBridge(), engineName:this.engineBridgeName()});
     set();
     if(window.addEventListener){
@@ -2608,6 +2850,102 @@ class Component extends DCLogic {
       this._solars.add(el);
     };
     // First layout pass can report width 0; defer one frame so we size to the real box.
+    const r0=el.getBoundingClientRect();
+    if(r0.width>0) mount(); else requestAnimationFrame(mount);
+  }
+
+  // Adapter: build the OVERVIEW fold from the live reading. Where an engine
+  // signal isn't wired yet (novelty/strain compute, register, coverage), this
+  // computes an app-side proxy from the analysis the reader already has; where
+  // there's no honest source (empirical prior readiness), it degrades to
+  // provisional rather than inventing numbers. Target shape: the fixture at
+  // src/app/__fixtures__/npr-news-fold.js.
+  buildOverviewFold(){
+    const d=this.state.doc, a=(d&&d.analysis)||{};
+    const paras=a.paras||[], list=a.list||[], tension=a.tension||[];
+    const toc=(a.toc||[]).filter(e=>!e.implicit);
+    const N=Math.max(1,paras.length);
+    let host=''; try{ if(d&&d.url) host=new URL(d.url).hostname.replace(/^www\./,''); }catch(_){}
+    const srcLabel=(this.state.src&&this.state.src.label)||'';
+    const publisher=host||srcLabel.split('/')[0]||((d&&d.medium)||'Source');
+    const brand=(host?host.split('.')[0]:'').toLowerCase();
+    const named=(nm)=>{ const s=String(nm||'').trim(); return /^[A-Z0-9"“]/.test(s) && !/^the\b/i.test(s); };
+    const isApparatus=(nm)=>{ const s=String(nm||'').toLowerCase(); return !!brand && brand.length>=2 && s.indexOf(brand)>=0; };
+    const referents=list.map(e=>{
+      let type;
+      if(isApparatus(e.name)) type='apparatus';
+      else if(named(e.name)) type=(e.count||0)>=3?'holon':((e.links||0)>0?'protogon':'holon');
+      else type=((e.links||0)>0 && (e.count||0)<=2)?'protogon':'emanon';
+      return {id:e.id,name:e.name,individuation_type:type,mass:(e.count||0)+2*(e.links||0),count:e.count||0,kind:e.kind};
+    });
+    const apparatus=referents.filter(r=>r.individuation_type==='apparatus');
+    const sightings=list.reduce((s,e)=>s+(e.count||0),0);
+    // three division derivations: DOM headings, a novelty proxy, strain turns
+    const domCuts=toc.map(e=>Math.min(0.999,Math.max(0,(e.pi||0)/N))).sort((x,y)=>x-y);
+    const scores=paras.map(p=>eoPassageScore(p));
+    const noveltyCuts=[]; for(let i=1;i<paras.length;i++){ if(scores[i]-scores[i-1]>0.9) noveltyCuts.push(+(i/N).toFixed(3)); }
+    const strainCuts=tension.map(t=>{ const pi=eoFindParaIndex(paras,t.text); return pi>=0?+(pi/N).toFixed(3):null; }).filter(x=>x!=null);
+    const derivations=[
+      {id:'novelty',beats:noveltyCuts.length+1,unit:'beats',cuts:noveltyCuts,sparkline:scores.map(v=>Math.round(v*10)/10)},
+      {id:'dom',beats:toc.length,unit:'beats',cuts:domCuts},
+      {id:'strain',beats:tension.length,unit:'turns',cuts:strainCuts}
+    ];
+    // passages: register + surprise proxy + boilerplate null
+    const passages=paras.map((p,i)=>({p,i})).filter(x=>x.p&&x.p.trim()&&!eoIsHeadingPara(x.p)).map(x=>{
+      const sc=eoPassageScore(x.p);
+      const quoted=/[“”"].+[“”"]/.test(x.p)||/\b(said|says|according to|told|wrote|asked)\b/i.test(x.p);
+      const chrome=sc<1.0;
+      return {id:'u'+x.i,register:chrome?'chrome':(quoted?'quoted':'reported'),surprise:Math.round(sc*10)/10,belowNull:sc<1.35};
+    });
+    // coverage from what the reader kept vs dropped
+    const headings=paras.filter(p=>eoIsHeadingPara(p)).length;
+    const seen=new Set(); let dup=0; paras.forEach(p=>{ const k=String(p||'').trim(); if(k){ if(seen.has(k)) dup++; else seen.add(k);} });
+    const nul=paras.filter(p=>!String(p||'').trim()).length;
+    const discarded=Math.min(N,headings+dup+nul);
+    const foldedPct=Math.round((1-discarded/N)*100);
+    // orbit from the paradigm graph (feeds the live solar map's counts)
+    const g=this.paradigmGraph();
+    const nodes=g?g.nodes.map(n=>({id:n.id,label:n.label,kind:n.kind==='paradigm'?'paradigm':'moon',parent:n.parent,color:n.color,salience:n.salience})):[];
+    // coupling dispersion: normalized entropy of cast mass
+    const cast=referents.filter(r=>r.individuation_type!=='apparatus');
+    let disp=null; { const w=cast.map(r=>Math.max(0,r.mass||0)); const tot=w.reduce((s,x)=>s+x,0);
+      if(tot>0 && w.length>1){ let H=0; w.forEach(x=>{ if(x>0){ const pr=x/tot; H-=pr*Math.log(pr); } }); disp=+(H/Math.log(w.length)).toFixed(2); } }
+    const medium=(d&&d.medium)||'Webpage';
+    const kind=medium==='Book'?'book':(medium==='PDF'?'document':(medium==='Webpage'?'news article':'article'));
+    const priorSnapshot=medium==='Book'?'lit-corpus':(medium==='Webpage'?'us-news-web@3':'general');
+    const frame={kind,dispersion:disp,subject_reentry:apparatus.length?'fail':'n/a',
+      apparatus_note:apparatus.length?('"'+apparatus[0].name+'" typed APPARATUS — publisher, not subject'):null,override_available:true};
+    // readiness is honest: the app has not resolved an empirical PriorSnapshot,
+    // so every Ground channel reads provisional rather than a fabricated score.
+    const prior={snapshot:priorSnapshot,surprise_weights_provisional:true,
+      readiness:{priorMass:{ready:false,level:.25},priorBond:{ready:false,level:.25},priorProp:{ready:false,level:.25}}};
+    return {source:{publisher,medium,words:a.words||0},prior,frame,
+      divisions:{derivations},units:{passages},referents,sightings,
+      provenance_layer:{referents:apparatus.map(r=>({id:r.id,name:r.name,count:r.count}))},
+      motifs:[],coverage:{folded_pct:foldedPct,discarded_pct:100-foldedPct,buckets:{chrome:headings,dup,nul},refoldable:true},
+      orbit:{suns:1,nodes}};
+  }
+  // Imperative mount for the OVERVIEW dashboard, same lifecycle discipline as
+  // mountSolar: one instance per live box, reap on unmount, and tear down any
+  // solar maps left orphaned inside a replaced dashboard.
+  mountOverviewDash(el){
+    this._ovDash=this._ovDash||new Set();
+    if(!el){
+      for(const e of [...this._ovDash]){ if(!e.isConnected){ e.__ovmounted=false; this._ovDash.delete(e); } }
+      if(this._solars){ for(const e of [...this._solars]){ if(!e.isConnected){ if(e.__solar) e.__solar.destroy(); e.__solar=null; this._solars.delete(e); } } }
+      return;
+    }
+    if(el.__ovmounted) return;
+    const d=this.state.doc, a=d&&d.analysis;
+    if(!a||!(a.list&&a.list.length)||!(a.paras&&a.paras.length)) return; // nothing to project yet
+    const mount=()=>{
+      if(!el.isConnected||el.__ovmounted) return;
+      let model; try{ model=eoOverviewModel(this.buildOverviewFold()); }catch(err){ el.textContent='Overview unavailable: '+(err&&err.message||err); return; }
+      eoRenderOverviewDash(el, model, { t:this.theme(), dark:this.state.dark,
+        mountOrbit:(host)=>this.mountSolar(host),
+        onOpen:{ divisions:()=>this.cardOpenDivisions(), units:()=>this.cardOpenUnits(), referents:()=>this.cardOpenReferents() } });
+      el.__ovmounted=true; this._ovDash.add(el);
+    };
     const r0=el.getBoundingClientRect();
     if(r0.width>0) mount(); else requestAnimationFrame(mount);
   }
@@ -4709,6 +5047,10 @@ class Component extends DCLogic {
       tabOB:S.tab==='overview'?activeBg:'transparent', tabOC:S.tab==='overview'?activeC:t.mut,
       ovBackShown:cdBackShown, ovBackLabel:cdBackLabel, ovBack:()=>this.cardBack(),
       ovIsFrame:cardScreen==='frame', ovFrameKicker:cdFrameKicker, ovTitle:cdTitle, ovMeta:cdMeta, ovFrameRungs:cdFrameRows, ovFrameAbsences:cdFrameAbsences,
+      ovDashActive:!!(d&&d.analysis&&(d.analysis.list||[]).length&&(d.analysis.paras||[]).length),
+      ovDashFallback:!(d&&d.analysis&&(d.analysis.list||[]).length&&(d.analysis.paras||[]).length),
+      overviewDashRef:this.overviewDashRef,
+      overviewDashKey:((d&&(d.url||d.title||d.name))||'doc')+'|'+(dark?'d':'l')+'|'+((d&&d.analysis&&d.analysis.words)||0),
       cdHasProvenance, cdProvenanceText, cdProvenanceOpen,
       ovIsList:cardScreen==='list', ovListHeader:cdListHeader, ovListRows:cdListRows, ovListHasRows:cdListRows.length>0,
       cdHasLenses, cdLensChips,

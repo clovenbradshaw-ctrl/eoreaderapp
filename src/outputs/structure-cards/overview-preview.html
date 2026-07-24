@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OVERVIEW dashboard · preview</title>
+<style>
+  html, body { margin: 0; background: #14161b; }
+  #toolbar { position: fixed; bottom: 10px; right: 10px; z-index: 10; display: flex; gap: 6px; font: 600 11px system-ui; }
+  #toolbar button { border: 1px solid #444; background: #222; color: #ddd; border-radius: 8px; padding: 5px 9px; cursor: pointer; }
+</style>
+</head>
+<body>
+<div id="toolbar">
+  <button id="light">Light</button>
+  <button id="dark">Dark</button>
+</div>
+<div id="root"></div>
+<script type="module">
+  import { overviewModel } from '../../app/overview-dashboard.js';
+  import { mountOverviewDashboard, THEMES } from './overview-render.js';
+  import { nprNewsFold } from '../../app/__fixtures__/npr-news-fold.js';
+
+  const root = document.getElementById('root');
+  const model = overviewModel(nprNewsFold);
+  let theme = (matchMedia && matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+  const render = () => {
+    document.documentElement.style.background = THEMES[theme].bg;
+    mountOverviewDashboard(root, model, { theme: THEMES[theme] });
+  };
+  document.getElementById('light').onclick = () => { theme = 'light'; render(); };
+  document.getElementById('dark').onclick = () => { theme = 'dark'; render(); };
+  render();
+  // expose for headless verification
+  window.__overviewModel = model;
+</script>
+</body>
+</html>
