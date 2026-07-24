@@ -221,7 +221,7 @@
       </div>
       <div style="display:flex;align-items:center;justify-content:space-between;background:{{ t.bar }};border:1px solid {{ t.border }};border-radius:12px;padding:10px 12px;margin-bottom:10px">
         <div style="font:800 10px 'IBM Plex Mono',monospace;letter-spacing:.06em;color:{{ coverageColor }};text-transform:uppercase">{{ coverageLabel }}</div>
-        <div style="font:700 11px system-ui;color:{{ t.mut }}">Scope: {{ searchSources }} evidence sources · Conditioned by: {{ searchPriorCount }} selected priors · {{ searchPassages }} passages</div>
+        <div style="font:700 11px system-ui;color:{{ t.mut }}">{{ compactScopeLabel }} · {{ searchPassages }} passages</div>
       </div>
       <div style="display:flex;gap:6px;overflow-x:auto;margin-bottom:8px">
         <sc-for list="{{ projectionTabs }}" as="pt" hint-placeholder-count="3">
@@ -299,13 +299,13 @@
         <i class="ph ph-books" style="font-size:20px;color:{{ t.accent }}"></i>
         <div style="flex:1;min-width:0">
           <div style="font:800 18px system-ui;color:{{ t.text }}">Priors</div>
-          <div style="font:500 12.5px/1.45 system-ui;color:{{ t.mut }}">Inspectable prior sources, grouped by genre. Turn them on/off to include or exclude them from workspace structure and search.</div>
+          <div style="font:500 12.5px/1.45 system-ui;color:{{ t.mut }}">Priors condition computation, but they are not evidence sources. Select priors to change reading policy without changing workspace membership or focus.</div>
         </div>
         <span style="font:800 10px 'IBM Plex Mono',monospace;color:{{ t.mut }}">{{ priorOnCount }}/{{ priorTotal }} ON</span>
       </div>
       <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:13px">
-        <span onClick="{{ priorAllOn }}" style="background:{{ t.accent }};color:#fff;border-radius:16px;padding:7px 11px;font:800 11px system-ui;cursor:pointer">All priors on</span>
-        <span onClick="{{ priorAllOff }}" style="background:{{ t.bar }};border:1px solid {{ t.border }};color:{{ t.t2 }};border-radius:16px;padding:7px 11px;font:800 11px system-ui;cursor:pointer">All priors off</span>
+        <span onClick="{{ priorAllOn }}" style="background:{{ t.accent }};color:#fff;border-radius:16px;padding:7px 11px;font:800 11px system-ui;cursor:pointer">Select all priors</span>
+        <span onClick="{{ priorAllOff }}" style="background:{{ t.bar }};border:1px solid {{ t.border }};color:{{ t.t2 }};border-radius:16px;padding:7px 11px;font:800 11px system-ui;cursor:pointer">Clear priors</span>
         <span onClick="{{ openPriorSave }}" style="margin-left:auto;background:{{ t.accentSoft }};border:1px solid {{ t.accentLine }};color:{{ t.accent }};border-radius:16px;padding:7px 11px;font:800 11px system-ui;cursor:pointer">＋ Save to priors</span>
       </div>
 
@@ -368,8 +368,8 @@
           <div style="display:flex;align-items:center;gap:8px;padding:11px 12px;border-bottom:1px solid {{ t.border }}">
             <div style="font:800 12px system-ui;color:{{ t.text }};flex:1">{{ g.label }}</div>
             <span style="font:800 10px 'IBM Plex Mono',monospace;color:{{ t.mut }}">{{ g.onCount }}/{{ g.total }} on</span>
-            <span onClick="{{ g.allOn }}" style="font:800 10px system-ui;color:{{ t.accent }};cursor:pointer">All on</span>
-            <span onClick="{{ g.allOff }}" style="font:800 10px system-ui;color:{{ t.mut }};cursor:pointer">Off</span>
+            <span onClick="{{ g.allOn }}" style="font:800 10px system-ui;color:{{ t.accent }};cursor:pointer">Select all</span>
+            <span onClick="{{ g.allOff }}" style="font:800 10px system-ui;color:{{ t.mut }};cursor:pointer">Clear priors</span>
           </div>
           <sc-for list="{{ g.rows }}" as="p" hint-placeholder-count="2">
             <div style="padding:10px 12px;border-top:1px solid {{ t.border }};opacity:{{ p.op }}">
@@ -441,7 +441,7 @@
 
       <div style="margin:0 2px 11px">
         <div style="font:700 10px 'IBM Plex Mono',monospace;letter-spacing:.06em;color:{{ t.accent }}">WORKSPACE BRIEF · {{ spaceName }}</div>
-        <div style="font:400 12.5px/1.45 system-ui;color:{{ t.mut }};margin-top:3px">Stored: Library owns each source once. Included: this workspace references {{ totalSrcCount }} evidence sources and {{ notesCount }} note. Focused: {{ focusPath }} · {{ activeSrcCount }} evidence sources active. Priors are reading policy, not source children.</div>
+        <div style="font:400 12.5px/1.45 system-ui;color:{{ t.mut }};margin-top:3px">Library: each document is recorded once. Workspace: {{ spaceName }} references {{ totalSrcCount }} evidence sources and {{ notesCount }} note. Focus: {{ focusPath }} · {{ activeSrcCount }} sources. Priors condition computation only; they are never counted as sources.</div>
       </div>
 
       <sc-if value="{{ priorHasReduction }}">
@@ -470,7 +470,7 @@
       </sc-for>
 
       <div style="background:{{ t.bar }};border:1px solid {{ t.border }};border-radius:12px;padding:11px 12px;margin:3px 0 16px">
-        <div style="font:600 9px system-ui;letter-spacing:.05em;text-transform:uppercase;color:{{ t.mut }};margin-bottom:8px">Evidence base · across active sources</div>
+        <div style="font:600 9px system-ui;letter-spacing:.05em;text-transform:uppercase;color:{{ t.mut }};margin-bottom:8px">Evidence base · current focus</div>
         <div style="display:flex;gap:7px">
           <sc-for list="{{ corpusStats }}" as="cs" hint-placeholder-count="4">
             <div style="flex:1;background:{{ t.card }};border:1px solid {{ t.border }};border-radius:10px;padding:9px 6px;text-align:center">
@@ -499,7 +499,7 @@
               <div style="font:600 13.5px system-ui;color:{{ t.text }};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ s.title }}</div>
               <div style="font:500 11px system-ui;color:{{ t.mut }};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ s.det }}</div>
             </div>
-            <span onClick="{{ s.toggleActive }}" title="Focus / unfocus for current questions" style="flex:none;width:34px;height:20px;border-radius:20px;background:{{ s.track }};position:relative;cursor:pointer;transition:background .18s"><span style="position:absolute;top:2px;left:{{ s.knob }};width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25);transition:left .18s"></span></span>
+            <span onClick="{{ s.toggleActive }}" title="Select focus for current questions" style="flex:none;width:34px;height:20px;border-radius:20px;background:{{ s.track }};position:relative;cursor:pointer;transition:background .18s"><span style="position:absolute;top:2px;left:{{ s.knob }};width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25);transition:left .18s"></span></span>
             <span style="flex:none;color:{{ t.faint }};font-size:12px;transform:rotate({{ s.chev }});transition:transform .2s">▸</span>
           </div>
           <sc-if value="{{ s.showInsight }}">
@@ -756,9 +756,9 @@
         <sc-if value="{{ sp.on }}">
           <div class="eo-rail-sources" style="display:none;flex-direction:column;gap:3px;margin:1px 0 9px 5px;padding-left:9px;border-left:1.5px solid {{ t.border }}">
             <div style="display:flex;align-items:center;gap:7px;padding:1px 3px 4px">
-              <span style="font:700 9px 'IBM Plex Mono',monospace;color:{{ t.mut }};letter-spacing:.04em">All evidence · {{ drawerOnCount }}/{{ drawerTotal }} active</span>
-              <span onClick="{{ bulkAllOn }}" style="font:700 10px system-ui;color:{{ t.accent }};cursor:pointer;margin-left:auto">All on</span>
-              <span onClick="{{ bulkAllOff }}" style="font:700 10px system-ui;color:{{ t.mut }};cursor:pointer">Off</span>
+              <span style="font:700 9px 'IBM Plex Mono',monospace;color:{{ t.mut }};letter-spacing:.04em">All evidence · {{ drawerOnCount }}/{{ drawerTotal }} focused</span>
+              <span onClick="{{ bulkAllOn }}" style="font:700 10px system-ui;color:{{ t.accent }};cursor:pointer;margin-left:auto">Focus all</span>
+              <span onClick="{{ bulkAllOff }}" style="font:700 10px system-ui;color:{{ t.mut }};cursor:pointer">Clear</span>
               <span onClick="{{ startAllRec }}" title="Record every source" style="color:#2f9e57;cursor:pointer;display:flex;align-items:center"><i class="ph ph-record-fill" style="font-size:11px"></i></span>
             </div>
             <sc-if value="{{ noSources }}">
@@ -779,7 +779,7 @@
                       {{ s.recLabel }}
                     </div>
                   </div>
-                  <span onClick="{{ s.toggleOn }}" title="Focused for current questions" style="flex:none;width:30px;height:18px;border-radius:20px;background:{{ s.track }};position:relative;cursor:pointer;transition:background .18s"><span style="position:absolute;top:2px;left:{{ s.knobSm }};width:14px;height:14px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25);transition:left .18s"></span></span>
+                  <span onClick="{{ s.toggleOn }}" title="Selected for current focus" style="flex:none;width:30px;height:18px;border-radius:20px;background:{{ s.track }};position:relative;cursor:pointer;transition:background .18s"><span style="position:absolute;top:2px;left:{{ s.knobSm }};width:14px;height:14px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25);transition:left .18s"></span></span>
                   <span onClick="{{ s.toggleExpand }}" style="flex:none;color:{{ t.faint }};font-size:10px;transform:rotate({{ s.chevron }});transition:transform .2s;cursor:pointer">▸</span>
                 </div>
                 <sc-if value="{{ s.expanded }}">
@@ -1080,7 +1080,7 @@
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
           <i class="ph ph-stack" style="font-size:19px;color:{{ t.accent }}"></i>
           <div style="font:700 16px system-ui;color:{{ t.text }}">Sources</div>
-          <span style="font:700 11px 'IBM Plex Mono',monospace;color:{{ t.mut }}">{{ drawerOnCount }} evidence · {{ notesCount }} notes · {{ priorActiveCount }} priors</span>
+          <span style="font:700 11px 'IBM Plex Mono',monospace;color:{{ t.mut }}">{{ drawerOnCount }} focused evidence · {{ notesCount }} notes</span>
           <span onClick="{{ closeSources }}" style="margin-left:auto;color:{{ t.accent }};font:600 13px system-ui;cursor:pointer">Done</span>
         </div>
         <div style="font:600 9px system-ui;letter-spacing:.05em;text-transform:uppercase;color:{{ t.mut }};margin-bottom:7px">Workspace</div>
@@ -1104,8 +1104,8 @@
         </sc-if>
         <div style="display:flex;gap:6px;align-items:center;margin-bottom:11px">
           <input key="srcfilter" defaultValue="{{ srcQuery }}" onInput="{{ onSrcQuery }}" placeholder="Filter sources…" style="flex:1;min-width:0;background:{{ t.bar }};border:1px solid {{ t.border }};border-radius:10px;padding:9px 11px;font:500 12.5px system-ui;color:{{ t.text }};outline:none">
-          <span onClick="{{ bulkAllOn }}" style="flex:none;font:700 11px system-ui;color:{{ t.accent }};cursor:pointer;padding:8px 8px">All on</span>
-          <span onClick="{{ bulkAllOff }}" style="flex:none;font:700 11px system-ui;color:{{ t.mut }};cursor:pointer;padding:8px 8px">All off</span>
+          <span onClick="{{ bulkAllOn }}" style="flex:none;font:700 11px system-ui;color:{{ t.accent }};cursor:pointer;padding:8px 8px">Focus all</span>
+          <span onClick="{{ bulkAllOff }}" style="flex:none;font:700 11px system-ui;color:{{ t.mut }};cursor:pointer;padding:8px 8px">Clear focus</span>
           <span onClick="{{ startAllRec }}" title="Record all sources in this space" style="flex:none;display:flex;align-items:center;gap:5px;font:700 11px system-ui;color:#2f9e57;cursor:pointer;padding:8px 8px"><i class="ph ph-record-fill" style="font-size:12px"></i>Rec all</span>
         </div>
       </div>
@@ -1132,7 +1132,7 @@
                   {{ s.recLabel }}
                 </div>
               </div>
-              <span onClick="{{ s.toggleOn }}" title="Focused for current questions" style="flex:none;width:34px;height:20px;border-radius:20px;background:{{ s.track }};position:relative;cursor:pointer;transition:background .18s"><span style="position:absolute;top:2px;left:{{ s.knob }};width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25);transition:left .18s"></span></span>
+              <span onClick="{{ s.toggleOn }}" title="Selected for current focus" style="flex:none;width:34px;height:20px;border-radius:20px;background:{{ s.track }};position:relative;cursor:pointer;transition:background .18s"><span style="position:absolute;top:2px;left:{{ s.knob }};width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25);transition:left .18s"></span></span>
               <span onClick="{{ s.toggleExpand }}" style="flex:none;color:{{ t.faint }};font-size:12px;transform:rotate({{ s.chevron }});transition:transform .2s">▸</span>
             </div>
             <sc-if value="{{ s.expanded }}">
@@ -4060,7 +4060,7 @@ class Component extends DCLogic {
     if(!pool.length) return null;
     const agg={ents:[],toc:[],highlights:[],words:0};
     pool.forEach(m=>{ agg.ents=agg.ents.concat(m.ents||[]); agg.toc=agg.toc.concat(m.toc||[]); agg.highlights=agg.highlights.concat(m.highlights||[]); agg.words+=(m.words||0); });
-    return { m:agg, label: pool.length+' active source'+(pool.length===1?'':'s') };
+    return { m:agg, label: pool.length+' focused source'+(pool.length===1?'':'s') };
   }
   // Top cells of a prior's distribution, for the inspector — share of mass, a
   // bar width, and whether the cell is one of the silenced universal acts.
@@ -4111,7 +4111,7 @@ class Component extends DCLogic {
   crossInsights(){
     return this.sharedMap().slice(0,3).map(x=>({
       kind:'RECURRING REFERENT', color:x.color,
-      text:'“'+x.name+'” recurs across '+x.codes.length+' active source folds; open the sources to inspect evidence.',
+      text:'“'+x.name+'” recurs across '+x.codes.length+' focused source folds; open the sources to inspect evidence.',
       srcs:x.codes, chips:[{t:x.name,c:x.color}]
     }));
   }
@@ -5115,7 +5115,9 @@ class Component extends DCLogic {
     const baseSources=this.mem();
     const sources=(baseSources.length?baseSources:[this.state.doc].filter(Boolean)).filter(Boolean);
     const scope=scopeOverride || this.state.searchScope || 'all';
-    const scoped=scope&&scope!=='all'?sources.filter(s=>String(s.id||s.title||s.name)===scope):sources;
+    const focused=sources.filter(s=>this.state.structActive[s.id]!==false);
+    const focusPool=focused.length?focused:sources;
+    const scoped=scope&&scope!=='all'?sources.filter(s=>String(s.id||s.title||s.name)===scope):focusPool;
     const hits=[];
     scoped.forEach((src,si)=>{ const a=src.analysis||{}, paras=a.paras||[]; paras.forEach((p,pi)=>{ const low=(p||'').toLowerCase(); const score=terms.reduce((acc,t)=>acc+(low.includes(t)?1:0),0); if(score>0) hits.push({schema:'EvidenceHit@1',id:(src.id||'doc')+':p:'+pi,channel:low.includes(norm)?'exact':'referential',score,source_id:src.id||src.name||'current',source_title:src.title||src.name||'Current source',anchor:{kind:'text-passage',paragraphIndex:pi,label:'¶ '+(pi+1)},text:p}); }); });
       hits.sort((a,b)=>b.score-a.score||String(a.id).localeCompare(String(b.id)));
@@ -5246,9 +5248,12 @@ class Component extends DCLogic {
     const projection=S.searchProjection || 'evidence';
     const coverageColor={sufficient:'#2f7a55',partial:'#b0842f',ambiguous:'#b0842f',absent:'#c0392b',guidance:t.mut}[reading.coverage]||t.mut;
     const coverageText={sufficient:'Answered from selected evidence',partial:'Thin answer — evidence is limited',absent:'Cannot answer from this scope',guidance:'Search a committed fold'}[reading.coverage]||'Search index unavailable';
-    const searchScopeLabel=(S.searchScope&&S.searchScope!=='all')?'This source':'Workspace';
+    const searchScopeLabel=(S.searchScope&&S.searchScope!=='all')?'This source':'All evidence';
+    const focusSourceCount=act.length;
+    const scopeEvidenceCount=submittedQuestion?(reading.searched_scope.sources||[]).length:focusSourceCount;
+    const compactScopeLabel=(sp?sp.name:'Workspace')+' / '+searchScopeLabel+' · '+scopeEvidenceCount+' source'+(scopeEvidenceCount===1?'':'s');
     const sourceKeys=(memList.length?memList:[d].filter(Boolean)).map((m,i)=>({id:m.id||m.title||m.name||('source'+i),label:(m.title||m.name||'Source').slice(0,18),dot:this.medColor(m.medium)}));
-    const scopeChips=[{id:'all',label:'All',dot:t.accent},...sourceKeys].map(x=>{const on=(S.searchScope||'all')===x.id;return{label:x.label,dot:x.dot,bg:on?t.accent:t.bar,fg:on?'#fff':t.t2,bd:on?t.accent:t.border,pick:()=>this.setState({searchScope:x.id,queryReading:this.buildLocalQueryReading(queryText,x.id)})};});
+    const scopeChips=[{id:'all',label:'All evidence',dot:t.accent},...sourceKeys].map(x=>{const on=(S.searchScope||'all')===x.id;return{label:x.label,dot:x.dot,bg:on?t.accent:t.bar,fg:on?'#fff':t.t2,bd:on?t.accent:t.border,pick:()=>this.setState({searchScope:x.id,queryReading:this.buildLocalQueryReading(queryText,x.id)})};});
     const projectionTabs=['At a glance','Pieces','Sources','JSON'].map(x=>{ const id=({ 'At a glance':'evidence', Pieces:'structure', Sources:'all', JSON:'json' })[x]||x.toLowerCase(); const on=projection===id; return {label:x,bg:on?t.accent:t.bar,fg:on?'#fff':t.t2,bd:on?t.accent:t.border,pick:()=>this.setState({searchProjection:id})}; });
     const toCard=ev=>({text:ev.text&&ev.text.length>220?ev.text.slice(0,220)+'…':ev.text,source:ev.source_title,anchor:ev.anchor&&ev.anchor.label,color:ev.channel==='exact'?t.accent:(ev.channel==='structural'?'#2a78d6':'#8e6fb3'),open:()=>this.openEvidence(ev),why:()=>this.whyEvidence(ev)});
     const coreEvidence=(reading.core_evidence||[]).map(toCard);
@@ -5408,7 +5413,7 @@ class Component extends DCLogic {
       structSources, corpusStats, sharedEnts, hasShared:sharedEnts.length>0, mediumFilters, crossInsights, crossSources,
       hasCross:crossInsights.length>0, noCross:crossInsights.length===0,
       queryText, onQueryInput:(e)=>this.setState({queryText:e.target.value}), onQueryKey:(e)=>{ if(e.key==='Enter') this.runLocalSearch(e.target.value); }, clearQuery:()=>this.runLocalSearch(''),
-      searchBlankState:!submittedQuestion, coverageLabel:coverageText, coverageColor, searchPlaceholderMain:(searchScopeLabel==='This source'?('Search '+((d&&d.title)||'this source')+'…'):('Search '+(sp?sp.name:'workspace')+'…')), searchSources:(submittedQuestion?(reading.searched_scope.sources||[]).length:(memList.length?memList:[d].filter(Boolean)).length), searchPriorCount:priorActiveCount, searchPassages:(reading.core_evidence||[]).length+(reading.context_evidence||[]).length, searchContrasts:(reading.counterevidence||[]).length,
+      searchBlankState:!submittedQuestion, coverageLabel:coverageText, coverageColor, searchPlaceholderMain:(searchScopeLabel==='This source'?('Search '+((d&&d.title)||'this source')+'…'):('Search '+(sp?sp.name:'workspace')+' focus…')), compactScopeLabel, searchSources:scopeEvidenceCount, searchPriorCount:priorActiveCount, searchPassages:(reading.core_evidence||[]).length+(reading.context_evidence||[]).length, searchContrasts:(reading.counterevidence||[]).length,
       projectionTabs, searchScopeChips:scopeChips, showEvidence:submittedQuestion&&(projection==='evidence'||projection==='all'), showStructure:submittedQuestion&&(projection==='structure'||projection==='all'), coreEvidence, contextEvidence, hasGaps:submittedQuestion&&gaps.length>0, gapText:gaps.length?('Missing evidence roles: '+gaps.join(', ')):'',
       searchHasAnswer:submittedQuestion, integrityStatus, integritySummary, integrityDetail, integrityColor, hasAbstention:submittedQuestion&&hasAbstention, abstentionTitle, abstentionText,
       activeSrcCount:act.length, totalSrcCount:raw.length,
