@@ -1309,7 +1309,7 @@
 </div>
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:440,&quot;height&quot;:940},&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Light&quot;,&quot;Dark&quot;],&quot;default&quot;:&quot;Light&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Appearance&quot;},&quot;view&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Native&quot;,&quot;Native +&quot;,&quot;Reader&quot;],&quot;default&quot;:&quot;Reader&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Reader&quot;},&quot;candidates&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Reader&quot;}}">
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:440,&quot;height&quot;:940},&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Light&quot;,&quot;Dark&quot;],&quot;default&quot;:&quot;Light&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Appearance&quot;},&quot;view&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Native&quot;,&quot;Native +&quot;,&quot;Reader&quot;],&quot;default&quot;:&quot;Native +&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Reader&quot;},&quot;candidates&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Reader&quot;}}">
 // ── book chapter detection (ported from eoreader4.2 reader-render.js) ──────────────────────────
 // A chapter is discovered by the FORM of a short line that RECURS and tiles the text — roman
 // numerals, "Chapter N", ALL-CAPS, a markdown # — never by a keyword list. This is what gives a
@@ -2548,7 +2548,7 @@ class Component extends DCLogic {
       tab:'reader',
       betaPrompt:'', betaOrgans:{text:true,image:true,audio:true,video:false,math:false}, betaTurn:null,
       searchProjection:'evidence', searchScope:'all', queryText:'', queryReading:null, queryWhy:null,
-      view: vmap[props.view]||'reader',
+      view: vmap[props.view]||'annotated',
       layersOpen:false, settingsOpen:false, importOpen:false, urlVal:'', engineLive:false,
       layers:{hi:true,en:true,ch:true,ln:true,nw:props.candidates!==false},
       sel:null, linkSel:null, linkPeek:{status:'idle'}, linkFromOpen:true, level:'prompt', chap:0, tocOpen:false, explore:null,
@@ -3335,7 +3335,7 @@ class Component extends DCLogic {
     this.setState(s=>{
       const next={doc:d, importOpen:false, searchResults:[], mediaResults:[], searchMsg:'', sel:null, level:'prompt', chap:0, tab:'reader',
         searchProjection:'evidence', searchScope:'all', queryText:'', queryReading:null, queryWhy:null,
-        view:(opts&&opts.view)||this.load('eo5.readerType','native'), webFrameActiveIds:[], cardPath:[], lensByRung:{}, readPct:0, tocOpen:false,
+        view:(opts&&opts.view)||this.load('eo5.readerType','annotated'), webFrameActiveIds:[], cardPath:[], lensByRung:{}, readPct:0, tocOpen:false,
         src:{label:d.name||d.title, det, dot:this.medColor(d.medium)}};
       if(!autoRecord) return next;
       const key=this.docKey(d);
@@ -5553,7 +5553,7 @@ class Component extends DCLogic {
       ovRefHasWith:cdRefWith.length>0, ovRefNoWith:!!cdRefEnt&&cdRefWith.length===0, ovRefWith:cdRefWith,
       cdRefForms, cdRefHasForms:cdRefForms.length>0,
       scrollRef:this.scrollRef,
-      chromeMaxH:chromeCollapsed?'0px':'150px', chromePadT:chromeCollapsed?'0px':'5px',
+      chromeMaxH:chromeCollapsed?'0px':'260px', chromePadT:chromeCollapsed?'0px':'5px',
       chromeOpacity:chromeCollapsed?0:1, chromePE:chromeCollapsed?'none':'auto',
       chromeBottomT:chromeCollapsed?'translateY(96px)':'translateY(0)',
       chromeBottomOp:chromeCollapsed?0:1, chromeBottomPE:chromeCollapsed?'none':'auto',
