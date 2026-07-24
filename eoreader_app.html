@@ -2864,7 +2864,7 @@ class Component extends DCLogic {
 
     // -- List (Divisions or Units) --
     const listRungIdx = cardScreen==='list' ? cardTop.rungIdx : null;
-    const cdListRes = listRungIdx===2 ? rung2 : (listRungIdx===3 ? rung3Scoped : null);
+    const cdListRes = listRungIdx===2 ? rung2 : (listRungIdx===3 ? rung3Scoped : (listRungIdx===4 ? rung4Whole : null));
     const cdListLens = pickLens(cdListRes, listRungIdx);
     const cdListLenses = (cdListRes && !cdListRes.absent) ? cdListRes.lenses : [];
     const cdHasLenses = cdListLenses.length>1;
@@ -2882,6 +2882,7 @@ class Component extends DCLogic {
         const pi = it.anchor && it.anchor.type==='para' ? it.anchor.pi : 0;
         return {...base, pick:()=>this.cardOpenDivision({title:it.title, anchor:it.anchor, _pi:pi, _nextPi:nextPi})};
       }
+      if(listRungIdx===4) return {...base, pick:()=>this.cardOpenReferent(it.id, it.title)};
       return {...base, pick:()=>this.cardOpenUnit(it)};
     });
 
