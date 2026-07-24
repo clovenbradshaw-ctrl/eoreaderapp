@@ -1112,6 +1112,7 @@ class Component extends DCLogic {
     };
     this.solarRef=(el)=>this.mountSolar(el);
     this._sid=1;
+    this._prevSel=this.state.sel; this._prevDoc=this.state.doc; this._prevView=this.state.view; this._prevLayers=this.state.layers;
   }
   componentDidMount(){
     const set=()=>this.setState({engineLive:!!this.engineBridge(), engineName:this.engineBridgeName()});
@@ -1433,10 +1434,15 @@ class Component extends DCLogic {
       onPivot:(id)=>{ if(id) this.pick(id); },
     });
   }
-  componentDidUpdate(prevProps, prevState){
-    if(this._solar && prevState.sel!==this.state.sel && this.state.sel) this._solar.focus(this.state.sel);
-    if(this._webFrameDoc && prevState.doc===this.state.doc &&
-       (prevState.view!==this.state.view || prevState.layers!==this.state.layers)){
+  // The dc-runtime's componentDidUpdate only ever forwards prevProps, never prevState (see
+  // support.js), so "what changed since last render" has to be tracked by hand here rather
+  // than read off a second argument that's always undefined.
+  componentDidUpdate(prevProps){
+    const prevSel=this._prevSel, prevDoc=this._prevDoc, prevView=this._prevView, prevLayers=this._prevLayers;
+    this._prevSel=this.state.sel; this._prevDoc=this.state.doc; this._prevView=this.state.view; this._prevLayers=this.state.layers;
+    if(this._solar && prevSel!==this.state.sel && this.state.sel) this._solar.focus(this.state.sel);
+    if(this._webFrameDoc && prevDoc===this.state.doc &&
+       (prevView!==this.state.view || prevLayers!==this.state.layers)){
       this.syncWebMarks();
     }
   }
@@ -1480,10 +1486,14 @@ class Component extends DCLogic {
     const prep=this.prepMarks(d.analysis, true);
     if(!prep){ this._webFrameActiveIds=[]; if((this.state.webFrameActiveIds||[]).length) this.setState({webFrameActiveIds:[]}); return; }
     const SKIP={script:1,style:1,noscript:1,textarea:1};
+    // Confine marks to article prose: skip the site's own chrome (masthead, nav, footer, rails)
+    // so a real page gets entities only where the reader does — ported from eoreader4.2 eoInChrome.
+    const inChrome=el=>!!(el && el.closest && el.closest('nav,header,footer,aside,[role="navigation"],[role="banner"],[role="contentinfo"]'));
     const walker=doc.createTreeWalker(doc.body, NodeFilter.SHOW_TEXT, {
       acceptNode:node=>{
         const p=node.parentNode;
         if(!p || SKIP[(p.nodeName||'').toLowerCase()]) return NodeFilter.FILTER_REJECT;
+        if(inChrome(p)) return NodeFilter.FILTER_REJECT;
         return NodeFilter.FILTER_ACCEPT;
       }
     });
@@ -1512,6 +1522,58 @@ class Component extends DCLogic {
     });
     this._webFrameActiveIds=[...entIds];
     this.setState({webFrameActiveIds:[...entIds]});
+  }
+  // Reconstructs a bare HTML document from extracted article text, for sources whose original
+  // markup wasn't preserved — gives Native+ real HTML to paint structure onto instead of a
+  // JSX-rendered stand-in.
+  buildSyntheticWebHtml(d){
+    const a=d.analysis||{}, esc=s=>String(s==null?'':s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+    const paras=(a.paras||[]).map(p=>'<p>'+esc(p)+'</p>').join('\n');
+    return '<!doctype html><html><head><meta charset="utf-8">'
+      +'<meta name="viewport" content="width=device-width,initial-scale=1">'
+      +'<style>body{font:16px/1.65 \'Source Serif 4\',Georgia,serif;max-width:640px;margin:0 auto;padding:24px 20px 60px;color:#1e1c19;background:#fff}'
+      +'h1{font:700 26px/1.3 Georgia,serif;margin:0 0 6px}.byline{font:500 13px system-ui;color:#77716a;margin:0 0 22px}p{margin:0 0 18px}</style></head>'
+      +'<body><article><h1>'+esc(d.title||'')+'</h1>'
+      +(d.byline?'<div class="byline">'+esc(d.byline)+'</div>':'')
+      +paras+'</article></body></html>';
+  }
+  // Port of eoreader4.2 reader-render's nativePageHtml: make the page's OWN fetched HTML render
+  // like the real site inside the script-less sandboxed iframe. A modern page hides most of its
+  // look behind JavaScript, so dropping raw markup into a no-script frame paints blank boxes.
+  // Four recovery moves fix that without running a line of the page:
+  //   • sanitize    — cut <script>/<meta refresh> so the markup can't navigate or leave dead nodes.
+  //   • re-base     — drop the page's own <base> and inject <base href> = the real URL, so every
+  //                   relative stylesheet/image/font resolves against the site (not the srcdoc's
+  //                   opaque origin), plus <meta referrer=no-referrer> and a CSP that upgrades http
+  //                   assets to https (else they're blocked as mixed content on our https host).
+  //   • un-lazy     — promote each image's real URL out of its data-* attr into src/srcset, the job
+  //                   the site's lazy-loader would have done, so images actually appear.
+  //   • un-noscript — UNWRAP <noscript> rather than delete it: its contents ARE the author's own
+  //                   no-JS fallback (the plain <img> or fallback stylesheet), exactly our state.
+  nativePageHtml(rawHtml, baseUrl){
+    const text=String(rawHtml||'');
+    const escAttr=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    // Lazy-load conventions: a placeholder sits in `src` while the real image waits in a data-*
+    // attr for a script to swap in on scroll (lazysizes, jQuery.lazyload, and their variants).
+    const LAZY_SRC=['data-src','data-lazy-src','data-original'], LAZY_SRCSET=['data-srcset','data-lazy-srcset'];
+    const attrVal=(tag,name)=>{ const m=new RegExp('\\b'+name+'\\s*=\\s*("([^"]*)"|\'([^\']*)\'|([^\\s"\'>]+))','i').exec(tag); return m?(m[2]!=null?m[2]:(m[3]!=null?m[3]:m[4])):null; };
+    const setAttr=(tag,name,value)=>{ const re=new RegExp('\\b'+name+'\\s*=\\s*("[^"]*"|\'[^\']*\'|[^\\s"\'>]+)','i'); const attr=name+'="'+escAttr(value)+'"'; return re.test(tag)?tag.replace(re,attr):tag.replace(/^<([a-z0-9]+)/i,'<$1 '+attr); };
+    const revealLazyTag=tag=>{ const src=LAZY_SRC.map(a=>attrVal(tag,a)).find(v=>v!=null&&v!==''); const srcset=LAZY_SRCSET.map(a=>attrVal(tag,a)).find(v=>v!=null&&v!==''); let out=tag; if(src) out=setAttr(out,'src',src); if(srcset) out=setAttr(out,'srcset',srcset); return out; };
+    // Match a whole <img>/<source> start tag without tripping on a `>` inside a quoted attribute
+    // (a lazy placeholder src is often an inline SVG data-URI whose `>` would end a naive match).
+    const revealLazyImages=html=>html.replace(/<(?:img|source)\b(?:[^>"']|"[^"]*"|'[^']*')*>/gi, revealLazyTag);
+    let doc=text
+      .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,'')
+      .replace(/<meta[^>]+http-equiv\s*=\s*["']?refresh["']?[^>]*>/gi,'')
+      .replace(/<base\b[^>]*>/gi,'');
+    doc=revealLazyImages(doc).replace(/<\/?noscript\b[^>]*>/gi,'');
+    const head='<base href="'+escAttr(baseUrl||'')+'" target="_blank">'
+      +'<meta name="referrer" content="no-referrer">'
+      +'<meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">';
+    if(/<head[^>]*>/i.test(doc)) doc=doc.replace(/<head([^>]*)>/i,'<head$1>'+head);
+    else if(/<html[^>]*>/i.test(doc)) doc=doc.replace(/<html([^>]*)>/i,'<html$1><head>'+head+'</head>');
+    else doc=head+doc;
+    return doc;
   }
 
   bucketOf(m){ const b={Webpage:'Web & news',PDF:'Documents',Document:'Documents',Slides:'Documents',Spreadsheet:'Data & sheets',Data:'Data & sheets',Code:'Code',Image:'Media',Audio:'Media',Video:'Media',Text:'Notes'}; return b[m]||'Other'; }
@@ -1980,7 +2042,7 @@ class Component extends DCLogic {
     const activeSceneEntities=()=>{
       const list=(a&&a.list?a.list:[]);
       if(!list.length) return [];
-      if(d.medium==='Webpage' && d.rawHtml){
+      if(d.medium==='Webpage'){
         const ids=this.state.webFrameActiveIds||[];
         if(!ids.length) return [];
         const byId=new Map(list.map(e=>[e.id,e]));
@@ -2014,8 +2076,19 @@ class Component extends DCLogic {
     if((view==='native'||view==='annotated') && d.medium==='PDF' && d.pdfUrl){
       return nativeWrap([h('iframe',{key:'f',src:d.pdfUrl,title:d.name,style:{flex:1,minHeight:'640px',border:'none',width:'100%',background:'#525659'}})], '#525659');
     }
+    // Native + (annotated): the clean, reader-shaped article rebuilt as real HTML, with EO
+    // structure painted onto it in the iframe. A live site stripped of its own JavaScript and
+    // (in a sandboxed frame) most of its CSS renders as a mess of nav junk and broken images —
+    // ugly and unreadable — so Native+ injects structure into a clean reconstruction instead of
+    // the raw page. The untouched real page is still one dot away, under plain "Native" below.
+    if(view==='annotated' && d.medium==='Webpage' && a && a.paras && a.paras.length){
+      const synHtml=this.buildSyntheticWebHtml(d);
+      return nativeWrap([h('iframe',{key:'f',srcDoc:synHtml,sandbox:'allow-same-origin allow-popups',title:d.title,onLoad:e=>this.onWebIframeLoad(e),style:{flex:1,minHeight:'700px',border:'none',width:'100%',background:'#fff'}})], '#fff');
+    }
+    // Native: the page's own markup rendered like the real site (nativePageHtml recovery). No EO
+    // marks — this is the file as-fetched. Native+ with no extractable prose also lands here.
     if((view==='native'||view==='annotated') && d.medium==='Webpage' && d.rawHtml){
-      return nativeWrap([h('iframe',{key:'f',srcDoc:d.rawHtml,sandbox:'allow-same-origin allow-popups',title:d.title,onLoad:e=>this.onWebIframeLoad(e),style:{flex:1,minHeight:'700px',border:'none',width:'100%',background:'#fff'}})], '#fff');
+      return nativeWrap([h('iframe',{key:'f',srcDoc:this.nativePageHtml(d.rawHtml, d.url),sandbox:'allow-same-origin allow-popups',title:d.title,onLoad:e=>this.onWebIframeLoad(e),style:{flex:1,minHeight:'700px',border:'none',width:'100%',background:'#fff'}})], '#fff');
     }
     if(d.medium==='Spreadsheet' && d.rawText){ const csvEl=this.buildCsvSource(d,t,h,pad); if(csvEl) return csvEl; }
     if((view==='native'||view==='annotated') && (d.medium==='Text'||d.medium==='Code'||d.medium==='Data') && d.rawText){
