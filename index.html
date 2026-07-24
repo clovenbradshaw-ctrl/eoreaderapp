@@ -11,6 +11,8 @@
 <title>EOReader — read the meaning and structure of a source</title>
 <meta name="description" content="EOReader loads a source and shows its meaning and structure — sections, claims, actors, and moments — so you can read what a document actually says and how it is organized.">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="icon" href="./favicon.svg" type="image/svg+xml">
+<link rel="shortcut icon" href="./favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600;8..60,700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/@phosphor-icons/web"></script>
@@ -48,7 +50,9 @@
     .eo-nav{position:fixed!important;left:0!important;top:0!important;bottom:0!important;right:auto!important;width:264px!important;flex-direction:column!important;align-items:stretch!important;justify-content:flex-start!important;gap:3px!important;border:0!important;border-right:1px solid rgba(0,0,0,.09)!important;border-radius:0!important;box-shadow:none!important;padding:70px 14px 18px!important;background:transparent!important;transform:none!important;opacity:1!important;pointer-events:auto!important}
     .eo-nav button{flex:0 0 auto!important;text-align:left!important;padding:11px 15px!important;border-radius:11px!important;font:700 14px system-ui!important}
     .eo-nav{overflow-y:auto!important}
-    .eo-spaces-rail{display:flex!important}
+    .eo-spaces-rail{display:flex!important;min-height:0!important}
+    .eo-rail-sources{max-height:clamp(220px,42vh,430px)!important;overflow:hidden!important}
+    .eo-rail-source-list{flex:1 1 auto!important;min-height:0!important;overflow-y:auto!important;padding-right:2px!important}
     .eo-main > div{max-width:940px;margin-left:auto;margin-right:auto}
     .eo-main > div:has(> .eo-native-fill){max-width:none!important;margin:0!important}
     .eo-main > div:has(> .eo-reader-doc.eo-panel-open){max-width:none!important;margin:0!important;padding-right:min(460px,42vw)!important}
@@ -66,9 +70,9 @@
 </style>
 </helmet>
 
-<div class="eo-shell" style="min-height:100vh;background:{{ t.bg }};display:flex;align-items:flex-start;justify-content:center;padding:26px 16px 44px;font-family:system-ui,-apple-system,sans-serif;transition:background .3s">
-<div class="eo-device" style="width:402px;padding:6px;background:#0c0d10;border-radius:54px;box-shadow:0 22px 60px rgba(0,0,0,.4),inset 0 0 0 2px #24262c">
-<div class="eo-screen {{ panelOpenClass }}" style="position:relative;width:390px;height:844px;border-radius:48px;overflow:hidden;background:linear-gradient(180deg,{{ t.accentTop }} 0%,{{ t.screen }} 270px);display:flex;flex-direction:column;transition:background .35s">
+<div class="eo-shell" style="min-height:100vh;background:{{ t.bg }};display:flex;align-items:flex-start;justify-content:center;font-family:system-ui,-apple-system,sans-serif;transition:background .3s">
+<div class="eo-device">
+<div class="eo-screen {{ panelOpenClass }}" style="position:relative;overflow:hidden;background:linear-gradient(180deg,{{ t.accentTop }} 0%,{{ t.screen }} 270px);display:flex;flex-direction:column;transition:background .35s">
 
   <!-- Real safe-area spacer (respects notches/status bars on device) —
        replaces the former simulated iOS status bar (9:41 / Dynamic Island / 5G). -->
@@ -149,11 +153,11 @@
           <div style="margin:14px 0 2px;font:500 12.5px system-ui;color:{{ t.mut }};display:flex;align-items:center;gap:7px"><i class="ph ph-book-open-text" style="font-size:15px"></i>Looking up Wikipedia…</div>
         </sc-if>
         <sc-if value="{{ selHasWiki }}">
-          <a href="{{ selWikiUrl }}" target="_blank" rel="noopener" style="display:block;margin:14px 0 2px;background:{{ t.bar }};border:1px solid {{ t.border }};border-radius:13px;overflow:hidden;text-decoration:none">
+          <a href="{{ selWikiUrl }}" target="_blank" rel="noopener" style="display:flex;align-items:stretch;margin:14px 0 2px;background:{{ t.bar }};border:1px solid {{ t.border }};border-radius:13px;overflow:hidden;text-decoration:none">
             <sc-if value="{{ selHasWikiImage }}">
-              <img src="{{ selWikiImage }}" alt="{{ selWikiTitle }}" loading="lazy" referrerpolicy="no-referrer" style="display:block;width:100%;height:auto;max-height:220px;object-fit:cover">
+              <img src="{{ selWikiImage }}" alt="{{ selWikiTitle }}" loading="lazy" referrerpolicy="no-referrer" style="flex:none;width:190px;align-self:stretch;min-height:150px;object-fit:cover">
             </sc-if>
-            <div style="padding:11px 13px">
+            <div style="flex:1;min-width:0;padding:11px 13px">
               <div style="font:700 13px system-ui;color:{{ t.accent }}">{{ selWikiTitle }} ↗</div>
               <sc-if value="{{ selHasWikiDesc }}"><div style="font:600 11px system-ui;color:{{ t.mut }};margin-top:2px">{{ selWikiDesc }}</div></sc-if>
               <div style="font:400 12.5px/1.5 'Source Serif 4',Georgia,serif;color:{{ t.t2 }};margin-top:7px">{{ selWikiText }}</div>
@@ -177,6 +181,32 @@
       <sc-if value="{{ profileNoSel }}">
         <div style="margin-top:16px;display:flex;gap:9px;align-items:flex-start;color:{{ t.mut }};font:500 13px/1.5 system-ui"><span style="font-size:15px;color:{{ t.faint }};flex:none">☞</span><span>Choose a canonical referent in the Map or Reader to inspect aliases, role, related claims, and evidence.</span></div>
       </sc-if>
+    </div>
+    </sc-if>
+
+    <sc-if value="{{ isEot }}">
+    <div style="padding:14px 14px 44px;font-family:system-ui;max-width:1100px;margin:0 auto">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px">
+        <div>
+          <div style="font:800 10px 'IBM Plex Mono',monospace;letter-spacing:.09em;text-transform:uppercase;color:{{ t.mut }}">Under the hood · EOT Inspector</div>
+          <div style="font:500 13px/1.45 system-ui;color:{{ t.mut }};margin-top:4px">Raw EOT is rendered as a language: muted envelopes, saturated reserved operators, restrained operands, references, and metadata.</div>
+        </div>
+        <span style="font:800 10px system-ui;color:{{ t.accent }};border:1px solid {{ t.accentLine }};background:{{ t.accentSoft }};border-radius:16px;padding:7px 10px">Operators only</span>
+      </div>
+      <div style="display:flex;gap:7px;overflow-x:auto;margin:12px 0">
+        <span style="background:{{ t.accent }};color:#fff;border-radius:18px;padding:7px 11px;font:800 11px system-ui">Stream</span><span style="background:{{ t.bar }};color:{{ t.t2 }};border:1px solid {{ t.border }};border-radius:18px;padding:7px 11px;font:800 11px system-ui">Fold</span><span style="background:{{ t.bar }};color:{{ t.t2 }};border:1px solid {{ t.border }};border-radius:18px;padding:7px 11px;font:800 11px system-ui">Derivation</span><span style="background:{{ t.bar }};color:{{ t.t2 }};border:1px solid {{ t.border }};border-radius:18px;padding:7px 11px;font:800 11px system-ui">Grammar</span>
+      </div>
+      <div style="display:grid;grid-template-columns:minmax(0,1.2fr) minmax(280px,.8fr);gap:12px">
+        <div style="background:{{ t.card }};border:1px solid {{ t.border }};border-radius:15px;overflow:hidden">
+          <div style="font:800 9px 'IBM Plex Mono',monospace;letter-spacing:.08em;color:{{ t.mut }};padding:11px 13px;border-bottom:1px solid {{ t.border }}">STREAM · APPEND-ONLY RECORD</div>
+          {{ eotStreamEl }}
+        </div>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div style="background:{{ t.card }};border:1px solid {{ t.border }};border-radius:15px;padding:13px">{{ eotFoldEl }}</div>
+          <div style="background:{{ t.card }};border:1px solid {{ t.border }};border-radius:15px;padding:13px">{{ eotDerivationEl }}</div>
+          <div style="background:{{ t.card }};border:1px solid {{ t.border }};border-radius:15px;padding:13px">{{ eotGrammarEl }}</div>
+        </div>
+      </div>
     </div>
     </sc-if>
     <sc-if value="{{ isSearch }}">
@@ -242,6 +272,98 @@
         <div style="font:800 9px system-ui;letter-spacing:.08em;color:{{ t.mut }};text-transform:uppercase;margin:12px 2px 8px">Gap</div>
         <div style="background:{{ t.bar }};border:1px dashed {{ t.border }};border-radius:12px;padding:12px 13px;font:600 13px/1.5 system-ui;color:{{ t.mut }}">{{ gapText }}</div>
       </sc-if>
+    </div>
+    </sc-if>
+
+    <sc-if value="{{ isPriors }}">
+    <div style="padding:14px 14px 40px;font-family:system-ui;max-width:880px;margin:0 auto">
+      <div style="display:flex;align-items:center;gap:9px;margin-bottom:10px">
+        <i class="ph ph-books" style="font-size:20px;color:{{ t.accent }}"></i>
+        <div style="flex:1;min-width:0">
+          <div style="font:800 18px system-ui;color:{{ t.text }}">Priors</div>
+          <div style="font:500 12.5px/1.45 system-ui;color:{{ t.mut }}">Inspectable prior sources, grouped by genre. Turn them on/off to include or exclude them from workspace structure and search.</div>
+        </div>
+        <span style="font:800 10px 'IBM Plex Mono',monospace;color:{{ t.mut }}">{{ priorOnCount }}/{{ priorTotal }} ON</span>
+      </div>
+      <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:13px">
+        <span onClick="{{ priorAllOn }}" style="background:{{ t.accent }};color:#fff;border-radius:16px;padding:7px 11px;font:800 11px system-ui;cursor:pointer">All priors on</span>
+        <span onClick="{{ priorAllOff }}" style="background:{{ t.bar }};border:1px solid {{ t.border }};color:{{ t.t2 }};border-radius:16px;padding:7px 11px;font:800 11px system-ui;cursor:pointer">All priors off</span>
+      </div>
+
+      <div style="background:{{ t.card }};border:1px solid {{ t.border }};border-radius:14px;padding:13px 14px;margin-bottom:14px">
+        <div style="font:800 9px system-ui;letter-spacing:.08em;color:{{ t.mut }};text-transform:uppercase;margin-bottom:9px">Reading surprise · {{ priorTargetLabel }}</div>
+        <sc-if value="{{ priorHasReduction }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex;align-items:flex-end;gap:10px">
+            <div style="flex:none;text-align:center"><div style="font:700 20px system-ui;color:{{ t.mut }}">{{ priorOffBits }}</div><div style="font:600 8.5px system-ui;text-transform:uppercase;letter-spacing:.03em;color:{{ t.faint }};margin-top:1px">bits · no prior</div></div>
+            <div style="flex:none;font:700 18px system-ui;color:{{ t.faint }};padding-bottom:3px">→</div>
+            <div style="flex:none;text-align:center"><div style="font:700 20px system-ui;color:#2f8f6b">{{ priorOnBits }}</div><div style="font:600 8.5px system-ui;text-transform:uppercase;letter-spacing:.03em;color:{{ t.faint }};margin-top:1px">bits · priors on</div></div>
+            <div style="flex:1;text-align:right"><div style="font:700 15px system-ui;color:#2f8f6b">−{{ priorReductionBits }} bits</div><div style="font:600 9px system-ui;color:{{ t.mut }};margin-top:1px">{{ priorReductionPct }}% less surprise</div></div>
+          </div>
+        </sc-if>
+        <sc-if value="{{ priorNoneActive }}">
+          <div style="font:500 12.5px/1.5 system-ui;color:{{ t.mut }}">No prior active — the reader starts cold at <b style="color:{{ t.text }}">{{ priorOffBits }} bits/span</b> of surprise. Turn a prior on to read this source against prior knowledge.</div>
+        </sc-if>
+      </div>
+
+      <sc-if value="{{ hasPriorRank }}">
+      <div style="font:600 9px system-ui;letter-spacing:.06em;text-transform:uppercase;color:{{ t.mut }};margin:0 2px 9px">Best priors for this source · by compression fit</div>
+      <sc-for list="{{ priorRankRows }}" as="r" hint-placeholder-count="3">
+        <div style="background:{{ t.card }};border:1px solid {{ t.border }};border-radius:12px;padding:11px 13px;margin-bottom:9px">
+          <div style="display:flex;align-items:center;gap:9px">
+            <span style="flex:none;font:800 8px 'IBM Plex Mono',monospace;letter-spacing:.04em;color:{{ r.tagFg }};background:{{ r.tagBg }};border-radius:5px;padding:3px 6px">{{ r.tag }}</span>
+            <div style="flex:1;min-width:0"><div style="font:600 13.5px system-ui;color:{{ t.text }};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ r.title }}</div></div>
+            <span onClick="{{ r.toggle }}" title="Use this prior" style="flex:none;width:34px;height:20px;border-radius:20px;background:{{ r.track }};position:relative;cursor:pointer;transition:background .18s"><span style="position:absolute;top:2px;left:{{ r.knob }};width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25);transition:left .18s"></span></span>
+          </div>
+          <div style="height:6px;border-radius:4px;background:{{ t.bar }};margin:9px 0 6px;overflow:hidden"><span style="display:block;height:100%;width:{{ r.barW }};background:{{ r.barCol }};border-radius:4px"></span></div>
+          <div style="display:flex;justify-content:space-between;font:600 10px 'IBM Plex Mono',monospace;color:{{ t.mut }}"><span>{{ r.reductionLabel }} saved / span</span><span>{{ r.klLabel }}</span></div>
+        </div>
+      </sc-for>
+      </sc-if>
+
+      <div style="font:600 9px system-ui;letter-spacing:.06em;text-transform:uppercase;color:{{ t.mut }};margin:15px 2px 9px">All priors · by genre</div>
+      <sc-for list="{{ priorGenres }}" as="g" hint-placeholder-count="3">
+        <div style="background:{{ t.card }};border:1px solid {{ t.border }};border-radius:15px;margin-bottom:10px;overflow:hidden">
+          <div style="display:flex;align-items:center;gap:8px;padding:11px 12px;border-bottom:1px solid {{ t.border }}">
+            <div style="font:800 12px system-ui;color:{{ t.text }};flex:1">{{ g.label }}</div>
+            <span style="font:800 10px 'IBM Plex Mono',monospace;color:{{ t.mut }}">{{ g.onCount }}/{{ g.total }} on</span>
+            <span onClick="{{ g.allOn }}" style="font:800 10px system-ui;color:{{ t.accent }};cursor:pointer">All on</span>
+            <span onClick="{{ g.allOff }}" style="font:800 10px system-ui;color:{{ t.mut }};cursor:pointer">Off</span>
+          </div>
+          <sc-for list="{{ g.rows }}" as="p" hint-placeholder-count="2">
+            <div style="padding:10px 12px;border-top:1px solid {{ t.border }};opacity:{{ p.op }}">
+              <div style="display:flex;align-items:center;gap:9px">
+                <span style="font:800 9px 'IBM Plex Mono',monospace;color:#fff;background:{{ p.dot }};border-radius:5px;padding:4px 6px">PR</span>
+                <div onClick="{{ p.open }}" style="flex:1;min-width:0;cursor:pointer">
+                  <div style="font:700 13px system-ui;color:{{ t.text }};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ p.title }}</div>
+                  <div style="font:500 10.5px system-ui;color:{{ t.mut }};margin-top:2px">{{ p.det }}</div>
+                </div>
+                <span onClick="{{ p.toggle }}" title="Use this prior" style="flex:none;width:34px;height:20px;border-radius:20px;background:{{ p.track }};position:relative;cursor:pointer"><span style="position:absolute;top:2px;left:{{ p.knob }};width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25)"></span></span>
+                <span onClick="{{ p.expand }}" style="color:{{ t.faint }};cursor:pointer;transform:rotate({{ p.chev }});font-size:12px">▸</span>
+              </div>
+              <sc-if value="{{ p.opened }}">
+                <div style="margin:10px 0 0 43px">
+                  <div style="font:400 13px/1.55 'Source Serif 4',Georgia,serif;color:{{ t.t2 }};margin-bottom:10px">{{ p.summary }}</div>
+                  <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:11px">
+                    <sc-for list="{{ p.channels }}" as="ch" hint-placeholder-count="3">
+                      <span style="display:flex;align-items:center;gap:5px;background:{{ t.bar }};border:1px solid {{ t.border }};border-radius:14px;padding:4px 9px;font:600 10px 'IBM Plex Mono',monospace;color:{{ t.t2 }}">{{ ch.label }}<span style="color:{{ t.mut }}">→ {{ ch.site }}</span></span>
+                    </sc-for>
+                  </div>
+                  <div style="font:700 8.5px 'IBM Plex Mono',monospace;letter-spacing:.07em;text-transform:uppercase;color:{{ t.mut }};margin-bottom:7px">Fold distribution · top cells</div>
+                  <sc-for list="{{ p.cells }}" as="cb" hint-placeholder-count="6">
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
+                      <span style="flex:none;width:118px;font:600 10px 'IBM Plex Mono',monospace;color:{{ t.t2 }};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ cb.label }}</span>
+                      <span style="flex:1;height:7px;border-radius:4px;background:{{ t.bar }};overflow:hidden"><span style="display:block;height:100%;width:{{ cb.barW }};background:{{ cb.barCol }};border-radius:4px"></span></span>
+                      <span style="flex:none;width:42px;text-align:right;font:600 9.5px 'IBM Plex Mono',monospace;color:{{ t.mut }}">{{ cb.pctLabel }}</span>
+                    </div>
+                    <sc-if value="{{ cb.excluded }}"><div style="font:500 9px system-ui;color:{{ t.faint }};margin:-2px 0 6px 126px">{{ cb.muteLabel }}</div></sc-if>
+                  </sc-for>
+                  <div style="font:500 10px system-ui;color:{{ t.faint }};margin-top:8px">reader {{ p.readerVersion }}</div>
+                </div>
+              </sc-if>
+            </div>
+          </sc-for>
+        </div>
+      </sc-for>
     </div>
     </sc-if>
     <sc-if value="{{ isStructure }}">
@@ -368,81 +490,14 @@
 
     </div>
     </sc-if>
-    <sc-if value="{{ isPriors }}">
-    <div style="padding:14px 14px 40px;font-family:system-ui">
-      <div style="margin:0 2px 12px">
-        <div style="font:700 10px 'IBM Plex Mono',monospace;letter-spacing:.06em;color:{{ t.accent }}">PRIORS · {{ priorActiveCount }} OF {{ priorTotal }} ACTIVE</div>
-        <div style="font:400 12.5px/1.45 system-ui;color:{{ t.mut }};margin-top:3px">A prior is what the reader knows before it reads this source — a distribution over the 27 EO fold cells. Toggle one on to seed the reading and lower surprise; the compression fit below ranks which prior best fits the current source.</div>
-      </div>
-
-      <div style="background:{{ t.card }};border:1px solid {{ t.border }};border-radius:14px;padding:13px 14px;margin-bottom:14px">
-        <div style="font:800 9px system-ui;letter-spacing:.08em;color:{{ t.mut }};text-transform:uppercase;margin-bottom:9px">Reading surprise · {{ priorTargetLabel }}</div>
-        <sc-if value="{{ priorHasReduction }}" hint-placeholder-val="{{ true }}">
-          <div style="display:flex;align-items:flex-end;gap:10px">
-            <div style="flex:none;text-align:center"><div style="font:700 20px system-ui;color:{{ t.mut }}">{{ priorOffBits }}</div><div style="font:600 8.5px system-ui;text-transform:uppercase;letter-spacing:.03em;color:{{ t.faint }};margin-top:1px">bits · no prior</div></div>
-            <div style="flex:none;font:700 18px system-ui;color:{{ t.faint }};padding-bottom:3px">→</div>
-            <div style="flex:none;text-align:center"><div style="font:700 20px system-ui;color:#2f8f6b">{{ priorOnBits }}</div><div style="font:600 8.5px system-ui;text-transform:uppercase;letter-spacing:.03em;color:{{ t.faint }};margin-top:1px">bits · priors on</div></div>
-            <div style="flex:1;text-align:right"><div style="font:700 15px system-ui;color:#2f8f6b">−{{ priorReductionBits }} bits</div><div style="font:600 9px system-ui;color:{{ t.mut }};margin-top:1px">{{ priorReductionPct }}% less surprise</div></div>
-          </div>
-        </sc-if>
-        <sc-if value="{{ priorNoneActive }}">
-          <div style="font:500 12.5px/1.5 system-ui;color:{{ t.mut }}">No prior active — the reader starts cold at <b style="color:{{ t.text }}">{{ priorOffBits }} bits/span</b> of surprise. Toggle a prior on to read this source against prior knowledge.</div>
-        </sc-if>
-      </div>
-
-      <sc-if value="{{ hasPriorRank }}">
-      <div style="font:600 9px system-ui;letter-spacing:.06em;text-transform:uppercase;color:{{ t.mut }};margin:0 2px 9px">Best priors for this source · by compression fit</div>
-      <sc-for list="{{ priorRankRows }}" as="r" hint-placeholder-count="3">
-        <div style="background:{{ t.card }};border:1px solid {{ t.border }};border-radius:12px;padding:11px 13px;margin-bottom:9px">
-          <div style="display:flex;align-items:center;gap:9px">
-            <span style="flex:none;font:800 8px 'IBM Plex Mono',monospace;letter-spacing:.04em;color:{{ r.tagFg }};background:{{ r.tagBg }};border-radius:5px;padding:3px 6px">{{ r.tag }}</span>
-            <div style="flex:1;min-width:0"><div style="font:600 13.5px system-ui;color:{{ t.text }};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ r.title }}</div></div>
-            <span onClick="{{ r.toggle }}" title="Activate / mute this prior" style="flex:none;width:34px;height:20px;border-radius:20px;background:{{ r.track }};position:relative;cursor:pointer;transition:background .18s"><span style="position:absolute;top:2px;left:{{ r.knob }};width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25);transition:left .18s"></span></span>
-          </div>
-          <div style="height:6px;border-radius:4px;background:{{ t.bar }};margin:9px 0 6px;overflow:hidden"><span style="display:block;height:100%;width:{{ r.barW }};background:{{ r.barCol }};border-radius:4px"></span></div>
-          <div style="display:flex;justify-content:space-between;font:600 10px 'IBM Plex Mono',monospace;color:{{ t.mut }}"><span>{{ r.reductionLabel }} saved / span</span><span>{{ r.klLabel }}</span></div>
-        </div>
-      </sc-for>
-      </sc-if>
-
-      <div style="font:600 9px system-ui;letter-spacing:.06em;text-transform:uppercase;color:{{ t.mut }};margin:15px 2px 9px">All priors · toggle as sources</div>
-      <sc-for list="{{ priorRows }}" as="p" hint-placeholder-count="3">
-        <div style="background:{{ t.card }};border:1px solid {{ t.border }};border-radius:14px;margin-bottom:11px;overflow:hidden;opacity:{{ p.rowOp }};transition:opacity .2s">
-          <div style="display:flex;align-items:center;gap:10px;padding:12px 13px">
-            <span onClick="{{ p.toggleSelect }}" style="flex:none;font:700 9px 'IBM Plex Mono',monospace;letter-spacing:.04em;color:#fff;background:{{ p.dot }};border-radius:5px;padding:4px 6px;cursor:pointer">{{ p.code }}</span>
-            <div onClick="{{ p.toggleSelect }}" style="flex:1;min-width:0;cursor:pointer">
-              <div style="font:600 13.5px system-ui;color:{{ t.text }};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ p.title }}</div>
-              <div style="font:500 11px system-ui;color:{{ t.mut }};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ p.det }}</div>
-            </div>
-            <span onClick="{{ p.toggle }}" title="Activate / mute this prior" style="flex:none;width:34px;height:20px;border-radius:20px;background:{{ p.track }};position:relative;cursor:pointer;transition:background .18s"><span style="position:absolute;top:2px;left:{{ p.knob }};width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25);transition:left .18s"></span></span>
-            <span onClick="{{ p.toggleSelect }}" style="flex:none;color:{{ t.faint }};font-size:12px;transform:rotate({{ p.chevron }});transition:transform .2s;cursor:pointer">▸</span>
-          </div>
-          <sc-if value="{{ p.selected }}">
-            <div style="padding:0 13px 14px">
-              <div style="font:400 12.5px/1.5 'Source Serif 4',Georgia,serif;color:{{ t.t2 }};margin-bottom:10px">{{ p.note }}</div>
-              <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:12px">
-                <sc-for list="{{ p.channels }}" as="ch" hint-placeholder-count="3">
-                  <span style="display:flex;align-items:center;gap:5px;background:{{ t.bar }};border:1px solid {{ t.border }};border-radius:14px;padding:4px 9px;font:600 10px 'IBM Plex Mono',monospace;color:{{ t.t2 }}">{{ ch.label }}<span style="color:{{ t.mut }}">→ {{ ch.site }}</span></span>
-                </sc-for>
-              </div>
-              <div style="font:700 8.5px 'IBM Plex Mono',monospace;letter-spacing:.07em;text-transform:uppercase;color:{{ t.mut }};margin-bottom:7px">Fold distribution · top cells</div>
-              <sc-for list="{{ p.cells }}" as="cb" hint-placeholder-count="6">
-                <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
-                  <span style="flex:none;width:118px;font:600 10px 'IBM Plex Mono',monospace;color:{{ t.t2 }};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ cb.label }}</span>
-                  <span style="flex:1;height:7px;border-radius:4px;background:{{ t.bar }};overflow:hidden"><span style="display:block;height:100%;width:{{ cb.barW }};background:{{ cb.barCol }};border-radius:4px"></span></span>
-                  <span style="flex:none;width:42px;text-align:right;font:600 9.5px 'IBM Plex Mono',monospace;color:{{ t.mut }}">{{ cb.pctLabel }}</span>
-                </div>
-                <sc-if value="{{ cb.excluded }}"><div style="font:500 9px system-ui;color:{{ t.faint }};margin:-2px 0 6px 126px">{{ cb.muteLabel }}</div></sc-if>
-              </sc-for>
-              <div style="font:500 10px system-ui;color:{{ t.faint }};margin-top:8px">reader {{ p.readerVersion }} · scope {{ p.scopeText }}</div>
-            </div>
-          </sc-if>
-        </div>
-      </sc-for>
-    </div>
-    </sc-if>
     <sc-if value="{{ isOverview }}">
     <div style="padding:14px 14px 40px;font-family:system-ui">
+
+      <div style="display:flex;gap:6px;overflow-x:auto;margin-bottom:12px">
+        <sc-for list="{{ overviewSubtabs }}" as="ot" hint-placeholder-count="4">
+          <span onClick="{{ ot.pick }}" style="flex:none;background:{{ ot.bg }};color:{{ ot.fg }};border:1px solid {{ ot.bd }};border-radius:18px;padding:6px 10px;font:800 11px system-ui;cursor:pointer">{{ ot.label }}</span>
+        </sc-for>
+      </div>
 
       <sc-if value="{{ ovBackShown }}">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">
@@ -644,8 +699,9 @@
             <sc-if value="{{ noSources }}">
               <div style="font:500 11px system-ui;color:{{ t.mut }};padding:1px 3px 6px">No sources in this space yet.</div>
             </sc-if>
+            <div class="eo-rail-source-list" style="display:flex;flex-direction:column;gap:3px;min-height:0">
             <sc-for list="{{ sourceRows }}" as="s" hint-placeholder-count="2">
-              <div style="border-radius:9px;background:{{ s.rowBgFill }};opacity:{{ s.rowOp }};transition:opacity .2s">
+              <div style="flex:none;border-radius:9px;background:{{ s.rowBgFill }};opacity:{{ s.rowOp }};transition:opacity .2s">
                 <div style="display:flex;align-items:center;gap:7px;padding:5px 5px 5px 3px">
                   <span style="flex:none;font:700 8px 'IBM Plex Mono',monospace;color:#fff;background:{{ s.dot }};border-radius:4px;padding:3px 4px">{{ s.code }}</span>
                   <div onClick="{{ s.open }}" style="flex:1;min-width:0;cursor:pointer">
@@ -679,7 +735,8 @@
                 </sc-if>
               </div>
             </sc-for>
-            <div onClick="{{ recordNew }}" style="display:flex;align-items:center;gap:6px;padding:6px 4px;margin-top:2px;color:{{ t.accent }};font:700 10.5px system-ui;cursor:pointer"><i class="ph ph-plus-circle" style="font-size:13px"></i>Record a source</div>
+            </div>
+            <div onClick="{{ recordNew }}" style="flex:none;display:flex;align-items:center;gap:6px;padding:6px 4px;margin-top:2px;color:{{ t.accent }};font:700 10.5px system-ui;cursor:pointer"><i class="ph ph-plus-circle" style="font-size:13px"></i>Record a source</div>
           </div>
         </sc-if>
       </sc-for>
@@ -690,9 +747,9 @@
     <button onClick="{{ setReader }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;min-height:44px;display:flex;align-items:center;justify-content:center;background:{{ tabRB }};color:{{ tabRC }};font:800 12px system-ui;cursor:pointer">Reader</button>
     <button onClick="{{ setOverview }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;min-height:44px;display:flex;align-items:center;justify-content:center;background:{{ tabOB }};color:{{ tabOC }};font:800 12px system-ui;cursor:pointer">Overview</button>
     <button onClick="{{ setStruct }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;min-height:44px;display:flex;align-items:center;justify-content:center;background:{{ tabSB }};color:{{ tabSC }};font:800 12px system-ui;cursor:pointer">Workspace</button>
-    <button onClick="{{ setProfile }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;min-height:44px;display:flex;align-items:center;justify-content:center;background:{{ tabPB }};color:{{ tabPC }};font:800 12px system-ui;cursor:pointer">Map</button>
-    <button onClick="{{ setCross }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;min-height:44px;display:flex;align-items:center;justify-content:center;background:{{ tabCB }};color:{{ tabCC }};font:800 12px system-ui;cursor:pointer">Search</button>
     <button onClick="{{ setPriors }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;min-height:44px;display:flex;align-items:center;justify-content:center;background:{{ tabPrB }};color:{{ tabPrC }};font:800 12px system-ui;cursor:pointer">Priors</button>
+    <button onClick="{{ setCross }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;min-height:44px;display:flex;align-items:center;justify-content:center;background:{{ tabCB }};color:{{ tabCC }};font:800 12px system-ui;cursor:pointer">Search</button>
+    <button onClick="{{ setEot }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;min-height:44px;display:flex;align-items:center;justify-content:center;background:{{ tabEB }};color:{{ tabEC }};font:800 12px system-ui;cursor:pointer">Under the hood</button>
   </div>
 
   <sc-if value="{{ backdrop }}">
@@ -734,11 +791,11 @@
           <div style="margin:14px 0 2px;font:500 12.5px system-ui;color:{{ t.mut }};display:flex;align-items:center;gap:7px"><i class="ph ph-book-open-text" style="font-size:15px"></i>Looking up Wikipedia…</div>
         </sc-if>
         <sc-if value="{{ selHasWiki }}">
-          <a href="{{ selWikiUrl }}" target="_blank" rel="noopener" style="display:block;margin:14px 0 2px;background:{{ t.bar }};border:1px solid {{ t.border }};border-radius:13px;overflow:hidden;text-decoration:none">
+          <a href="{{ selWikiUrl }}" target="_blank" rel="noopener" style="display:flex;align-items:stretch;margin:14px 0 2px;background:{{ t.bar }};border:1px solid {{ t.border }};border-radius:13px;overflow:hidden;text-decoration:none">
             <sc-if value="{{ selHasWikiImage }}">
-              <img src="{{ selWikiImage }}" alt="{{ selWikiTitle }}" loading="lazy" referrerpolicy="no-referrer" style="display:block;width:100%;height:auto;max-height:200px;object-fit:cover">
+              <img src="{{ selWikiImage }}" alt="{{ selWikiTitle }}" loading="lazy" referrerpolicy="no-referrer" style="flex:none;width:120px;align-self:stretch;min-height:120px;object-fit:cover">
             </sc-if>
-            <div style="padding:11px 13px">
+            <div style="flex:1;min-width:0;padding:11px 13px">
               <div style="font:700 13px system-ui;color:{{ t.accent }}">{{ selWikiTitle }} ↗</div>
               <sc-if value="{{ selHasWikiDesc }}"><div style="font:600 11px system-ui;color:{{ t.mut }};margin-top:2px">{{ selWikiDesc }}</div></sc-if>
               <div style="font:400 12.5px/1.5 'Source Serif 4',Georgia,serif;color:{{ t.t2 }};margin-top:7px">{{ selWikiText }}</div>
@@ -1416,16 +1473,23 @@ function mountEOSolar(root, opts){
 
   var focus = (opts.focusId && byId[opts.focusId]) ? opts.focusId : SUN;
   var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  var timeScale = opts.timeScale || 0.4;   // slower orbital motion (was 1.0)
+  var timeScale = opts.timeScale || 0.15;  // intentionally calm orbital motion
   var t0 = null, raf = null;
 
   // ── draggable camera: pan the universe a bit, clamped so it can't fly away ──
   var panX = 0, panY = 0, dragging = false, sx0 = 0, sy0 = 0, px0 = 0, py0 = 0;
-  var PAN_LIMIT = Math.max(W, H) * 0.85;
+  var zoom = 1, MIN_ZOOM = 0.55, MAX_ZOOM = 2.8;
+  var PAN_LIMIT = Math.max(W, H) * 1.2;
   function clampPan(){
-    panX = Math.max(-PAN_LIMIT, Math.min(PAN_LIMIT, panX));
-    panY = Math.max(-PAN_LIMIT, Math.min(PAN_LIMIT, panY));
+    var limit = PAN_LIMIT * Math.max(1, zoom);
+    panX = Math.max(-limit, Math.min(limit, panX));
+    panY = Math.max(-limit, Math.min(limit, panY));
   }
+  function setZoom(next){
+    zoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, next));
+    clampPan();
+  }
+  function recenter(){ panX = 0; panY = 0; }
 
   var stopped = false;
   function frame(now){
@@ -1436,7 +1500,7 @@ function mountEOSolar(root, opts){
     var cache = {}, pos = {};
     ids.forEach(function(id){ pos[id] = truePos(id, t, cache); });
     var target = pos[focus] || { x: 0, y: 0 };
-    universe.setAttribute('transform', 'translate(' + (cx - target.x + panX).toFixed(1) + ',' + (cy - target.y + panY).toFixed(1) + ')');
+    universe.setAttribute('transform', 'translate(' + (cx + panX).toFixed(1) + ',' + (cy + panY).toFixed(1) + ') scale(' + zoom.toFixed(3) + ') translate(' + (-target.x).toFixed(1) + ',' + (-target.y).toFixed(1) + ')');
     ids.forEach(function(id){
       var p = pos[id], n = byId[id], r = sizeOf(id);
       bodyEls[id].setAttribute('transform', 'translate(' + p.x.toFixed(1) + ',' + p.y.toFixed(1) + ')');
@@ -1461,6 +1525,20 @@ function mountEOSolar(root, opts){
   }
 
   root.appendChild(svg);
+  if (getComputedStyle(root).position === 'static') root.style.position = 'relative';
+  var controls = document.createElement('div');
+  controls.setAttribute('style', 'position:absolute;right:10px;top:10px;display:flex;gap:6px;z-index:2');
+  function controlButton(label, title, fn){
+    var b = document.createElement('button');
+    b.type = 'button'; b.textContent = label; b.title = title;
+    b.setAttribute('style', 'width:30px;height:30px;border-radius:9px;border:1px solid '+edgeColor+';background:'+bgColor+';color:'+textColor+';font:800 13px system-ui;cursor:pointer;box-shadow:0 1px 6px rgba(0,0,0,.08)');
+    b.addEventListener('click', function(ev){ ev.preventDefault(); ev.stopPropagation(); fn(); });
+    controls.appendChild(b);
+  }
+  controlButton('+', 'Zoom in', function(){ setZoom(zoom * 1.2); });
+  controlButton('−', 'Zoom out', function(){ setZoom(zoom / 1.2); });
+  controlButton('⌾', 'Recenter', recenter);
+  root.appendChild(controls);
   svg.style.cursor = 'grab';
   var downId = null, moved = false;
   svg.addEventListener('pointerdown', function(ev){
@@ -1486,11 +1564,19 @@ function mountEOSolar(root, opts){
   }
   svg.addEventListener('pointerup', endDrag);
   svg.addEventListener('pointercancel', endDrag);
+  svg.addEventListener('wheel', function(ev){
+    ev.preventDefault();
+    setZoom(zoom * (ev.deltaY < 0 ? 1.12 : 1 / 1.12));
+  }, { passive: false });
+  svg.addEventListener('dblclick', function(ev){ ev.preventDefault(); recenter(); });
   raf = requestAnimationFrame(frame);
 
   return {
-    destroy: function(){ stopped = true; if (raf) cancelAnimationFrame(raf); if (svg.parentNode) svg.parentNode.removeChild(svg); },
-    focus: function(id){ if (byId[id]) { focus = id; panX = 0; panY = 0; } },
+    destroy: function(){ stopped = true; if (raf) cancelAnimationFrame(raf); if (controls.parentNode) controls.parentNode.removeChild(controls); if (svg.parentNode) svg.parentNode.removeChild(svg); },
+    focus: function(id){ if (byId[id]) { focus = id; recenter(); } },
+    recenter: recenter,
+    zoomIn: function(){ setZoom(zoom * 1.2); },
+    zoomOut: function(){ setZoom(zoom / 1.2); },
   };
 }
 
@@ -2096,7 +2182,6 @@ class Component extends DCLogic {
       cardPath:[], lensByRung:{},
       plain:this.load('eo5.readerPlain',false),
       structFilter:'all', structExp:{}, structRows:{}, structActive:{},
-      priorsActive:this.load('eo5.priorsActive',{'corpus-prior@1.0.0':true}), priorSel:null,
       doc:this.loadingDoc('https://www.npr.org'),
       src:{label:'npr.org',det:'Loading…',dot:'#5b9bd5'},
       spaces, spaceId, memoryBySpace, memoryExclusions:this.load('eo5.memExclusions',{}),
@@ -2104,6 +2189,7 @@ class Component extends DCLogic {
       searchQ:'', searchResults:[], mediaResults:[], searching:false, searchMsg:'', libraryShelf:'web', _exTick:0,
       spaceEditOpen:false, spacePickerOpen:false, _sk:0,
       sourcesOpen:false, srcQuery:'', srcExpand:null, recPulse:0,
+      priorActive:this.load('eo5.priorActive',{}), priorExpand:null,
       chromeHidden:false, webFrameActiveIds:[], readPct:0
     };
     this.scrollRef=(el)=>{
@@ -2336,7 +2422,7 @@ class Component extends DCLogic {
     const suffix=/\b(Inc|Corp|Corporation|Company|Co|LLC|Ltd|Limited|University|Institute|Foundation|Ministry|Department|Agency|Committee|Council|Bank|Labs|Systems|Technologies|Group|Holdings)\.?$/;
     const pal=['#c77dba','#5b9bd5','#6bbf8a','#e0a94c','#c0662e','#8e6fb3','#4f9a6b','#2a78d6','#b0842f','#d0472e','#3fb0a0','#a0708a'];
     const freq={}, surfaces={};
-    const add=(name, weight)=>{ name=(''+name).replace(/\s+/g,' ').replace(/['’]s$/,'').replace(/['’]$/,'').replace(/[.,;:!?)]$/,'').trim(); if(!name||name.length<2||name.length>90)return; const parts=name.split(' '); if(parts.length===1 && stop.has(name))return; if(name.toUpperCase()===name && name.length>6)return; const key=name.toLowerCase(); freq[key]=(freq[key]||0)+(weight||1); if(!surfaces[key]||name.length>surfaces[key].length)surfaces[key]=name; };
+    const add=(name, weight)=>{ name=(''+name).replace(/\s+/g,' ').replace(/['’]s$/,'').replace(/['’]$/,'').replace(/[.,;:!?)]$/,'').trim(); if(!name||name.length<2||name.length>90)return null; const parts=name.split(' '); if(parts.length===1 && stop.has(name))return null; if(name.toUpperCase()===name && name.length>6)return null; const key=name.toLowerCase(); freq[key]=(freq[key]||0)+(weight||1); if(!surfaces[key]||name.length>surfaces[key].length)surfaces[key]=name; return key; };
     // Prose-anchored harvesting: a real named entity is embedded in running prose —
     // a sentence with lowercase context and end punctuation — whereas page chrome
     // ("Listen", "Download Embed", "Transcript Toggle", "Getty Images") surfaces only
@@ -2345,13 +2431,18 @@ class Component extends DCLogic {
     const isProse=(p)=>{ const s=(''+p).trim(); if(s.length<50) return false; if(!/[.!?]/.test(s)) return false; if((s.match(/[a-z]/g)||[]).length<20) return false; return s.split(/\s+/).filter(Boolean).length>=10; };
     const proseParas=paras.filter(isProse);
     const entSrc=(proseParas.length>=1?proseParas.join('\n\n'):whole);
+    // A single-token candidate is kept only if it appears capitalized MID-sentence at
+    // least once. A proper noun ("Margaret", "Geneva") does; a sentence-initial function
+    // word ("There", "My", "Do", "Its", "Oh", "Six") is capitalized solely because it
+    // opens a sentence and never occurs capitalized mid-sentence, so it is dropped below.
+    const midCap={};
     const cap=/\b([A-Z][a-zA-Z0-9&.'’-]*(?:\s+(?:of|the|and|for|de|du|van|von|[A-Z][a-zA-Z0-9&.'’-]*)){0,5})\b/g; let m;
-    while((m=cap.exec(entSrc))) add(m[1],1);
+    while((m=cap.exec(entSrc))){ const key=add(m[1],1); if(!key)continue; if(m[1].indexOf(' ')>=0){ midCap[key]=true; continue; } const pre=entSrc.slice(Math.max(0,m.index-24),m.index).replace(/[\s"'“”‘’(\[]+$/,''); if(pre!=='' && !/[.?!:;\n–—]$/.test(pre)) midCap[key]=true; }
     const emails=whole.match(/[\w.+-]+@[\w.-]+\.[a-z]{2,}/gi)||[]; emails.forEach(x=>add(x,3));
     const urls=whole.match(/https?:\/\/[^\s)]+/gi)||[]; urls.forEach(x=>{ try{ add(new URL(x).host.replace(/^www\./,''),3); }catch(_){}});
     const money=whole.match(/(?:[$€£]\s?\d[\d,.]*(?:\s?(?:million|billion|trillion|m|bn))?|\b\d[\d,.]*\s?(?:million|billion|trillion|percent|%)\b)/gi)||[]; money.forEach(x=>add(x,2));
     const dates=whole.match(/\b(?:20\d{2}|19\d{2}|Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\s+\d{1,2}(?:,\s*\d{4})?|\b\d{1,2}\/\d{1,2}\/\d{2,4}\b/g)||[]; dates.forEach(x=>add(x,2));
-    let ents=Object.keys(freq).map(k=>({key:k,name:surfaces[k],count:freq[k]})).filter(e=>(e.count>=2||e.name.includes(' ')||suffix.test(e.name)||/@|\.|\d/.test(e.name))&&!/^\d+$/.test(e.name)).sort((a,b)=>b.count-a.count||b.name.length-a.name.length);
+    let ents=Object.keys(freq).map(k=>({key:k,name:surfaces[k],count:freq[k]})).filter(e=>{ if(/^\d+$/.test(e.name))return false; if(!e.name.includes(' ') && /^[A-Za-z][A-Za-z'’-]*$/.test(e.name) && !midCap[e.key])return false; return e.count>=2||e.name.includes(' ')||suffix.test(e.name)||/@|\.|\d/.test(e.name); }).sort((a,b)=>b.count-a.count||b.name.length-a.name.length);
     const entById={},list=[];
     ents.slice(0,240).forEach((e,i)=>{ const id='e'+i,color=pal[i%pal.length],ctx=[];
       const er=new RegExp('(^|\\b)'+e.name.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'(\\b|$)','i');
@@ -2708,7 +2799,7 @@ class Component extends DCLogic {
     return doc;
   }
 
-  bucketOf(m){ const b={Webpage:'Web & news',PDF:'Documents',Document:'Documents',Slides:'Documents',Spreadsheet:'Data & sheets',Data:'Data & sheets',Code:'Code',Image:'Media',Audio:'Media',Video:'Media',Text:'Notes'}; return b[m]||'Other'; }
+  bucketOf(m){ const b={Prior:'Priors',Webpage:'Web & news',PDF:'Documents',Document:'Documents',Slides:'Documents',Spreadsheet:'Data & sheets',Data:'Data & sheets',Code:'Code',Image:'Media',Audio:'Media',Video:'Media',Text:'Notes'}; return b[m]||'Other'; }
   setDoc(d, opts){
     const det = d.mode==='loading' ? 'Loading…' : (d.mode==='text' ? (d.medium+' · '+this.nf(d.analysis.words)+' words') : (d.medium+' · imported'));
     const autoRecord = !(opts&&opts.skipRecord) && d && d.kind!=='loading' && d.mode!=='loading';
@@ -2734,7 +2825,7 @@ class Component extends DCLogic {
       return next;
     });
   }
-  resetSample(){ this.setState({doc:this.demoDoc(), importOpen:false, sel:null, level:'prompt', chap:0, tab:'reader', view:'reader', cardPath:[], lensByRung:{}, src:{label:'theatlantic.com/…/the-quiet-collapse',det:'News · sample',dot:'#c0662e'}}); }
+  resetSample(){ this.setState({doc:this.demoDoc(), importOpen:false, sel:null, level:'prompt', chap:0, tab:'reader', view:'reader', cardPath:[], lensByRung:{}, readPct:0, tocOpen:false, src:{label:'theatlantic.com/…/the-quiet-collapse',det:'News · sample',dot:'#c0662e'}}); }
 
   // ── space-scoped memory ──
   mem(){ return (this.state.memoryBySpace||{})[this.state.spaceId]||[]; }
@@ -3013,7 +3104,7 @@ class Component extends DCLogic {
   wikiKey(name){ return String(name||'').toLowerCase().replace(/\s+/g,' ').trim(); }
   wikiToks(s){ return String(s||'').toLowerCase().split(/[^a-z0-9]+/).filter(t=>t.length>1 && !this.WIKI_GENERIC().has(t)); }
   clipExtract(s,max){ const t=String(s||'').replace(/\s+/g,' ').trim(); if(t.length<=max) return t; const cut=t.slice(0,max); const dot=cut.lastIndexOf('. '); return dot>max*0.5 ? cut.slice(0,dot+1) : cut.replace(/\s+\S*$/,'')+'…'; }
-  async fetchEntityWiki(name, ctxNames){
+  async fetchEntityWiki(name, ctxNames, ctxText){
     const q=String(name||'').trim(); if(!q) return null;
     const url='https://en.wikipedia.org/w/api.php?action=query&format=json&origin=*&redirects=1'
       +'&generator=search&gsrlimit=5&gsrsearch='+encodeURIComponent(q)
@@ -3023,20 +3114,37 @@ class Component extends DCLogic {
     const pages=Object.values((j&&j.query&&j.query.pages)||{})
       .filter(p=>p&&p.extract&&(!p.pageprops||p.pageprops.disambiguation===undefined));
     if(!pages.length) return null;
-    const nameToks=this.wikiToks(q);
-    const ctxToks=new Set(); (ctxNames||[]).forEach(n=>this.wikiToks(n).forEach(t=>{ if(t.length>=4) ctxToks.add(t); }));
+    const nameToks=this.wikiToks(q), nameSet=new Set(nameToks);
+    // Grounding vocabulary for this entity in THIS source: names of co-occurring
+    // entities plus distinctive words from the sentences that mention it. The entity's
+    // own name tokens are excluded — otherwise a bare name would self-corroborate
+    // (e.g. "Margaret" appears in the "Margaret Thatcher" summary, proving nothing).
+    const ctxToks=new Set();
+    (ctxNames||[]).forEach(n=>this.wikiToks(n).forEach(t=>{ if(t.length>=4 && !nameSet.has(t)) ctxToks.add(t); }));
+    this.wikiToks(ctxText||'').forEach(t=>{ if(t.length>=5 && !nameSet.has(t)) ctxToks.add(t); });
     const scored=pages.map(p=>{
       const titleToks=this.wikiToks(p.title);
       const overlap=nameToks.filter(t=>titleToks.indexOf(t)>=0).length;
-      const affinity=nameToks.length?overlap/nameToks.length:0;
+      const affinity=nameToks.length?overlap/nameToks.length:0;       // share of the NAME the title covers
+      const titleCover=titleToks.length?overlap/titleToks.length:0;   // share of the TITLE the name covers
       const ex=(p.extract||'').toLowerCase();
       let coref=0; ctxToks.forEach(t=>{ if(ex.indexOf(t)>=0) coref++; });
-      return {p,affinity,coref,score:affinity*2+coref};
+      return {p,affinity,titleCover,coref,score:affinity*2+coref*2};
     }).sort((a,b)=>b.score-a.score);
-    const best=scored[0], p=best.p, multiTok=nameToks.length>=2;
-    // Confirm on a near-exact title match, or a decent lexical match that is either a
-    // multi-word proper name or corroborated by a shared context name from this source.
-    const confirmed = best.affinity>=0.99 || (best.affinity>=0.5 && (multiTok || best.coref>=1));
+    const best=scored[0], p=best.p;
+    // Confirmation gate (the honesty rule): matching the article to the entity's NAME
+    // alone is not evidence they are the same referent. A bare first name like
+    // "Margaret" perfectly covers the title "Margaret Thatcher", yet is almost never
+    // her. Two ways to confirm:
+    //  1. The title IS the name — nearly the same string in both directions (e.g.
+    //     "London" → "London", "Victor Frankenstein" → "Victor Frankenstein"). The page
+    //     is definitionally about the named thing.
+    //  2. The name only partially matches the title, so demand corroboration: the
+    //     article's summary must share distinctive vocabulary with how this source talks
+    //     about the entity (co-occurring names / surrounding words), not just the name.
+    const titleIsName = best.affinity>=0.99 && best.titleCover>=0.75;
+    const partialMatch = best.affinity>=0.5 && !titleIsName;
+    const confirmed = titleIsName || (partialMatch && best.coref>=1);
     return {
       title:p.title,
       description:p.description||'',
@@ -3055,7 +3163,8 @@ class Component extends DCLogic {
     if(cache[key]!==undefined) return; // busy, resolved, or known-absent already
     this.setState(s=>({wiki:{...(s.wiki||{}),[key]:{busy:true}}}));
     const ctxNames=(ent.related||[]).map(r=>r.n).concat((ent.conns||[]).map(c=>c.t));
-    this.fetchEntityWiki(ent.name, ctxNames).then(res=>{
+    const ctxText=(ent.ctx||[]).slice(0,12).join(' ');
+    this.fetchEntityWiki(ent.name, ctxNames, ctxText).then(res=>{
       const val=(res&&res.confirmed)?res:{none:true};
       this.setState(s=>{ const w={...(s.wiki||{}),[key]:val}; this.saveWikiCache(w); return {wiki:w}; });
     }).catch(()=>this.setState(s=>({wiki:{...(s.wiki||{}),[key]:{none:true}}})));
@@ -3157,92 +3266,49 @@ class Component extends DCLogic {
     }).catch(err=>this.setDoc({name:u,url:u,title:title||u,medium:'Webpage',mode:'binary',size:'',mime:'could not fetch: '+err.message+' — try routing through your proxy (edit routing in Search & open)'}));
   }
 
-  // ── corpus from memory ──
-  sourceCard(m){
-    const ents=m.ents||[]; const top=ents[0];
-    const code=this.medCode(m.medium), dot=this.medColor(m.medium);
-    const det=m.words?(m.medium+' · '+this.nf(m.words)+' words'):m.medium;
-    const linkTotal=ents.reduce((a,e)=>a+(e.links||0),0);
-    const hi=m.highlights||[], toc=m.toc||[];
-    const insightText= top
-      ? '“'+top.name+'” leads with '+top.count+' mention'+(top.count===1?'':'s')+' — '+ents.length+' entit'+(ents.length===1?'y':'ies')+(toc.length?', '+toc.length+' section'+(toc.length===1?'':'s'):'')+'.'
-      : 'Kept in memory; no named entities surfaced in this source.';
-    const bands=[
-      {t:'What’s there',c:'#c0662e',rows:[
-        {label:'Entities',count:ents.length,items:ents.slice(0,8).map(e=>({t:e.name,c:e.color})).concat(ents.length>8?[{t:'+'+(ents.length-8)+' more'}]:[])},
-        {label:'Highlights',count:hi.length,items:hi.slice(0,4).map(h=>({t:h.length>44?h.slice(0,44)+'…':h}))}
-      ]},
-      {t:'How it connects',c:'#2a78d6',rows:[
-        {label:'Sections',count:toc.length,items:toc.slice(0,6).map(x=>({t:x}))},
-        {label:'Entity links',count:linkTotal,items:ents.filter(e=>e.related&&e.related.length).slice(0,5).map(e=>({t:e.name+' → '+e.related[0].n}))}
-      ]}
-    ];
-    return {id:m.id,medium:m.medium,code,dot,title:m.title,det,
-      stats:{ent:ents.length,seg:(toc.length||1),ln:linkTotal,hl:hi.length},
-      insight:{kind:(m.medium||'SOURCE').toUpperCase(),color:dot,text:insightText}, bands};
-  }
-  corpusRaw(){ return this.mem().map(m=>this.sourceCard(m)); }
 
-  sharedMap(){
-    const map={};
-    this.mem().forEach(m=>{ const code=this.medCode(m.medium); const seen=new Set();
-      (m.ents||[]).forEach(e=>{ const k=e.name.toLowerCase(); if(seen.has(k))return; seen.add(k);
-        if(!map[k]) map[k]={name:e.name,color:e.color,codes:[]}; if(map[k].codes.indexOf(code)<0) map[k].codes.push(code); }); });
-    return Object.values(map).filter(x=>x.codes.length>=2).sort((a,b)=>b.codes.length-a.codes.length);
-  }
-  crossInsights(){
-    return this.sharedMap().slice(0,3).map(x=>({
-      kind:'RECURRING REFERENT', color:x.color,
-      text:'“'+x.name+'” recurs across '+x.codes.length+' active source folds; open the sources to inspect evidence.',
-      srcs:x.codes, chips:[{t:x.name,c:x.color}]
-    }));
-  }
+  priorCatalog(){ return [
+    {id:'prior_news_agency',genre:'Reporting',title:'Wire-service article prior',medium:'Prior',summary:'News articles usually privilege recency, named actors, datelines, attributions, claims, and corrections. Treat headlines and ledes as source structure, not proof by themselves.',paras:['News articles usually privilege recency, named actors, datelines, attributions, claims, and corrections.','Inspect by comparing lede claims with attributed passages and later corrections.'],ents:[{name:'attribution',count:5,color:'#c0662e',links:0},{name:'dateline',count:3,color:'#2a78d6',links:0}]},
+    {id:'prior_policy_report',genre:'Documents',title:'Policy/report prior',medium:'Prior',summary:'Reports tend to separate executive summaries, methods, findings, recommendations, limitations, and appendices. Findings should be read with methods and scope.',paras:['Reports tend to separate executive summaries, methods, findings, recommendations, limitations, and appendices.','Findings should be read with methods, scope, assumptions, and cited evidence.'],ents:[{name:'methods',count:4,color:'#2f8f6b',links:0},{name:'recommendations',count:4,color:'#8e6fb3',links:0}]},
+    {id:'prior_literature',genre:'Books & literature',title:'Literary work prior',medium:'Prior',summary:'Books and literature often develop meaning through chapters, motifs, speakers, scenes, chronology, and recurring images rather than isolated assertions.',paras:['Books and literature often develop meaning through chapters, motifs, speakers, scenes, chronology, and recurring images.','A passage can carry irony, voice, and theme without acting like a factual claim.'],ents:[{name:'motif',count:6,color:'#e8b04a',links:0},{name:'speaker',count:3,color:'#c0662e',links:0}]},
+    {id:'prior_dataset',genre:'Data',title:'Dataset/table prior',medium:'Prior',summary:'Datasets are read through schema, units, rows, missingness, provenance, sampling frame, and transformations. Column names are evidence about structure.',paras:['Datasets are read through schema, units, rows, missingness, provenance, sampling frame, and transformations.','Column names, units, and null patterns are evidence about structure.'],ents:[{name:'schema',count:6,color:'#2a78d6',links:0},{name:'sampling frame',count:3,color:'#2f8f6b',links:0}]},
+    {id:'prior_audio',genre:'Media',title:'Audio/media prior',medium:'Prior',summary:'Audio and media sources carry meaning in segments, speakers, timing, transitions, volume, repetition, and nonverbal cues.',paras:['Audio and media sources carry meaning in segments, speakers, timing, transitions, volume, repetition, and nonverbal cues.','Read moments alongside transcript text when available.'],ents:[{name:'segment',count:5,color:'#8e6fb3',links:0},{name:'speaker',count:4,color:'#c0662e',links:0}]}
+  ]; }
+  activePriors(){ const pa=this.state.priorActive||{}; return this.priorCatalog().filter(p=>pa[p.id]!==false); }
+  setPriorActive(id,on){ this.setState(s=>{ const priorActive={...(s.priorActive||{}),[id]:on}; this.save('eo5.priorActive',priorActive); return {priorActive}; }); }
+  setPriorGenre(genre,on){ this.setState(s=>{ const priorActive={...(s.priorActive||{})}; this.priorCatalog().filter(p=>p.genre===genre).forEach(p=>{ priorActive[p.id]=on; }); this.save('eo5.priorActive',priorActive); return {priorActive}; }); }
+  setAllPriors(on){ this.setState(s=>{ const priorActive={...(s.priorActive||{})}; this.priorCatalog().forEach(p=>{ priorActive[p.id]=on; }); this.save('eo5.priorActive',priorActive); return {priorActive}; }); }
+  openPrior(p){ this.setDoc({name:'Prior · '+p.genre,url:'prior://'+p.id,title:p.title,medium:'Prior',mode:'text',size:'',analysis:{words:p.paras.join(' ').split(/\s+/).length,links:0,paras:p.paras,hi:[p.summary],list:p.ents,toc:[{title:p.genre,implicit:false}]}},{skipRecord:true}); }
+  priorMemoryItems(){ return this.activePriors().map(p=>({key:'prior://'+p.id,id:p.id,title:p.title,source:'Prior · '+p.genre,medium:'Prior',words:p.paras.join(' ').split(/\s+/).length,links:0,ents:p.ents,highlights:[p.summary],toc:[p.genre],analysis:{paras:p.paras}})); }
 
-  toggleStructActive(id){ this.setState(s=>({structActive:{...s.structActive,[id]:s.structActive[id]===false}})); }
-  toggleStructExp(id){ this.setState(s=>({structExp:{...s.structExp,[id]:!s.structExp[id]}})); }
-  toggleStructRow(k){ this.setState(s=>({structRows:{...s.structRows,[k]:!s.structRows[k]}})); }
-
-  // ── priors : inspectable, toggleable sources ──────────────────────────────
-  // A prior is everything the reader knows that did NOT come from the source in
-  // front of it — a distribution over the 27 EO phasepost cells (eoPriors' fold
-  // space, data/phasepost-cells.json). Treated here as a SOURCE you can toggle
-  // on/off: an active prior seeds the reading and lowers surprise, and the
-  // compression technique (cross-entropy in bits) ranks which prior best fits a
-  // given source. The scoring mirrors eoPriors/src/prior-fit.js + fold-cells.js,
-  // kept inline because the deployed app is a single self-contained page.
+  // ── priors : compression fit + reading surprise (layered on the catalog) ──
+  // A prior is a distribution over the 27 EO phasepost cells (eoPriors' fold
+  // space, data/phasepost-cells.json). The catalog above gives each prior its
+  // genre, prose, and toggle; these methods give it a measurable shape, so the
+  // compression technique (cross-entropy in bits) can rank which prior best fits
+  // a source and show how much surprise an active prior removes when reading it.
+  // Scoring mirrors eoPriors/src/prior-fit.js, kept inline (single-file page).
   PRIOR_CELLS(){ return ['NUL_Clearing_Void','NUL_Dissecting_Entity','NUL_Unraveling_Kind','SEG_Clearing_Field','SEG_Dissecting_Link','SEG_Unraveling_Network','DEF_Clearing_Atmosphere','DEF_Dissecting_Lens','DEF_Unraveling_Paradigm','SIG_Tending_Void','SIG_Binding_Entity','SIG_Tracing_Kind','CON_Tending_Field','CON_Binding_Link','CON_Tracing_Network','EVA_Tending_Atmosphere','EVA_Binding_Lens','EVA_Tracing_Paradigm','INS_Cultivating_Void','INS_Making_Entity','INS_Composing_Kind','SYN_Cultivating_Field','SYN_Making_Link','SYN_Composing_Network','REC_Cultivating_Atmosphere','REC_Making_Lens','REC_Composing_Paradigm']; }
   // EVA_Binding_Lens / REC_Making_Lens are the reader's always-on evaluate and
-  // predict acts — they fire on ~every span and carry the bulk of any corpus
-  // prior's mass, so they say almost nothing about fit. Silenced for the
-  // discriminating "content-cell" view, exactly as eoPriors' experiments do.
+  // predict acts — they fire on ~every span and carry the bulk of any prior's
+  // mass, so they say almost nothing about fit. Silenced for the discriminating
+  // "content-cell" view, exactly as eoPriors' experiments do.
   PRIOR_EXCLUDED(){ return ['EVA_Binding_Lens','REC_Making_Lens']; }
-  priorRegistry(){
-    if(this._priorReg) return this._priorReg;
-    this._priorReg=[
-      { id:'corpus-prior@1.0.0', title:'Diverse corpus', medium:'Prior', role:'corpus',
-        reader_version:'eoreader4.2@1.0.0', basis_id:'exemplar-basis:sha256:0000…0000',
-        channels:['priorMass','priorBond','priorProp'],
-        scope:{ languages:['multi'], media:['text'], genres:['prose'] },
-        note:'296 books · 22,078 spans. The shipped eoPriors aggregate fold distribution — the general-purpose reading prior.',
-        dist:{NUL_Clearing_Void:1,NUL_Dissecting_Entity:40281,NUL_Unraveling_Kind:1,SEG_Clearing_Field:1,SEG_Dissecting_Link:43663,SEG_Unraveling_Network:1,DEF_Clearing_Atmosphere:1,DEF_Dissecting_Lens:12275,DEF_Unraveling_Paradigm:1,SIG_Tending_Void:1,SIG_Binding_Entity:1932,SIG_Tracing_Kind:1,CON_Tending_Field:1,CON_Binding_Link:88081,CON_Tracing_Network:1,EVA_Tending_Atmosphere:1,EVA_Binding_Lens:375814,EVA_Tracing_Paradigm:1,INS_Cultivating_Void:1,INS_Making_Entity:58396,INS_Composing_Kind:1,SYN_Cultivating_Field:1,SYN_Making_Link:6161,SYN_Composing_Network:1,REC_Cultivating_Atmosphere:1,REC_Making_Lens:373379,REC_Composing_Paradigm:1} },
-      { id:'narrative-prose@0.1.0', title:'Narrative prose', medium:'Prior', role:'corpus',
-        reader_version:'eoreader4.2@1.0.0', basis_id:'exemplar-basis:sha256:0000…0000',
-        channels:['priorMass','priorBond','priorProp'],
-        scope:{ languages:['en'], media:['text'], genres:['fiction','narrative'] },
-        note:'Character-and-relation heavy: expects entities entering and bonding, few defined terms. Best for stories and reportage.',
-        dist:{NUL_Dissecting_Entity:40000,SEG_Dissecting_Link:20000,DEF_Dissecting_Lens:8000,SIG_Binding_Entity:70000,CON_Binding_Link:110000,EVA_Binding_Lens:300000,INS_Making_Entity:120000,SYN_Making_Link:22000,REC_Making_Lens:300000} },
-      { id:'reference-structure@0.1.0', title:'Reference & structure', medium:'Prior', role:'corpus',
-        reader_version:'eoreader4.2@1.0.0', basis_id:'exemplar-basis:sha256:0000…0000',
-        channels:['priorMass','priorBond','priorProp'],
-        scope:{ languages:['en'], media:['text'], genres:['reference','manual','spec'] },
-        note:'Section-and-definition heavy: expects boundaries and defined terms over character bonds. Best for docs, specs, manuals.',
-        dist:{NUL_Dissecting_Entity:80000,SEG_Dissecting_Link:150000,DEF_Dissecting_Lens:120000,SIG_Binding_Entity:5000,CON_Binding_Link:20000,EVA_Binding_Lens:280000,INS_Making_Entity:60000,SYN_Making_Link:4000,REC_Making_Lens:280000} },
-    ];
-    return this._priorReg;
-  }
+  // The 27-cell fold distribution each catalog prior expects — the shape of
+  // read its genre privileges. Kept beside the catalog (by id) so priorCatalog()
+  // stays the single descriptive source of truth.
+  priorDist(id){ return ({
+    prior_news_agency:{NUL_Dissecting_Entity:30000,SEG_Dissecting_Link:40000,DEF_Dissecting_Lens:80000,SIG_Binding_Entity:60000,CON_Binding_Link:70000,EVA_Binding_Lens:300000,INS_Making_Entity:90000,SYN_Making_Link:10000,REC_Making_Lens:300000},
+    prior_policy_report:{NUL_Dissecting_Entity:60000,SEG_Dissecting_Link:150000,DEF_Dissecting_Lens:130000,SIG_Binding_Entity:5000,CON_Binding_Link:25000,EVA_Binding_Lens:280000,INS_Making_Entity:60000,SYN_Making_Link:5000,REC_Making_Lens:280000},
+    prior_literature:{NUL_Dissecting_Entity:40000,SEG_Dissecting_Link:25000,DEF_Dissecting_Lens:6000,SIG_Binding_Entity:75000,CON_Binding_Link:95000,EVA_Binding_Lens:300000,INS_Making_Entity:110000,SYN_Making_Link:35000,REC_Making_Lens:300000},
+    prior_dataset:{NUL_Dissecting_Entity:70000,SEG_Dissecting_Link:160000,DEF_Dissecting_Lens:120000,SIG_Binding_Entity:5000,CON_Binding_Link:20000,EVA_Binding_Lens:270000,INS_Making_Entity:80000,SYN_Composing_Network:5000,REC_Making_Lens:270000},
+    prior_audio:{NUL_Dissecting_Entity:60000,SEG_Dissecting_Link:150000,DEF_Dissecting_Lens:10000,SIG_Binding_Entity:40000,CON_Binding_Link:70000,EVA_Binding_Lens:290000,INS_Making_Entity:90000,SYN_Making_Link:10000,REC_Making_Lens:290000},
+  })[id]||{}; }
+  // Every prior seeds all three Ground channels (priorMass→Void, priorBond→Field,
+  // priorProp→Atmosphere).
+  priorChannelsFor(id){ return ['priorMass','priorBond','priorProp']; }
   // Normalize a {cell:weight} map to an ε-floored probability vector over `keys`
-  // (a never-seen cell stays scoreable, so cross-entropy never hits log2(0) and
-  // KL stays ≥0 — the Gibbs invariant).
+  // (a never-seen cell stays scoreable, so KL stays ≥0 — the Gibbs invariant).
   _priorNorm(raw, keys){
     const EPS=1e-6; const mass={}; let total=0;
     for(const c of keys){ const v=Number(raw&&raw[c])||0; mass[c]=v<0?0:v; total+=mass[c]; }
@@ -3253,9 +3319,9 @@ class Component extends DCLogic {
   }
   // Estimate a source's 27-cell fold distribution from the evidence the app
   // already extracts (entities, links, sections, highlights) — a transparent
-  // stand-in for a full eoreader read: each named entity is an INS, each entity
-  // link a CON, repeat mentions SIG, recurring referents SYN, sections SEG,
-  // highlights DEF, plus the always-on EVA/REC evaluate/predict acts.
+  // stand-in for a full eoreader read: each entity an INS, each link a CON,
+  // repeat mentions SIG, recurring referents SYN, sections SEG, highlights DEF,
+  // plus the always-on EVA/REC evaluate/predict acts.
   sourceFoldDist(m){
     const ents=m.ents||[], toc=m.toc||[], hi=m.highlights||[];
     const linkTotal=ents.reduce((a,e)=>a+(e.links||0),0);
@@ -3285,16 +3351,15 @@ class Component extends DCLogic {
     const uniform=Math.log2(keys.length);
     return { crossEntropyBits:ce, sourceEntropyBits:h, klBits:Math.max(0,ce-h), uniformBits:uniform, surpriseReductionBits:uniform-ce, cells:keys.length };
   }
-  activePriorRecords(){ const a=this.state.priorsActive||{}; return this.priorRegistry().filter(p=>!!a[p.id]); }
   // Blend every active prior into one distribution (equal-weight mixture) — the
-  // prior the reading is actually conditioned on when several are toggled on.
+  // prior the reading is conditioned on when several are on.
   blendedActiveRaw(){
-    const recs=this.activePriorRecords(); if(!recs.length) return null;
+    const recs=this.activePriors(); if(!recs.length) return null;
     const all=this.PRIOR_CELLS(); const raw={}; for(const c of all) raw[c]=0;
-    for(const p of recs){ const d=this._priorNorm(p.dist, all); for(const c of all) raw[c]+=d[c]; }
+    for(const p of recs){ const d=this._priorNorm(this.priorDist(p.id), all); for(const c of all) raw[c]+=d[c]; }
     return raw;
   }
-  // Reading-surprise for a source, with priors off (cold uniform) vs. the active
+  // Reading-surprise for a source, priors off (cold uniform) vs. the active
   // blend on — "priors used for reading to minimize surprise" made a number.
   readingSurprise(m){
     const all=this.PRIOR_CELLS(); const keys=all.filter(c=>this.PRIOR_EXCLUDED().indexOf(c)<0);
@@ -3304,19 +3369,19 @@ class Component extends DCLogic {
     let on=off;
     if(blend){ const Q=this._priorNorm(blend, keys); on=0; for(const c of keys) if(P[c]>0) on += -P[c]*Math.log2(Q[c]); }
     const red=off-on;
-    return { offBits:off, onBits:on, reductionBits:red, pct: off>0?Math.round(100*red/off):0, active:this.activePriorRecords().length };
+    return { offBits:off, onBits:on, reductionBits:red, pct: off>0?Math.round(100*red/off):0, active:this.activePriors().length };
   }
-  // Rank every prior for a source, best (least surprising) first — the
+  // Rank every catalog prior for a source, best (least surprising) first — the
   // compression technique finding the best priors for a given source.
   rankPriorsFor(m){
     const src=this.sourceFoldDist(m);
-    return this.priorRegistry()
-      .map(p=>({ p, fit:this.priorFit(src, p.dist, true) }))
+    return this.priorCatalog()
+      .map(p=>({ p, fit:this.priorFit(src, this.priorDist(p.id), true) }))
       .sort((a,b)=>b.fit.surpriseReductionBits-a.fit.surpriseReductionBits)
       .map((x,i)=>({ ...x, rank:i+1 }));
   }
   // The source the "best priors" ranking is computed against: the open document
-  // if it's in memory, else an aggregate of the active sources.
+  // if it's in memory, else an aggregate of the active (non-prior) sources.
   priorTargetSource(){
     const d=this.state.doc, list=this.mem();
     const match = d && list.find(m=>(d.id&&m.id===d.id)||(d.title&&m.title===d.title));
@@ -3330,17 +3395,61 @@ class Component extends DCLogic {
   }
   // Top cells of a prior's distribution, for the inspector — share of mass, a
   // bar width, and whether the cell is one of the silenced universal acts.
-  priorCellBars(p){
-    const cells=this.PRIOR_CELLS(); const excl=this.PRIOR_EXCLUDED();
-    const total=cells.reduce((s,c)=>s+(Number(p.dist[c])||0),0)||1;
-    return cells.map(c=>{ const parts=c.split('_'); const share=(Number(p.dist[c])||0)/total;
-        return { key:c, op:parts[0], grain:parts[1], site:parts[2], label:parts[0]+' · '+parts[2], pct:Math.round(share*1000)/10, share, excluded:excl.indexOf(c)>=0 }; })
+  priorCellBars(id){
+    const cells=this.PRIOR_CELLS(); const excl=this.PRIOR_EXCLUDED(); const dist=this.priorDist(id);
+    const total=cells.reduce((s,c)=>s+(Number(dist[c])||0),0)||1;
+    return cells.map(c=>{ const parts=c.split('_'); const share=(Number(dist[c])||0)/total;
+        return { key:c, label:parts[0]+' · '+parts[2], pct:Math.round(share*1000)/10, share, excluded:excl.indexOf(c)>=0 }; })
       .filter(x=>x.share>0.002)
       .sort((a,b)=>b.share-a.share)
-      .slice(0,10);
+      .slice(0,10)
+      .map(cb=>({ label:cb.label, pctLabel:cb.pct.toFixed(1)+'%', barW:Math.max(2,Math.round(cb.share*100))+'%', barCol:cb.excluded?'#c9c2b8':'#8e6fb3', excluded:cb.excluded, muteLabel:cb.excluded?'universal · silenced in fit':'' }));
   }
-  togglePrior(id){ this.setState(s=>{ const priorsActive={...s.priorsActive,[id]:!s.priorsActive[id]}; this.save('eo5.priorsActive',priorsActive); return {priorsActive}; }); }
-  selectPrior(id){ this.setState(s=>({priorSel:s.priorSel===id?null:id})); }
+
+  // ── corpus from memory ──
+  sourceCard(m){
+    const ents=m.ents||[]; const top=ents[0];
+    const code=this.medCode(m.medium), dot=this.medColor(m.medium);
+    const det=m.words?(m.medium+' · '+this.nf(m.words)+' words'):m.medium;
+    const linkTotal=ents.reduce((a,e)=>a+(e.links||0),0);
+    const hi=m.highlights||[], toc=m.toc||[];
+    const insightText= top
+      ? '“'+top.name+'” leads with '+top.count+' mention'+(top.count===1?'':'s')+' — '+ents.length+' entit'+(ents.length===1?'y':'ies')+(toc.length?', '+toc.length+' section'+(toc.length===1?'':'s'):'')+'.'
+      : 'Kept in memory; no named entities surfaced in this source.';
+    const bands=[
+      {t:'What’s there',c:'#c0662e',rows:[
+        {label:'Entities',count:ents.length,items:ents.slice(0,8).map(e=>({t:e.name,c:e.color})).concat(ents.length>8?[{t:'+'+(ents.length-8)+' more'}]:[])},
+        {label:'Highlights',count:hi.length,items:hi.slice(0,4).map(h=>({t:h.length>44?h.slice(0,44)+'…':h}))}
+      ]},
+      {t:'How it connects',c:'#2a78d6',rows:[
+        {label:'Sections',count:toc.length,items:toc.slice(0,6).map(x=>({t:x}))},
+        {label:'Entity links',count:linkTotal,items:ents.filter(e=>e.related&&e.related.length).slice(0,5).map(e=>({t:e.name+' → '+e.related[0].n}))}
+      ]}
+    ];
+    return {id:m.id,medium:m.medium,code,dot,title:m.title,det,
+      stats:{ent:ents.length,seg:(toc.length||1),ln:linkTotal,hl:hi.length},
+      insight:{kind:(m.medium||'SOURCE').toUpperCase(),color:dot,text:insightText}, bands};
+  }
+  corpusRaw(){ return this.mem().concat(this.priorMemoryItems()).map(m=>this.sourceCard(m)); }
+
+  sharedMap(){
+    const map={};
+    this.mem().forEach(m=>{ const code=this.medCode(m.medium); const seen=new Set();
+      (m.ents||[]).forEach(e=>{ const k=e.name.toLowerCase(); if(seen.has(k))return; seen.add(k);
+        if(!map[k]) map[k]={name:e.name,color:e.color,codes:[]}; if(map[k].codes.indexOf(code)<0) map[k].codes.push(code); }); });
+    return Object.values(map).filter(x=>x.codes.length>=2).sort((a,b)=>b.codes.length-a.codes.length);
+  }
+  crossInsights(){
+    return this.sharedMap().slice(0,3).map(x=>({
+      kind:'RECURRING REFERENT', color:x.color,
+      text:'“'+x.name+'” recurs across '+x.codes.length+' active source folds; open the sources to inspect evidence.',
+      srcs:x.codes, chips:[{t:x.name,c:x.color}]
+    }));
+  }
+
+  toggleStructActive(id){ this.setState(s=>({structActive:{...s.structActive,[id]:s.structActive[id]===false}})); }
+  toggleStructExp(id){ this.setState(s=>({structExp:{...s.structExp,[id]:!s.structExp[id]}})); }
+  toggleStructRow(k){ this.setState(s=>({structRows:{...s.structRows,[k]:!s.structRows[k]}})); }
 
   ingest(f){
     if(!f)return;
@@ -3598,6 +3707,21 @@ class Component extends DCLogic {
     );
   }
 
+
+  buildEotInspector(){
+    const t=this.theme(), h=React.createElement;
+    const ops={DIS:'#FF5C5C',IND:'#FF9F43',CON:'#FFD93D',REF:'#52D273',SIG:'#20C9B5',REV:'#4D9FFF',NUL:'#8B7CF6',REC:'#D767D7',COL:'#F06A9B'};
+    const glyph={DIS:'◇',IND:'▸',CON:'─',REF:'@',SIG:'✦',REV:'↺',NUL:'∅',REC:'⟳',COL:'◆'};
+    const tok=(text,cls,op)=>h('span',{key:text+Math.random(),title:op?(op+' signature'):undefined,style:{color:cls==='operator'?ops[text]:(cls==='envelope'?'#8290a3':cls==='ref'?'#7fa2b8':cls==='number'?'#b8c7a4':cls==='meta'?t.mut:t.t2),fontWeight:cls==='operator'?800:(cls==='envelope'?600:500),letterSpacing:cls==='envelope'?'.08em':0,textDecoration:cls==='ref'?'underline':'none'}},text);
+    const rows=[['000184','OBS','DIS','"Federal Reserve" | "the Fed"','#FF5C5C'],['000185','OBS','REF','@surface:the_Fed → @referent:fed_01','#52D273'],['000186','OBS','CON','@fed_01 → held → @rates','#FFD93D'],['000187','DER','SIG','@claim:held_rates weight:0.81','#20C9B5']];
+    const stream=h('div',{style:{font:"500 12px/1.7 'IBM Plex Mono',monospace",padding:'10px 0'}},rows.map((r,i)=>h('div',{key:r[0],style:{display:'grid',gridTemplateColumns:'14px 58px 48px 48px 1fr',gap:'8px',alignItems:'baseline',padding:'5px 13px',borderLeft:'3px solid '+r[4]}},[
+      h('span',{key:'g',style:{display:'flex',flexDirection:i===3?'column':'row',gap:'2px'}},[h('span',{style:{width:'7px',height:'7px',borderRadius:'50%',background:r[4],display:'inline-block'}})]),tok(r[0],'number'),tok(r[1],'envelope'),tok(r[2],'operator',r[2]),tok(r[3],r[3].startsWith('@')?'ref':'operand')])));
+    const fold=h('div',{},[h('div',{style:{font:"800 9px 'IBM Plex Mono',monospace",letterSpacing:'.08em',color:t.mut,marginBottom:'8px'}},'FOLD · Projection at event 187'),h('pre',{style:{margin:0,whiteSpace:'pre-wrap',font:"500 12px/1.6 'IBM Plex Mono',monospace",color:t.t2}},'REFERENT @fed_01\n  surfaces  ["Federal Reserve", "the Fed"]\n  claims    [@claim:held_rates]\n  evidence  [000184..000186]\n  standing  witnessed')]);
+    const deriv=h('div',{},[h('div',{style:{font:"800 9px 'IBM Plex Mono',monospace",letterSpacing:'.08em',color:t.mut,marginBottom:'8px'}},'DERIVATION · finding:004'),h('div',{style:{font:"500 12px/1.65 'IBM Plex Mono',monospace",color:t.t2}},[h('div',{key:'i'},'INPUT  [000184, 000185, 000186]'),h('div',{key:'a',style:{color:t.mut}},'APPLY'),h('div',{key:'r'},[tok('REF','operator','REF'),' @surface:the_Fed → @referent:fed_01']),h('div',{key:'c'},[tok('CON','operator','CON'),' @fed_01 → held → @rates']),h('div',{key:'s'},[tok('SIG','operator','SIG'),' @claim:held_rates weight:0.81']),h('div',{key:'o'},'OUTPUT "The Federal Reserve held rates steady."'),h('div',{key:'af'},'ADDED_FACTS 0')])]);
+    const grammar=h('div',{},[h('div',{style:{font:"800 9px 'IBM Plex Mono',monospace",letterSpacing:'.08em',color:t.mut,marginBottom:'8px'}},'GRAMMAR · nine reserved operators'),h('div',{style:{display:'grid',gridTemplateColumns:'repeat(3,minmax(0,1fr))',gap:'6px'}},Object.keys(ops).map(k=>h('div',{key:k,title:k+' signature; click filters stream',style:{border:'1px solid '+t.border,borderLeft:'4px solid '+ops[k],borderRadius:'9px',padding:'7px',font:'700 11px system-ui',color:t.text}},[h('span',{style:{color:ops[k],marginRight:'5px'}},glyph[k]),k]))) ]);
+    return {stream, fold, derivation:deriv, grammar};
+  }
+
   buildActiveHereBar(){
     const S=this.state; if(S.tab!=='reader'||S.view!=='annotated') return null;
     const d=S.doc, a=d&&d.analysis; if(!a||!(a.list||[]).length) return null;
@@ -3695,6 +3819,13 @@ class Component extends DCLogic {
     else if(reader) body.push(h('div',{key:'st',style:{font:'500 12px system-ui',color:t.mut,marginBottom:'10px'}}, a.words+' words'+(plain?'':' · '+a.list.length+' entities')));
     if(reader) body.push(h('div',{key:'where',style:{position:'sticky',top:'0',zIndex:3,background:'linear-gradient(180deg,'+t.screen+' 72%,rgba(0,0,0,0))',padding:'0 0 14px',margin:'0 0 14px'}},[
       h('div',{key:'card',style:{background:t.bar,border:'1px solid '+t.border,borderRadius:'14px',boxShadow:'0 8px 22px rgba(0,0,0,.05)',overflow:'hidden'}},[
+        // The title line is skipped when it would just repeat what "you are here" already says
+        // below (curSeg's own label falls back to the source title on the opening/implicit
+        // segment) — but the byline always shows, since nothing else in the card carries it.
+        ((d.title&&!(curSeg&&curSeg.title===d.title))||d.byline)?h('div',{key:'id',style:{padding:'10px 12px 0'}},[
+          (d.title&&!(curSeg&&curSeg.title===d.title))?h('div',{key:'t',style:{font:'700 12.5px system-ui',color:t.text,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}, d.title):null,
+          d.byline?h('div',{key:'b',style:{font:'500 10.5px system-ui',color:t.mut,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis',marginTop:'1px'}}, d.byline):null
+        ]):null,
         h('div',{key:'row',onClick:()=>segments.length?this.setState({tocOpen:!this.state.tocOpen}):null,style:{display:'flex',alignItems:'center',gap:'10px',padding:'10px 12px',cursor:segments.length?'pointer':'default'}},[
           h('div',{key:'pct',style:{font:"800 11px 'IBM Plex Mono',monospace",color:t.accent,minWidth:'38px'}}, pct+'%'),
           h('div',{key:'txt',style:{flex:1,minWidth:0}},[
@@ -3765,7 +3896,8 @@ class Component extends DCLogic {
   }
   buildLocalQueryReading(q, scopeOverride){
     const query=(q||'').trim(), norm=this.normalizeQuery(query), terms=norm.split(' ').filter(x=>x.length>2).slice(0,8);
-    const sources=(this.mem().length?this.mem():[this.state.doc].filter(Boolean)).filter(Boolean);
+    const baseSources=this.mem().concat(this.priorMemoryItems());
+    const sources=(baseSources.length?baseSources:[this.state.doc].filter(Boolean)).filter(Boolean);
     const scope=scopeOverride || this.state.searchScope || 'all';
     const scoped=scope&&scope!=='all'?sources.filter(s=>String(s.id||s.title||s.name)===scope):sources;
     const hits=[];
@@ -3867,17 +3999,35 @@ class Component extends DCLogic {
     const drawerRecCount=memList.filter(m=>m.recording).length;
     const drawerLastTs=memList.filter(m=>m.recording).reduce((a,m)=>Math.max(a,m.lastUpdate||0),0);
 
+    const priors=this.priorCatalog(), pa=S.priorActive||{};
+    const priorOnCount=priors.filter(p=>pa[p.id]!==false).length;
+    const priorGenres=[...new Set(priors.map(p=>p.genre))].map(genre=>{ const rows=priors.filter(p=>p.genre===genre); const onCount=rows.filter(p=>pa[p.id]!==false).length; return {label:genre,total:rows.length,onCount,allOn:()=>this.setPriorGenre(genre,true),allOff:()=>this.setPriorGenre(genre,false),rows:rows.map(p=>{ const on=pa[p.id]!==false, opened=S.priorExpand===p.id; return {title:p.title,det:p.genre+' · '+p.paras.length+' notes',summary:p.summary,dot:t.accent,op:on?1:.55,track:on?t.accent:t.bStrong,knob:on?'16px':'2px',opened,chev:opened?'90deg':'0deg',toggle:()=>this.setPriorActive(p.id,!on),expand:()=>this.setState(s=>({priorExpand:s.priorExpand===p.id?null:p.id})),open:()=>this.openPrior(p),channels:this.priorChannelsFor(p.id).map(ch=>({label:ch,site:({priorMass:'Void',priorBond:'Field',priorProp:'Atmosphere'})[ch]||''})),cells:this.priorCellBars(p.id),readerVersion:'eoreader4.2@1.0.0'};})}; });
+
+    // ── priors : compression fit + reading surprise ──
+    const priorTarget=this.priorTargetSource();
+    const priorReading = priorTarget ? this.readingSurprise(priorTarget.m) : null;
+    const priorRanking = priorTarget ? this.rankPriorsFor(priorTarget.m) : [];
+    const priorBestId = priorRanking.length ? priorRanking[0].p.id : null;
+    const _fmtBits=(x)=>(x>=0?'+':'−')+Math.abs(x).toFixed(2);
+    const priorRankRows = priorRanking.map(x=>{ const on=pa[x.p.id]!==false, best=x.p.id===priorBestId;
+      return { id:x.p.id, title:x.p.title, genre:x.p.genre, rank:x.rank, best,
+        reductionLabel:_fmtBits(x.fit.surpriseReductionBits)+' bits', klLabel:x.fit.klBits.toFixed(2)+' bits KL',
+        barW:Math.max(3,Math.min(100,Math.round((x.fit.surpriseReductionBits/Math.max(0.01,priorRanking[0].fit.surpriseReductionBits))*100)))+'%',
+        barCol:best?'#2f8f6b':t.accent, tagBg:best?'rgba(47,143,107,.12)':t.bar, tagFg:best?'#2f8f6b':t.mut, tag:best?'BEST FIT':('#'+x.rank),
+        on, track:on?t.accent:t.bStrong, knob:on?'16px':'2px', toggle:()=>this.setPriorActive(x.p.id,!on) }; });
+    const priorActiveCount=this.activePriors().length;
+
     const proxyHost=(S.proxy&&S.proxy.on)?('proxy · '+this.hostOf((S.proxy.fetch||'').replace('{url}','').replace('{urlenc}',''))):'direct (no proxy)';
 
     const queryText=S.queryText || S.searchQ || '';
     const reading=S.queryReading || this.buildLocalQueryReading(queryText || (d&&d.title) || '');
     const projection=S.searchProjection || 'evidence';
     const coverageColor={sufficient:'#2f7a55',partial:'#b0842f',ambiguous:'#b0842f',absent:'#c0392b',guidance:t.mut}[reading.coverage]||t.mut;
-    const coverageText={sufficient:'Evidence found',partial:'Related evidence only',absent:'No evidence found in this scope',guidance:'Search a committed fold'}[reading.coverage]||'Search index unavailable';
+    const coverageText={sufficient:'Answered from selected evidence',partial:'Thin answer — evidence is limited',absent:'Cannot answer from this scope',guidance:'Search a committed fold'}[reading.coverage]||'Search index unavailable';
     const searchScopeLabel=(S.searchScope&&S.searchScope!=='all')?'This source':'Workspace';
     const sourceKeys=(memList.length?memList:[d].filter(Boolean)).map((m,i)=>({id:m.id||m.title||m.name||('source'+i),label:(m.title||m.name||'Source').slice(0,18),dot:this.medColor(m.medium)}));
     const scopeChips=[{id:'all',label:'All',dot:t.accent},...sourceKeys].map(x=>{const on=(S.searchScope||'all')===x.id;return{label:x.label,dot:x.dot,bg:on?t.accent:t.bar,fg:on?'#fff':t.t2,bd:on?t.accent:t.border,pick:()=>this.setState({searchScope:x.id,queryReading:this.buildLocalQueryReading(queryText,x.id)})};});
-    const projectionTabs=['Evidence','Structure','All'].map(x=>{ const id=x.toLowerCase(); const on=projection===id; return {label:x,bg:on?t.accent:t.bar,fg:on?'#fff':t.t2,bd:on?t.accent:t.border,pick:()=>this.setState({searchProjection:id})}; });
+    const projectionTabs=['At a glance','Pieces','Sources','JSON'].map(x=>{ const id=({ 'At a glance':'evidence', Pieces:'structure', Sources:'all', JSON:'json' })[x]||x.toLowerCase(); const on=projection===id; return {label:x,bg:on?t.accent:t.bar,fg:on?'#fff':t.t2,bd:on?t.accent:t.border,pick:()=>this.setState({searchProjection:id})}; });
     const toCard=ev=>({text:ev.text&&ev.text.length>220?ev.text.slice(0,220)+'…':ev.text,source:ev.source_title,anchor:ev.anchor&&ev.anchor.label,color:ev.channel==='exact'?t.accent:(ev.channel==='structural'?'#2a78d6':'#8e6fb3'),open:()=>this.openEvidence(ev),why:()=>this.whyEvidence(ev)});
     const coreEvidence=(reading.core_evidence||[]).map(toCard);
     const contextEvidence=(reading.context_evidence||[]).map(ev=>({label:ev.text,anchor:(ev.source_title||'Source')+' · '+(ev.anchor&&ev.anchor.label||'structure')}));
@@ -4027,46 +4177,12 @@ class Component extends DCLogic {
     const cdBackShown = cardPath.length>0;
     const cdBackLabel = cardPath.length<=1 ? terrain.rungs[0].label : (cardPath[cardPath.length-2].label||'');
 
-    // ── priors panel data ──
-    const priorReg=this.priorRegistry();
-    const priorTarget=this.priorTargetSource();
-    const priorReading = priorTarget ? this.readingSurprise(priorTarget.m) : null;
-    const priorRanking = priorTarget ? this.rankPriorsFor(priorTarget.m) : [];
-    const priorBestId = priorRanking.length ? priorRanking[0].p.id : null;
-    const fmtBits=(x)=>(x>=0?'+':'−')+Math.abs(x).toFixed(2);
-    const priorRankRows = priorRanking.map(x=>{ const on=!!S.priorsActive[x.p.id]; const best=x.p.id===priorBestId;
-      return { id:x.p.id, title:x.p.title, rank:x.rank, best,
-        reductionLabel:fmtBits(x.fit.surpriseReductionBits)+' bits',
-        klLabel:x.fit.klBits.toFixed(2)+' bits KL',
-        barW:Math.max(3,Math.min(100,Math.round((x.fit.surpriseReductionBits/Math.max(0.01,priorRanking[0].fit.surpriseReductionBits))*100)))+'%',
-        barCol:best?'#2f8f6b':t.accent, tagBg:best?'rgba(47,143,107,.12)':t.bar, tagFg:best?'#2f8f6b':t.mut,
-        tag:best?'BEST FIT':('#'+x.rank),
-        on, track:on?t.accent:t.bStrong, knob:on?'16px':'2px', toggle:()=>this.togglePrior(x.p.id) }; });
-    const priorRows = priorReg.map(p=>{ const on=!!S.priorsActive[p.id]; const sel=S.priorSel===p.id;
-      const scopeText=[(p.scope.genres||[]).join(', '),(p.scope.languages||[]).join('/')].filter(Boolean).join(' · ');
-      return { id:p.id, title:p.title, code:'PRIOR', dot:'#8e6fb3',
-        det:p.channels.join(' · '), scopeText, note:p.note, readerVersion:p.reader_version,
-        on, track:on?t.accent:t.bStrong, knob:on?'16px':'2px', rowOp:on?1:0.62,
-        toggle:()=>this.togglePrior(p.id), selected:sel, toggleSelect:()=>this.selectPrior(p.id),
-        chevron:sel?'90deg':'0deg',
-        channels:p.channels.map(ch=>({ label:ch, site:{priorMass:'Void',priorBond:'Field',priorProp:'Atmosphere'}[ch]||'' })),
-        cells:this.priorCellBars(p).map(cb=>({ label:cb.label, pctLabel:cb.pct.toFixed(1)+'%', barW:Math.max(2,Math.round(cb.share*100))+'%',
-          barCol:cb.excluded?t.bStrong:'#8e6fb3', op:cb.op, excluded:cb.excluded, muteLabel:cb.excluded?'universal · silenced in fit':'' })) }; });
-    const priorActiveCount=this.activePriorRecords().length;
-
     return {
-      priorRows, priorRankRows, priorTargetLabel:priorTarget?priorTarget.label:'', hasPriorTarget:!!priorTarget,
-      priorActiveCount, priorTotal:priorReg.length, hasPriorRank:priorRankRows.length>0,
-      priorOffBits:priorReading?priorReading.offBits.toFixed(2):'—', priorOnBits:priorReading?priorReading.onBits.toFixed(2):'—',
-      priorReductionBits:priorReading?priorReading.reductionBits.toFixed(2):'0.00', priorReductionPct:priorReading?priorReading.pct:0,
-      priorHasReduction:!!(priorReading&&priorReading.active>0), priorNoneActive:priorActiveCount===0,
-      isPriors:S.tab==='priors', setPriors:()=>this.setState({tab:'priors'}),
-      tabPrB:S.tab==='priors'?activeBg:'transparent', tabPrC:S.tab==='priors'?activeC:t.mut,
       isStructure:S.tab==='structure', notStructure:S.tab!=='structure',
       setStruct:()=>this.setState({tab:'structure'}),
       tabSB:S.tab==='structure'?activeBg:'transparent', tabSC:S.tab==='structure'?activeC:t.mut,
-      sheetDisp:(S.tab==='structure'||S.tab==='search'||S.tab==='overview'||S.tab==='profile'||S.tab==='priors'||(!sel&&!linkSel&&!explore))?'none':'flex',
-      panelOpenClass:(S.tab==='structure'||S.tab==='search'||S.tab==='overview'||S.tab==='profile'||S.tab==='priors'||(!sel&&!linkSel&&!explore))?'':'eo-panel-docked',
+      sheetDisp:(S.tab==='structure'||S.tab==='search'||S.tab==='priors'||S.tab==='overview'||S.tab==='profile'||S.tab==='eot'||(!sel&&!linkSel&&!explore))?'none':'flex',
+      panelOpenClass:(S.tab==='structure'||S.tab==='search'||S.tab==='priors'||S.tab==='overview'||S.tab==='profile'||S.tab==='eot'||(!sel&&!linkSel&&!explore))?'':'eo-panel-docked',
       structSources, corpusStats, sharedEnts, hasShared:sharedEnts.length>0, mediumFilters, crossInsights, crossSources,
       hasCross:crossInsights.length>0, noCross:crossInsights.length===0,
       queryText, onQueryInput:(e)=>this.setState({queryText:e.target.value}), onQueryKey:(e)=>{ if(e.key==='Enter') this.runLocalSearch(e.target.value); }, clearQuery:()=>this.runLocalSearch(''),
@@ -4078,6 +4194,11 @@ class Component extends DCLogic {
       srcQuery:S.srcQuery||'', onSrcQuery:(e)=>this.setState({srcQuery:e.target.value}),
       sourceRows, hasSources:sourceRows.length>0, noSources:memList.length===0,
       spacesMeta, drawerOnCount, drawerTotal:memList.length, drawerRecCount, drawerHasRec:drawerRecCount>0, drawerLastLabel:this.relTime(drawerLastTs),
+      priorGenres, priorOnCount, priorTotal:priors.length, priorAllOn:()=>this.setAllPriors(true), priorAllOff:()=>this.setAllPriors(false),
+      priorRankRows, hasPriorRank:priorRankRows.length>0, priorActiveCount, priorTargetLabel:priorTarget?priorTarget.label:'',
+      priorOffBits:priorReading?priorReading.offBits.toFixed(2):'—', priorOnBits:priorReading?priorReading.onBits.toFixed(2):'—',
+      priorReductionBits:priorReading?priorReading.reductionBits.toFixed(2):'0.00', priorReductionPct:priorReading?priorReading.pct:0,
+      priorHasReduction:!!(priorReading&&priorReading.active>0), priorNoneActive:priorActiveCount===0,
       bulkAllOn:()=>this.bulkActive(true), bulkAllOff:()=>this.bulkActive(false),
       startAllRec:()=>this.setAllRecording(true), stopAllRec:()=>this.setAllRecording(false),
       recordNew:()=>this.setState({sourcesOpen:false,importOpen:true}),
@@ -4086,7 +4207,7 @@ class Component extends DCLogic {
       memColor:memIn?'#2f7a55':t.accent, memBg:memIn?'rgba(47,122,85,.10)':t.accentSoft, memBorder:memIn?'#2f7a55':t.accentLine,
       memIconClass:memIn?'ph-fill ph-bookmark-simple':'ph ph-bookmark-simple', memTitle:memIn?'Recorded in memory — tap to exclude':'Excluded from memory — tap to record',
       toggleMemBtn:()=>{ if(d) this.toggleMemory(d); },
-      isReader:S.tab==='reader', isSearch:S.tab==='search',
+      isReader:S.tab==='reader', isSearch:S.tab==='search', isPriors:S.tab==='priors',
       isOverview:S.tab==='overview', setOverview:()=>this.setState({tab:'overview'}),
       tabOB:S.tab==='overview'?activeBg:'transparent', tabOC:S.tab==='overview'?activeC:t.mut,
       ovBackShown:cdBackShown, ovBackLabel:cdBackLabel, ovBack:()=>this.cardBack(),
@@ -4098,6 +4219,7 @@ class Component extends DCLogic {
       ovUnitHasAnchor:cdUnitHasAnchor, ovUnitNoAnchor:cdUnitNoAnchor, ovUnitAnchorLabel:cdUnitAnchorLabel, ovUnitJump:cdUnitJump,
       ovUnitHasEnts:cdUnitHasEnts, ovUnitNoEnts:cdUnitNoEnts, ovUnitEnts:cdUnitEnts,
       cdUnitHasLinks, cdUnitLinks,
+      overviewSubtabs:['Brief','Outline','Map','Technical'].map(label=>{ const on=(label==='Brief'&&S.tab==='overview')||(label==='Map'&&S.tab==='profile'); return {label,bg:on?t.accent:t.bar,fg:on?'#fff':t.t2,bd:on?t.accent:t.border,pick:()=> label==='Map'?this.setState({tab:'profile'}):this.setState({tab:'overview'})}; }),
       ovIsReferent:cardScreen==='referent',
       ovRefName:cdRefEnt?cdRefEnt.name:'', ovRefColor:cdRefEnt?cdRefEnt.color:t.mut,
       ovRefSub:cdRefEnt?('Detected entity · '+cdRefEnt.count+' mention'+(cdRefEnt.count===1?'':'s')):'',
@@ -4110,8 +4232,9 @@ class Component extends DCLogic {
       chromeBottomT:chromeCollapsed?'translateY(96px)':'translateY(0)',
       chromeBottomOp:chromeCollapsed?0:1, chromeBottomPE:chromeCollapsed?'none':'auto',
       sheetScrollPadB:chromeCollapsed?'22px':'calc(80px + env(safe-area-inset-bottom,0px))',
-      setReader:()=>this.setState({tab:'reader'}), setCross:()=>this.setState({tab:'search'}),
+      setReader:()=>this.setState({tab:'reader'}), setPriors:()=>this.setState({tab:'priors'}), setCross:()=>this.setState({tab:'search'}),
       tabRB:S.tab==='reader'?activeBg:'transparent', tabRC:S.tab==='reader'?activeC:t.mut,
+      tabPrB:S.tab==='priors'?activeBg:'transparent', tabPrC:S.tab==='priors'?activeC:t.mut,
       tabCB:S.tab==='search'?activeBg:'transparent', tabCC:S.tab==='search'?activeC:t.mut,
       view:S.view, viewLabel:(S.view==='reader'?(S.plain?'Reader':'Reader+'):vlabel[S.view]), progW:((vi+1)/3*100).toFixed(0)+'%',
       readerModes:(()=>{ const on=(a)=>({bg:a?t.accent:'transparent',fg:a?'#fff':t.mut});
@@ -4134,6 +4257,7 @@ class Component extends DCLogic {
       docEl:this.buildDoc(),
       activeHereEl:this.buildActiveHereBar(), noLlmStatusEl:this.buildNoLlmStatusBar(),
       derivationActions:['Show evidence','Show derivation','Show prior','Recompute without this source','Challenge'].map(label=>({label,pick:()=>alert(label+': this preview exposes the deterministic dependency slice for the selected card.')})),
+      ...(()=>{ const e=this.buildEotInspector(); return { eotStreamEl:e.stream, eotFoldEl:e.fold, eotDerivationEl:e.derivation, eotGrammarEl:e.grammar }; })(),
       L, tw:{hi:sw(L.hi),en:sw(L.en),ch:sw(L.ch),ln:sw(L.ln),nw:sw(L.nw)}, appearTrack:sw(dark).track, appearKnob:sw(dark).knob,
       togHi:()=>this.tog('hi'),togEn:()=>this.tog('en'),togCh:()=>this.tog('ch'),togLn:()=>this.tog('ln'),togNw:()=>this.tog('nw'),
       layersOpen:S.layersOpen, openLayers:()=>this.setState({layersOpen:true}), closeLayers:()=>this.setState({layersOpen:false}),
@@ -4187,7 +4311,9 @@ class Component extends DCLogic {
       hasMeaningMap:!!(a.list&&a.list.length), mapScopeLabel:'This source: '+((d&&d.title)||'Untitled'),
       solarKey:(d&&(d.url||d.title||d.name))||'doc',
       isProfile:S.tab==='profile', setProfile:()=>this.setState({tab:'profile'}),
+      isEot:S.tab==='eot', setEot:()=>this.setState({tab:'eot'}),
       tabPB:S.tab==='profile'?activeBg:'transparent', tabPC:S.tab==='profile'?activeC:t.mut,
+      tabEB:S.tab==='eot'?activeBg:'transparent', tabEC:S.tab==='eot'?activeC:t.mut,
       profileNoMap:!(a.list&&a.list.length),
       profileNoSel:!sel&&!!(a.list&&a.list.length),
       isEntSel:!!sel, isLinkSel:!!linkSel,
