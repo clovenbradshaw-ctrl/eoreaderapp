@@ -209,6 +209,11 @@
       </div>
     </div>
     </sc-if>
+    <sc-if value="{{ isBeta }}">
+    <div style="padding:14px 14px 44px;font-family:system-ui;max-width:1100px;margin:0 auto">
+      {{ betaEl }}
+    </div>
+    </sc-if>
     <sc-if value="{{ isSearch }}">
     <div style="padding:14px 14px 40px;font-family:system-ui">
       <div style="display:flex;align-items:center;gap:8px;background:{{ t.card }};border:1px solid {{ t.border }};border-radius:14px;padding:9px 10px;margin-bottom:10px">
@@ -688,6 +693,7 @@
     <button onClick="{{ setReader }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;min-height:44px;display:flex;align-items:center;justify-content:center;background:{{ tabRB }};color:{{ tabRC }};font:800 12px system-ui;cursor:pointer">Reader</button>
     <button onClick="{{ setOverview }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;min-height:44px;display:flex;align-items:center;justify-content:center;background:{{ tabOB }};color:{{ tabOC }};font:800 12px system-ui;cursor:pointer">Overview</button>
     <button onClick="{{ setStruct }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;min-height:44px;display:flex;align-items:center;justify-content:center;background:{{ tabSB }};color:{{ tabSC }};font:800 12px system-ui;cursor:pointer">Workspace</button>
+    <button onClick="{{ setBeta }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;min-height:44px;display:flex;align-items:center;justify-content:center;background:{{ tabBetaB }};color:{{ tabBetaC }};font:800 12px system-ui;cursor:pointer">Beta</button>
     <button onClick="{{ setPriors }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;min-height:44px;display:flex;align-items:center;justify-content:center;background:{{ tabPrB }};color:{{ tabPrC }};font:800 12px system-ui;cursor:pointer">Priors</button>
     <button onClick="{{ setInspector }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;min-height:44px;display:flex;align-items:center;justify-content:center;background:{{ tabInB }};color:{{ tabInC }};font:800 12px system-ui;cursor:pointer">Inspector</button>
     <button onClick="{{ setCross }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;min-height:44px;display:flex;align-items:center;justify-content:center;background:{{ tabCB }};color:{{ tabCC }};font:800 12px system-ui;cursor:pointer">Search</button>
@@ -2132,7 +2138,8 @@ class Component extends DCLogic {
       spaceEditOpen:false, spacePickerOpen:false, _sk:0,
       sourcesOpen:false, srcQuery:'', srcExpand:null, recPulse:0,
       priorActive:this.load('eo5.priorActive',{}), priorExpand:null,
-      chromeHidden:false, webFrameActiveIds:[], readPct:0
+      chromeHidden:false, webFrameActiveIds:[], readPct:0,
+      betaInput:'', betaOrgans:{text:true,image:true,audio:true,video:false,math:false}, betaSeed:0
     };
     this.scrollRef=(el)=>{
       if(!el) return;
@@ -3666,6 +3673,44 @@ class Component extends DCLogic {
     const lateAdds=rows.filter(r=>r.note).reduce((a,r)=>a+r.caught,0);
     return {rows,total,lateAdds,max:Math.max(...rows.map(r=>r.caught))};
   }
+
+  betaDiscourseText(){
+    const d=this.state.doc||{}, a=d.analysis||{}, shared=String(this.state.betaInput||'').trim();
+    const bits=[];
+    if(d.title) bits.push(d.title);
+    if(a.paras&&a.paras.length) bits.push(a.paras.slice(0,10).join(' '));
+    if(shared) bits.push(shared);
+    return bits.join('\n\n').replace(/\s+/g,' ').trim();
+  }
+  betaProfile(){
+    const txt=this.betaDiscourseText(), shared=String(this.state.betaInput||'');
+    const a=(this.state.doc&&this.state.doc.analysis)||{};
+    const sentences=(txt.match(/[^.!?]+[.!?]+|[^.!?]+$/g)||[]).map(x=>x.trim()).filter(Boolean);
+    const words=(txt.toLowerCase().match(/[a-z][a-z'-]{2,}/g)||[]).filter(w=>!this.stopWords().has(w));
+    const counts={}; words.forEach(w=>counts[w]=(counts[w]||0)+1);
+    const terms=Object.keys(counts).sort((x,y)=>counts[y]-counts[x]||x.localeCompare(y)).slice(0,10);
+    const ents=(a.list||[]).slice(0,8).map(e=>e.name);
+    const turns=(shared.match(/(?:^|\n)\s*[^:\n]{1,28}:\s*.+/g)||[]).length;
+    return {txt,sentences,terms,ents,turns,hash:this.hashText(txt)};
+  }
+  hashText(s){ let h=2166136261; for(let i=0;i<String(s).length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,16777619); } return h>>>0; }
+  stopWords(){ return this._stop||(this._stop=new Set('the and for that with from this have are was were has had not but you your into about would could should there their them then than what when where which while because across through between before after into onto over under source content chat document reader'.split(' '))); }
+  betaToggleOrgan(id){ this.setState(s=>({betaOrgans:{...(s.betaOrgans||{}),[id]:!(s.betaOrgans||{})[id]}, betaSeed:(s.betaSeed||0)+1})); }
+  buildBetaGeneration(){
+    const S=this.state,t=this.theme(),h=React.createElement,p=this.betaProfile(), organs=S.betaOrgans||{};
+    const chip=(id,label)=>h('span',{key:id,onClick:()=>this.betaToggleOrgan(id),style:{background:organs[id]?t.accent:t.bar,color:organs[id]?'#fff':t.t2,border:'1px solid '+(organs[id]?t.accent:t.border),borderRadius:'17px',padding:'7px 11px',font:'800 11px system-ui',cursor:'pointer'}},label);
+    const card=(k,title,body)=>h('div',{key:k,style:{background:t.card,border:'1px solid '+t.border,borderRadius:'15px',padding:'13px',minWidth:0}},[h('div',{key:'h',style:{font:"800 9px 'IBM Plex Mono',monospace",letterSpacing:'.08em',color:t.mut,marginBottom:'8px'}},title),body]);
+    const palette=['#c0662e','#4f6bed','#8e6fb3','#2f8f6b','#e8b04a','#c77dba'];
+    const nums=Array.from({length:32},(_,i)=>((p.hash+i*2654435761)>>>0)%997).map(n=>String(n).padStart(3,'0'));
+    const image=card('image','IMAGE ORGAN · SEMANTIC GLYPH',h('div',{style:{display:'grid',gridTemplateColumns:'repeat(5,1fr)',gap:'6px'}},Array.from({length:15},(_,i)=>h('div',{key:i,title:p.terms[i%Math.max(1,p.terms.length)]||'signal',style:{height:(34+(((p.hash>>>(i%16))&31)))+'px',borderRadius:(8+(i%4)*5)+'px',background:palette[(p.hash+i)%palette.length],opacity:.55+((i%5)*.09)}}))));
+    const audio=card('audio','AUDIO / MUSIC ORGAN · MIDI SKETCH',h('div',{},[(p.terms.length?p.terms:['root','turn','frame']).slice(0,8).map((w,i)=>h('div',{key:i,style:{display:'flex',alignItems:'center',gap:'8px',margin:'5px 0'}},[h('span',{key:'n',style:{width:'54px',font:"800 10px 'IBM Plex Mono',monospace",color:t.accent}},['C','D','E','G','A','Bb','F','D'][((p.hash>>i)+i)%8]+(3+(i%3))),h('div',{key:'b',style:{height:'9px',width:(35+((p.hash>>(i%12))&63))+'%',borderRadius:'5px',background:palette[i%palette.length]}}),h('span',{key:'w',style:{font:'600 11px system-ui',color:t.mut}},w)]))]));
+    const video=card('video','VIDEO ORGAN · SUCCESSIVE IMAGES',h('div',{style:{display:'flex',gap:'7px',overflowX:'auto'}},Array.from({length:6},(_,i)=>h('div',{key:i,style:{flex:'0 0 86px',height:'62px',borderRadius:'12px',background:'linear-gradient(135deg,'+palette[(i+p.hash)%palette.length]+','+palette[(i+2)%palette.length]+')',display:'flex',alignItems:'end',padding:'7px',color:'#fff',font:"800 10px 'IBM Plex Mono',monospace"}},'f'+(i+1)))));
+    const math=card('math','MATHEMATICAL ORGAN · NUMBER STRING',h('div',{style:{font:"700 13px/1.7 'IBM Plex Mono',monospace",color:t.text,wordBreak:'break-word'}},nums.join(' ')));
+    const text=card('text','TEXT ORGAN · DISCOURSE MOVES',h('div',{style:{font:'500 13px/1.55 system-ui',color:t.t2}},['Frame: '+(p.terms.slice(0,4).join(' · ')||'waiting for content'),h('br',{key:'b1'}),'Turns detected: '+p.turns+' · Sentences: '+p.sentences.length,h('br',{key:'b2'}),'Referents: '+(p.ents.join(', ')||'none detected yet')]));
+    const outs=[]; if(organs.text) outs.push(text); if(organs.image) outs.push(image); if(organs.audio) outs.push(audio); if(organs.video) outs.push(video); if(organs.math) outs.push(math);
+    return h('div',{},[h('div',{key:'top',style:{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:'12px',marginBottom:'12px'}},[h('div',{key:'l'},[h('div',{style:{font:"800 10px 'IBM Plex Mono',monospace",letterSpacing:'.09em',textTransform:'uppercase',color:t.mut}},'Beta · discourse-aware generation'),h('div',{style:{font:'500 13px/1.45 system-ui',color:t.mut,marginTop:'4px'}},'No LLM and no web search: this composes deterministic output organs from the active source, uploaded/chat text, local discourse cues, and priors.')]),h('span',{key:'s',style:{font:'800 10px system-ui',color:t.accent,border:'1px solid '+t.accentLine,background:t.accentSoft,borderRadius:'16px',padding:'7px 10px'}},'local only')]),h('textarea',{key:'ta',defaultValue:S.betaInput||'',onInput:e=>this.setState({betaInput:e.target.value,betaSeed:(S.betaSeed||0)+1}),placeholder:'Paste chat turns, notes, transcript, or content to converse with…',style:{width:'100%',minHeight:'110px',resize:'vertical',background:t.card,border:'1px solid '+t.border,borderRadius:'14px',padding:'12px',font:'500 13px/1.5 system-ui',color:t.text,outline:'none',marginBottom:'10px'}}),h('div',{key:'chips',style:{display:'flex',gap:'7px',flexWrap:'wrap',marginBottom:'12px'}},[chip('text','Text'),chip('image','Image'),chip('audio','Audio / music'),chip('video','Video'),chip('math','Mathematical')]),h('div',{key:'grid',style:{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(240px,1fr))',gap:'12px'}},outs.length?outs:[card('none','OUTPUT ORGANS','Pick at least one organ to render.')])]);
+  }
+
   buildPriorInspector(){
     const S=this.state, t=this.theme(), h=React.createElement;
     const view=S.priorInspectorView||'pockets';
@@ -4296,8 +4341,8 @@ class Component extends DCLogic {
       isStructure:S.tab==='structure', notStructure:S.tab!=='structure',
       setStruct:()=>this.setState({tab:'structure'}),
       tabSB:S.tab==='structure'?activeBg:'transparent', tabSC:S.tab==='structure'?activeC:t.mut,
-      sheetDisp:(S.tab==='structure'||S.tab==='search'||S.tab==='priors'||S.tab==='inspector'||S.tab==='overview'||S.tab==='profile'||S.tab==='eot'||(!sel&&!linkSel&&!explore))?'none':'flex',
-      panelOpenClass:(S.tab==='structure'||S.tab==='search'||S.tab==='priors'||S.tab==='inspector'||S.tab==='overview'||S.tab==='profile'||S.tab==='eot'||(!sel&&!linkSel&&!explore))?'':'eo-panel-docked',
+      sheetDisp:(S.tab==='structure'||S.tab==='beta'||S.tab==='search'||S.tab==='priors'||S.tab==='inspector'||S.tab==='overview'||S.tab==='profile'||S.tab==='eot'||(!sel&&!linkSel&&!explore))?'none':'flex',
+      panelOpenClass:(S.tab==='structure'||S.tab==='beta'||S.tab==='search'||S.tab==='priors'||S.tab==='inspector'||S.tab==='overview'||S.tab==='profile'||S.tab==='eot'||(!sel&&!linkSel&&!explore))?'':'eo-panel-docked',
       structSources, corpusStats, sharedEnts, hasShared:sharedEnts.length>0, mediumFilters, crossInsights, crossSources,
       hasCross:crossInsights.length>0, noCross:crossInsights.length===0,
       queryText, onQueryInput:(e)=>this.setState({queryText:e.target.value}), onQueryKey:(e)=>{ if(e.key==='Enter') this.runLocalSearch(e.target.value); }, clearQuery:()=>this.runLocalSearch(''),
@@ -4318,7 +4363,7 @@ class Component extends DCLogic {
       memColor:memIn?'#2f7a55':t.accent, memBg:memIn?'rgba(47,122,85,.10)':t.accentSoft, memBorder:memIn?'#2f7a55':t.accentLine,
       memIconClass:memIn?'ph-fill ph-bookmark-simple':'ph ph-bookmark-simple', memTitle:memIn?'Recorded in memory — tap to exclude':'Excluded from memory — tap to record',
       toggleMemBtn:()=>{ if(d) this.toggleMemory(d); },
-      isReader:S.tab==='reader', isSearch:S.tab==='search', isPriors:S.tab==='priors',
+      isReader:S.tab==='reader', isBeta:S.tab==='beta', isSearch:S.tab==='search', isPriors:S.tab==='priors',
       isOverview:S.tab==='overview', setOverview:()=>this.setState({tab:'overview'}),
       tabOB:S.tab==='overview'?activeBg:'transparent', tabOC:S.tab==='overview'?activeC:t.mut,
       ovBackShown:cdBackShown, ovBackLabel:cdBackLabel, ovBack:()=>this.cardBack(),
@@ -4343,8 +4388,9 @@ class Component extends DCLogic {
       chromeBottomT:chromeCollapsed?'translateY(96px)':'translateY(0)',
       chromeBottomOp:chromeCollapsed?0:1, chromeBottomPE:chromeCollapsed?'none':'auto',
       sheetScrollPadB:chromeCollapsed?'22px':'calc(80px + env(safe-area-inset-bottom,0px))',
-      setReader:()=>this.setState({tab:'reader'}), setPriors:()=>this.setState({tab:'priors'}), setCross:()=>this.setState({tab:'search'}),
+      setReader:()=>this.setState({tab:'reader'}), setBeta:()=>this.setState({tab:'beta'}), setPriors:()=>this.setState({tab:'priors'}), setCross:()=>this.setState({tab:'search'}),
       tabRB:S.tab==='reader'?activeBg:'transparent', tabRC:S.tab==='reader'?activeC:t.mut,
+      tabBetaB:S.tab==='beta'?activeBg:'transparent', tabBetaC:S.tab==='beta'?activeC:t.mut,
       tabPrB:S.tab==='priors'?activeBg:'transparent', tabPrC:S.tab==='priors'?activeC:t.mut,
       tabCB:S.tab==='search'?activeBg:'transparent', tabCC:S.tab==='search'?activeC:t.mut,
       view:S.view, viewLabel:(S.view==='reader'?(S.plain?'Reader':'Reader+'):vlabel[S.view]), progW:((vi+1)/3*100).toFixed(0)+'%',
@@ -4366,7 +4412,7 @@ class Component extends DCLogic {
       setV2:()=>{ this.save('eo5.readerType','reader'); if(this.state.view==='reader'){ const v=!this.state.plain; this.save('eo5.readerPlain',v); this.setState({plain:v}); } else this.setState({view:'reader'}); },
       cycleView:()=>this.setState({view:order[(vi+1)%3]}),
       docEl:this.buildDoc(),
-      activeHereEl:this.buildActiveHereBar(), noLlmStatusEl:this.buildNoLlmStatusBar(),
+      activeHereEl:this.buildActiveHereBar(), noLlmStatusEl:this.buildNoLlmStatusBar(), betaEl:this.buildBetaGeneration(),
       derivationActions:['Show evidence','Show derivation','Show prior','Recompute without this source','Challenge'].map(label=>({label,pick:()=>alert(label+': this preview exposes the deterministic dependency slice for the selected card.')})),
       ...(()=>{ const e=this.buildEotInspector(); return { eotStreamEl:e.stream, eotFoldEl:e.fold, eotDerivationEl:e.derivation, eotGrammarEl:e.grammar }; })(),
       L, tw:{hi:sw(L.hi),en:sw(L.en),ch:sw(L.ch),ln:sw(L.ln),nw:sw(L.nw)}, appearTrack:sw(dark).track, appearKnob:sw(dark).knob,
