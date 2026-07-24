@@ -1036,6 +1036,14 @@
       <div style="width:40px;height:5px;border-radius:3px;background:{{ t.bStrong }};margin:0 auto 14px"></div>
       <div style="display:flex;align-items:center;margin-bottom:14px"><div style="font:700 16px system-ui;color:{{ t.text }}">Settings</div><span onClick="{{ closeSettings }}" style="margin-left:auto;color:{{ t.accent }};font:600 13px system-ui;cursor:pointer">Done</span></div>
       <div style="display:flex;align-items:center;gap:9px;padding:7px 0"><span style="font:500 14px system-ui;color:{{ t.text }}">Appearance</span><span style="margin-left:auto;font:500 12.5px system-ui;color:{{ t.mut }}">{{ themeGlyph }}</span><span onClick="{{ flipDark }}" style="width:32px;height:18px;border-radius:20px;background:{{ appearTrack }};position:relative;flex:none;transition:background .2s;cursor:pointer"><span style="position:absolute;top:2px;left:{{ appearKnob }};width:14px;height:14px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25);transition:left .2s"></span></span></div>
+      <div style="padding:11px 0;border-top:1px solid {{ t.border }}">
+        <div style="font:500 14px system-ui;color:{{ t.text }};margin-bottom:9px">Accent color</div>
+        <div style="display:flex;flex-wrap:wrap;gap:10px">
+          <sc-for list="{{ palette }}" as="p" hint-placeholder-count="8">
+            <span onClick="{{ p.pick }}" style="width:30px;height:30px;border-radius:50%;background:{{ p.c }};cursor:pointer;box-shadow:0 0 0 {{ p.ring }};transition:box-shadow .15s"></span>
+          </sc-for>
+        </div>
+      </div>
       <div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-top:1px solid {{ t.border }}"><label style="flex:1;font:500 14px system-ui;color:{{ t.text }}">Background color</label><input type="color" value="{{ customBg }}" onInput="{{ onCustomBg }}" style="width:44px;height:32px;border:1px solid {{ t.border }};border-radius:8px;background:{{ t.bar }};padding:3px;cursor:pointer"></div>
       <div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-top:1px solid {{ t.border }}"><label style="flex:1;font:500 14px system-ui;color:{{ t.text }}">Text color</label><input type="color" value="{{ customText }}" onInput="{{ onCustomText }}" style="width:44px;height:32px;border:1px solid {{ t.border }};border-radius:8px;background:{{ t.bar }};padding:3px;cursor:pointer"></div>
       <div onClick="{{ resetCustomColors }}" style="display:flex;align-items:center;gap:9px;padding:10px 0;border-top:1px solid {{ t.border }};cursor:pointer"><span style="font:600 13px system-ui;color:{{ t.accent }}">Reset to calm off-white</span></div>
