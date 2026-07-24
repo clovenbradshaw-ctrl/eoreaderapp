@@ -2538,6 +2538,10 @@ class Component extends DCLogic {
     return {kind:'loading', medium:'Article', title:'Loading '+(title||'article')+'…', byline:'Wikipedia', mode:'text',
       analysis:{paras:['Fetching the article…'], entById:{}, list:[], hi:[], tension:[], chapters:0, links:0, words:0, toc:[]}};
   }
+  webLoadingDoc(title){
+    return {kind:'loading', medium:'Webpage', title:'Loading '+(title||'webpage')+'…', mode:'text',
+      analysis:{paras:['Fetching the linked page…'], entById:{}, list:[], hi:[], tension:[], chapters:0, links:0, words:0, toc:[]}};
+  }
   // buildBookDoc(text, meta) → { title, byline, analysis } — strip the PG transcription markers,
   // reflow the hard-wrapped body into paragraphs, drop the book's own title-page/printed-contents
   // furniture, and detect its chapters by FORM (never a keyword list). analyzeText still runs over
@@ -2798,11 +2802,17 @@ class Component extends DCLogic {
   }
   releaseLink(){
     clearTimeout(this._holdTimer);
-    const a=this._armed; this._armed=null;
-    if(!this._holdFired && a && a.url){ this.readUrlValue(a.url, a.text); }
-    this._holdFired=false;
+    this._armed=null;
   }
   cancelLink(){ clearTimeout(this._holdTimer); this._armed=null; this._holdFired=false; }
+  openLinkClick(ev,url,text){
+    if(ev && ev.preventDefault) ev.preventDefault();
+    if(ev && ev.stopPropagation) ev.stopPropagation();
+    clearTimeout(this._holdTimer);
+    this._armed=null;
+    if(this._holdFired){ this._holdFired=false; return; }
+    if(url) this.readUrlValue(url, text);
+  }
   holdLink(url,text,from){ this.setState({sel:null, linkSel:{url,text,from:from||''}, level:'half', linkPeek:{status:'idle'}, linkFromOpen:true, tab:'reader'}, ()=>this.peekAhead()); }
   pickLink(url,text,from){ this.holdLink(url,text,from); }
   peekAhead(){
@@ -3828,6 +3838,7 @@ class Component extends DCLogic {
   }
   readUrlValue(u,title){
     this.setState({importOpen:false, searchResults:[], searchMsg:''});
+    this.setDoc(this.webLoadingDoc(title||u), {view:'reader'});
     return fetch(this.proxied(u)).then(r=>{ if(!r.ok) throw new Error('HTTP '+r.status); return r.text(); }).then(txt=>{
       let clean=txt, t=title||u, rawHtml=null, linkMap={}, images=[];
       const j=this.parseJina(txt);
@@ -4250,7 +4261,7 @@ class Component extends DCLogic {
     while((m=prep.re.exec(p))){ if(m.index>last)out.push(p.slice(last,m.index)); const k=prep.kind[m[0]];
       if(k.type==='ent') out.push(h('span',{key:kb+'e'+i,onClick:()=>this.pick(k.id),style:{borderBottom:'2px solid '+k.color,fontWeight:600,cursor:'pointer'}},m[0]));
       else if(k.type==='hi') out.push(h('span',{key:kb+'h'+i,style:{background:'rgba(232,176,74,.42)',borderRadius:'3px',padding:'0 2px'}},m[0]));
-      else if(k.type==='link') out.push(h('span',{key:kb+'l'+i,onPointerDown:()=>this.armLink(k.url,m[0],p),onPointerUp:()=>this.releaseLink(),onPointerLeave:()=>this.cancelLink(),onPointerCancel:()=>this.cancelLink(),style:{color:t.accent,textDecoration:'underline',textDecorationStyle:'dotted',textUnderlineOffset:'3px',cursor:'pointer',fontWeight:600}},[m[0],h('span',{key:'ic',style:{fontSize:'11px',marginLeft:'1px'}},'↗')]));
+      else if(k.type==='link') out.push(h('a',{key:kb+'l'+i,href:k.url,target:'_blank',rel:'noopener',onClick:(ev)=>this.openLinkClick(ev,k.url,m[0]),onPointerDown:()=>this.armLink(k.url,m[0],p),onPointerUp:()=>this.releaseLink(),onPointerLeave:()=>this.cancelLink(),onPointerCancel:()=>this.cancelLink(),style:{color:t.accent,textDecoration:'underline',textDecorationStyle:'dotted',textUnderlineOffset:'3px',cursor:'pointer',fontWeight:600}},[m[0],h('span',{key:'ic',style:{fontSize:'11px',marginLeft:'1px'}},'↗')]));
       else out.push(h('span',{key:kb+'t'+i,style:{background:'rgba(208,71,46,.18)',boxShadow:'inset 0 -2px #d0472e',borderRadius:'2px',padding:'0 2px'}},m[0]));
       last=m.index+m[0].length; i++; if(!m[0].length)prep.re.lastIndex++; }
     if(last<p.length)out.push(p.slice(last));
