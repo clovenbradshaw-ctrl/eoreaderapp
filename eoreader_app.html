@@ -20,7 +20,7 @@
 <script>if(window.pdfjsLib){pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';}</script>
 <style>
   *{box-sizing:border-box}
-  body{margin:0;background:#f7f3ea;-webkit-font-smoothing:antialiased}
+  body{margin:0;background:#fafaf8;-webkit-font-smoothing:antialiased}
   a{color:inherit;text-decoration:none}a:hover{text-decoration:underline}
   /* Native/annotated source views fill the full reading area rather than the capped reader column. */
   .eo-native-fill{max-width:none!important;width:100%!important;height:100%}
@@ -34,7 +34,7 @@
      removed here so the deployed product reads as an application rather than
      a mockup. The mobile-first component hierarchy is retained — the column
      is simply capped for readable line lengths and centered on wide screens. */
-  .eo-shell{min-height:100svh!important;padding:0!important;align-items:stretch;justify-content:center;background:#f7f3ea}
+  .eo-shell{min-height:100svh!important;padding:0!important;align-items:stretch;justify-content:center;background:#fafaf8}
   .eo-device{width:100%!important;min-height:100svh!important;padding:0!important;border-radius:0!important;box-shadow:none!important;background:transparent!important}
   .eo-screen{width:100%!important;height:100svh!important;min-height:100svh!important;border-radius:0!important}
   /* Phone-width band: keep the original single-column reader capped for line length. */
@@ -63,7 +63,6 @@
     .eo-screen.eo-panel-docked .eo-chrome{margin-right:min(440px,40vw)!important}
     /* Sources are integrated inline in the left rail on desktop — the overlay drawer and its trigger are mobile-only. */
     .eo-sources-sheet, .eo-src-toolbtn{display:none!important}
-    .eo-rail-sources{display:flex!important}
   }
   @keyframes eoRecPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.3;transform:scale(.62)}}
   .eo-rec-pulse{animation:eoRecPulse 1.4s ease-in-out infinite}
@@ -2483,7 +2482,7 @@ class Component extends DCLogic {
     if(!proxy||!proxy.fetch) proxy={on:true,fetch:'https://n8n.intelechia.com/webhook/feed?url={urlenc}',search:'https://s.jina.ai/?q={q}'};
     this.state = {
       dark:(props.theme||'Light')==='Dark',
-      customBg:this.colorValue(this.load('eo5.customBg','#f7f3ea'),'#f7f3ea'), customText:this.colorValue(this.load('eo5.customText','#1e1c19'),'#1e1c19'),
+      customBg:this.colorValue(this.load('eo5.customBg','#fafaf8'),'#fafaf8'), customText:this.colorValue(this.load('eo5.customText','#1e1c19'),'#1e1c19'),
       tab:'reader',
       betaPrompt:'', betaOrgans:{text:true,image:true,audio:true,video:false,math:false}, betaTurn:null,
       searchProjection:'evidence', searchScope:'all', queryText:'', queryReading:null, queryWhy:null,
@@ -2614,10 +2613,10 @@ class Component extends DCLogic {
   deleteSpace(){ this.setState(s=>{ if(s.spaces.length<=1) return {}; const spaces=s.spaces.filter(x=>x.id!==s.spaceId); const memoryBySpace={...s.memoryBySpace}; delete memoryBySpace[s.spaceId]; this.save('eo5.spaces',spaces); this.save('eo5.memBySpace',memoryBySpace); this.save('eo5.space',spaces[0].id); return {spaces,memoryBySpace,spaceId:spaces[0].id,spaceEditOpen:false}; }); }
   colorValue(v, fallback){ const s=String(v||'').trim(); return /^#[0-9a-fA-F]{6}$/.test(s)?s:fallback; }
   setCustomColor(key, storageKey, value, fallback){ const color=this.colorValue(value, fallback); this.save(storageKey, color); this.setState({[key]:color}); }
-  resetCustomColors(){ const customBg='#f7f3ea', customText='#1e1c19'; this.save('eo5.customBg', customBg); this.save('eo5.customText', customText); this.setState({customBg, customText}); }
+  resetCustomColors(){ const customBg='#fafaf8', customText='#1e1c19'; this.save('eo5.customBg', customBg); this.save('eo5.customText', customText); this.setState({customBg, customText}); }
 
   theme(){
-    const light={bg:'#f7f3ea',screen:'#fdfaf4',bar:'#f4f1ea',border:'#e7e3d9',bStrong:'#d3cec2',text:'#1e1c19',t2:'#5c574d',mut:'#9a9385',faint:'#b0a99a',card:'#ffffff',sheet:'#ffffff'};
+    const light={bg:'#fafaf8',screen:'#fdfaf4',bar:'#f4f1ea',border:'#e7e3d9',bStrong:'#d3cec2',text:'#1e1c19',t2:'#5c574d',mut:'#9a9385',faint:'#b0a99a',card:'#ffffff',sheet:'#ffffff'};
     const night={bg:'#05060c',screen:'#0e1322',bar:'#171d30',border:'#242e4a',bStrong:'#333d5c',text:'#eef1fb',t2:'#b8c0da',mut:'#828bab',faint:'#68719a',card:'#161d31',sheet:'#151b2c'};
     const base={...(this.state.dark?night:light), bg:this.state.customBg||light.bg, screen:this.state.customBg||light.screen, text:this.state.customText||light.text};
     const sp=this.curSpace(); const acc=(sp&&sp.accent)||'#c0662e'; const rgb=this.hexRgb(acc);
@@ -5447,8 +5446,8 @@ class Component extends DCLogic {
       recordNew:()=>this.setState({sourcesOpen:false,importOpen:true}),
       memCount:memList.length, memEmpty:memList.length===0, memHas:memList.length>0, spaceName:sp?sp.name:'',
       t, themeGlyph:dark?'☾':'☀', flipDark:()=>this.setState({dark:!dark}),
-      customBg:S.customBg||'#f7f3ea', customText:S.customText||'#1e1c19',
-      onCustomBg:(e)=>this.setCustomColor('customBg','eo5.customBg',e.target.value,'#f7f3ea'),
+      customBg:S.customBg||'#fafaf8', customText:S.customText||'#1e1c19',
+      onCustomBg:(e)=>this.setCustomColor('customBg','eo5.customBg',e.target.value,'#fafaf8'),
       onCustomText:(e)=>this.setCustomColor('customText','eo5.customText',e.target.value,'#1e1c19'),
       resetCustomColors:()=>this.resetCustomColors(),
       memColor:memIn?'#2f7a55':t.accent, memBg:memIn?'rgba(47,122,85,.10)':t.accentSoft, memBorder:memIn?'#2f7a55':t.accentLine,
