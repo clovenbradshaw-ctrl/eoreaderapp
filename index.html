@@ -2761,7 +2761,7 @@ class Component extends DCLogic {
       return next;
     });
   }
-  resetSample(){ this.setState({doc:this.demoDoc(), importOpen:false, sel:null, level:'prompt', chap:0, tab:'reader', view:'reader', cardPath:[], lensByRung:{}, src:{label:'theatlantic.com/…/the-quiet-collapse',det:'News · sample',dot:'#c0662e'}}); }
+  resetSample(){ this.setState({doc:this.demoDoc(), importOpen:false, sel:null, level:'prompt', chap:0, tab:'reader', view:'reader', cardPath:[], lensByRung:{}, readPct:0, tocOpen:false, src:{label:'theatlantic.com/…/the-quiet-collapse',det:'News · sample',dot:'#c0662e'}}); }
 
   // ── space-scoped memory ──
   mem(){ return (this.state.memoryBySpace||{})[this.state.spaceId]||[]; }
@@ -3630,6 +3630,13 @@ class Component extends DCLogic {
     else if(reader) body.push(h('div',{key:'st',style:{font:'500 12px system-ui',color:t.mut,marginBottom:'10px'}}, a.words+' words'+(plain?'':' · '+a.list.length+' entities')));
     if(reader) body.push(h('div',{key:'where',style:{position:'sticky',top:'0',zIndex:3,background:'linear-gradient(180deg,'+t.screen+' 72%,rgba(0,0,0,0))',padding:'0 0 14px',margin:'0 0 14px'}},[
       h('div',{key:'card',style:{background:t.bar,border:'1px solid '+t.border,borderRadius:'14px',boxShadow:'0 8px 22px rgba(0,0,0,.05)',overflow:'hidden'}},[
+        // The title line is skipped when it would just repeat what "you are here" already says
+        // below (curSeg's own label falls back to the source title on the opening/implicit
+        // segment) — but the byline always shows, since nothing else in the card carries it.
+        ((d.title&&!(curSeg&&curSeg.title===d.title))||d.byline)?h('div',{key:'id',style:{padding:'10px 12px 0'}},[
+          (d.title&&!(curSeg&&curSeg.title===d.title))?h('div',{key:'t',style:{font:'700 12.5px system-ui',color:t.text,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}, d.title):null,
+          d.byline?h('div',{key:'b',style:{font:'500 10.5px system-ui',color:t.mut,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis',marginTop:'1px'}}, d.byline):null
+        ]):null,
         h('div',{key:'row',onClick:()=>segments.length?this.setState({tocOpen:!this.state.tocOpen}):null,style:{display:'flex',alignItems:'center',gap:'10px',padding:'10px 12px',cursor:segments.length?'pointer':'default'}},[
           h('div',{key:'pct',style:{font:"800 11px 'IBM Plex Mono',monospace",color:t.accent,minWidth:'38px'}}, pct+'%'),
           h('div',{key:'txt',style:{flex:1,minWidth:0}},[
