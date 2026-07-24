@@ -745,7 +745,7 @@
       <div style="font:800 9px 'IBM Plex Mono',monospace;letter-spacing:.09em;color:{{ t.mut }};padding:0 6px 5px">CURRENT FOCUS</div>
       <div style="font:700 11px/1.35 system-ui;color:{{ t.text }};padding:0 6px 10px">{{ focusPath }}<div style="font:600 10px system-ui;color:{{ t.mut }};margin-top:2px">{{ focusDetail }}</div></div>
       <div style="height:1px;background:{{ t.border }};margin:0 6px 9px"></div>
-      <div style="font:800 9px 'IBM Plex Mono',monospace;letter-spacing:.09em;color:{{ t.mut }};padding:0 6px 7px">WORKSPACES</div>
+      <div style="font:800 9px 'IBM Plex Mono',monospace;letter-spacing:.09em;color:{{ t.mut }};padding:0 6px 7px">WORKSPACE</div>
       <sc-for list="{{ spaceTabs }}" as="sp" hint-placeholder-count="3">
         <div onClick="{{ sp.pick }}" style="display:flex;align-items:center;gap:8px;padding:8px 9px;border-radius:10px;cursor:pointer;background:{{ sp.rowBg }}">
           <span style="width:9px;height:9px;border-radius:50%;background:{{ sp.dotSolid }};flex:none"></span>
@@ -754,7 +754,13 @@
           <span style="font:700 10px 'IBM Plex Mono',monospace;color:{{ t.mut }};flex:none">{{ sp.count }}</span>
         </div>
         <sc-if value="{{ sp.on }}">
-          <div class="eo-rail-sources" style="display:none;flex-direction:column;gap:3px;margin:1px 0 9px 5px;padding-left:9px;border-left:1.5px solid {{ t.border }}">
+          <div style="display:flex;align-items:center;gap:7px;padding:1px 3px 4px;margin:6px 9px 0;cursor:pointer;border-bottom:1px solid {{ t.border }};padding-bottom:6px" onClick="{{ toggleHistoryExpanded }}">
+            <i class="ph ph-history" style="font-size:13px;color:{{ t.mut }};flex:none"></i>
+            <span style="font:700 9px 'IBM Plex Mono',monospace;color:{{ t.mut }};letter-spacing:.04em;flex:1">HISTORY</span>
+            <span style="font:700 9px 'IBM Plex Mono',monospace;color:{{ t.mut }};flex:none">{{ drawerTotal }} recorded</span>
+            <i class="ph ph-chevron-down" style="font-size:12px;color:{{ t.mut }};flex:none;transition:transform .15s;transform:rotate({{ historyChevron }})"></i>
+          </div>
+          <div class="eo-rail-sources" style="display:{{ historyDisplay }};flex-direction:column;gap:3px;margin:1px 0 9px 5px;padding-left:9px;border-left:1.5px solid {{ t.border }}">
             <div style="display:flex;align-items:center;gap:7px;padding:1px 3px 4px">
               <span style="font:700 9px 'IBM Plex Mono',monospace;color:{{ t.mut }};letter-spacing:.04em">All evidence · {{ drawerOnCount }}/{{ drawerTotal }} focused</span>
               <span onClick="{{ bulkAllOn }}" style="font:700 10px system-ui;color:{{ t.accent }};cursor:pointer;margin-left:auto">Focus all</span>
@@ -2271,8 +2277,8 @@ function eoRenderOverviewDash(root, model, opts){
   const u=model.units; const uc=eoOvShell(P,'UNITS',u.count+' passages ›',open.units); uc.appendChild(eoOvSpark(u.surprise,P.accent));
   const leg=eoOvEl('div','display:flex;justify-content:space-between'); leg.appendChild(eoOvEl('div','font:500 10px '+EO_OV_MONO+';color:'+P.faint,'boilerplate')); leg.appendChild(eoOvEl('div','font:500 10px '+EO_OV_MONO+';color:'+P.faint,'substance')); uc.appendChild(leg);
   const reg=eoOvEl('div','display:flex;flex-direction:column;gap:5px;margin-top:2px'); const rtot=Math.max(1,u.register.reported+u.register.quoted+u.register.chrome);
-  ['reported','quoted','chrome'].forEach(name=>{ const r=eoOvEl('div','display:flex;align-items:center;gap:8px'); r.appendChild(eoOvEl('div','font:600 10.5px '+EO_OV_UI+';color:'+P.mut+';min-width:60px',name));
-    r.appendChild(eoOvMeter(u.register[name]/rtot,P,EO_OV_REGCOLOR[name])); r.appendChild(eoOvEl('div','font:700 10.5px '+EO_OV_MONO+';color:'+P.text+';min-width:20px;text-align:right',String(u.register[name]))); reg.appendChild(r); });
+  ['reported','quoted','chrome'].forEach(name=>{ const r=eoOvEl('div','display:grid;grid-template-columns:60px minmax(0,1fr) 40px;align-items:center;gap:8px'); r.appendChild(eoOvEl('div','font:600 10.5px '+EO_OV_UI+';color:'+P.mut,name));
+    r.appendChild(eoOvMeter(u.register[name]/rtot,P,EO_OV_REGCOLOR[name])); r.appendChild(eoOvEl('div','font:700 10.5px '+EO_OV_MONO+';color:'+P.text+';text-align:right',String(u.register[name]))); reg.appendChild(r); });
   uc.appendChild(reg); uc.appendChild(eoOvEl('div','font:500 11px '+EO_OV_UI+';color:'+P.mut,u.boilerplateNote)); grid.appendChild(uc);
   // REFERENTS
   const rf=model.referents; const rc=eoOvShell(P,'REFERENTS',rf.sightings+' sightings  →  '+rf.survivors,open.referents);
@@ -2495,7 +2501,7 @@ class Component extends DCLogic {
       proxy, proxyOpen:false,
       searchQ:'', searchResults:[], mediaResults:[], searching:false, searchMsg:'', libraryShelf:'web', _exTick:0,
       spaceEditOpen:false, spacePickerOpen:false, _sk:0,
-      sourcesOpen:false, srcQuery:'', srcExpand:null, recPulse:0,
+      sourcesOpen:false, srcQuery:'', srcExpand:null, recPulse:0, historyExpanded:false,
       priorActive:this.load('eo5.priorActive',{}), priorExpand:null,
       userPriors:this.load('eo5.userPriors',[]), priorSaveOpen:false, priorSaveText:'', priorSaveTitle:'', priorSaveMsg:'',
       chromeHidden:false, webFrameActiveIds:[], readPct:0
@@ -2598,6 +2604,7 @@ class Component extends DCLogic {
   hexRgb(h){ return this.hexArr(h).join(', '); }
   mix(a,b,ta){ const x=this.hexArr(a),y=this.hexArr(b); return '#'+x.map((v,i)=>Math.round(v*ta+y[i]*(1-ta)).toString(16).padStart(2,'0')).join(''); }
   switchSpace(id){ this.save('eo5.space',id); this.setState({spaceId:id,sel:null,level:'prompt',structFilter:'all',spacePickerOpen:false}); }
+  toggleHistoryExpanded(){ this.setState(s=>({historyExpanded:!s.historyExpanded})); }
   openSpacePicker(){ this.setState(s=>({spacePickerOpen:!s.spacePickerOpen})); }
   closeSpacePicker(){ this.setState({spacePickerOpen:false}); }
   openSpaceEditor(){ this.setState(s=>({spaceEditOpen:true,spacePickerOpen:false,importOpen:false,_sk:s._sk+1})); }
@@ -5421,6 +5428,7 @@ class Component extends DCLogic {
       srcQuery:S.srcQuery||'', onSrcQuery:(e)=>this.setState({srcQuery:e.target.value}),
       sourceRows, hasSources:sourceRows.length>0, noSources:memList.length===0,
       spacesMeta, drawerOnCount, drawerTotal:memList.length, notesCount, focusPath, focusDetail, drawerRecCount, drawerHasRec:drawerRecCount>0, drawerLastLabel:this.relTime(drawerLastTs),
+      toggleHistoryExpanded:()=>this.toggleHistoryExpanded(), historyExpanded:S.historyExpanded, historyDisplay:S.historyExpanded?'flex':'none', historyChevron:S.historyExpanded?'180deg':'0deg',
       priorGenres, priorOnCount, priorTotal:priors.length, priorAllOn:()=>this.setAllPriors(true), priorAllOff:()=>this.setAllPriors(false),
       priorRankRows, hasPriorRank:priorRankRows.length>0, priorActiveCount, priorTargetLabel:priorTarget?priorTarget.label:'',
       priorOffBits:priorReading?priorReading.offBits.toFixed(2):'—', priorOnBits:priorReading?priorReading.onBits.toFixed(2):'—',
