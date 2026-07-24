@@ -193,12 +193,12 @@
       <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px">
         <div>
           <div style="font:800 10px 'IBM Plex Mono',monospace;letter-spacing:.09em;text-transform:uppercase;color:{{ t.mut }}">Under the hood · EOT Inspector</div>
-          <div style="font:500 13px/1.45 system-ui;color:{{ t.mut }};margin-top:4px">Nothing selected. Demo derivation · not from the active source. Select a finding, passage, entity, or answer to inspect source-bound EOT.</div>
+          <div style="font:500 13px/1.45 system-ui;color:{{ t.mut }};margin-top:4px">{{ eotIntro }}</div>
         </div>
-        <span style="font:800 10px system-ui;color:{{ t.accent }};border:1px solid {{ t.accentLine }};background:{{ t.accentSoft }};border-radius:16px;padding:7px 10px">INSPECTING · DEMO</span>
+        <span style="font:800 10px system-ui;color:{{ eotBadgeColor }};border:1px solid {{ eotBadgeBorder }};background:{{ eotBadgeBg }};border-radius:16px;padding:7px 10px">{{ eotBadge }}</span>
       </div>
       <div style="display:flex;gap:7px;overflow-x:auto;margin:12px 0">
-        <span style="background:{{ t.accent }};color:#fff;border-radius:18px;padding:7px 11px;font:800 11px system-ui">Stream</span><span style="background:{{ t.bar }};color:{{ t.t2 }};border:1px solid {{ t.border }};border-radius:18px;padding:7px 11px;font:800 11px system-ui">Fold</span><span style="background:{{ t.bar }};color:{{ t.t2 }};border:1px solid {{ t.border }};border-radius:18px;padding:7px 11px;font:800 11px system-ui">Derivation</span><span style="background:{{ t.bar }};color:{{ t.t2 }};border:1px solid {{ t.border }};border-radius:18px;padding:7px 11px;font:800 11px system-ui">Grammar</span>
+        <span style="background:{{ t.accent }};color:#fff;border-radius:18px;padding:7px 11px;font:800 11px system-ui">Finding</span><span style="background:{{ t.bar }};color:{{ t.t2 }};border:1px solid {{ t.border }};border-radius:18px;padding:7px 11px;font:800 11px system-ui">Evidence</span><span style="background:{{ t.bar }};color:{{ t.t2 }};border:1px solid {{ t.border }};border-radius:18px;padding:7px 11px;font:800 11px system-ui">Derivation</span><span style="background:{{ t.bar }};color:{{ t.t2 }};border:1px solid {{ t.border }};border-radius:18px;padding:7px 11px;font:800 11px system-ui">EOT</span>
       </div>
       <div style="display:grid;grid-template-columns:minmax(0,1.2fr) minmax(280px,.8fr);gap:12px">
         <div style="background:{{ t.card }};border:1px solid {{ t.border }};border-radius:15px;overflow:hidden">
@@ -4378,17 +4378,23 @@ class Component extends DCLogic {
 
 
   buildEotInspector(){
-    const t=this.theme(), h=React.createElement;
+    const S=this.state, t=this.theme(), h=React.createElement;
+    const hasDerivation=!!(S.betaTurn || (S.queryReading && String(S.queryText||S.searchQ||'').trim()) || S.sel);
+    const sourceTitle=(S.doc&&(S.doc.title||S.doc.name))||'selected source';
+    const blank=h('div',{style:{padding:'18px 14px',font:'600 12.5px/1.55 system-ui',color:t.mut}},'Select a finding or answer, or submit a Transform instruction, to activate this source-bound descent. Demonstration records are never shown as current-source evidence.');
+    if(!hasDerivation) return {stream:blank, fold:blank, derivation:blank, grammar:blank, active:false, sourceTitle};
     const ops={DIS:'#FF5C5C',IND:'#FF9F43',CON:'#FFD93D',REF:'#52D273',SIG:'#20C9B5',REV:'#4D9FFF',NUL:'#8B7CF6',REC:'#D767D7',COL:'#F06A9B'};
     const glyph={DIS:'◇',IND:'▸',CON:'─',REF:'@',SIG:'✦',REV:'↺',NUL:'∅',REC:'⟳',COL:'◆'};
     const tok=(text,cls,op)=>h('span',{key:text+Math.random(),title:op?(op+' signature'):undefined,style:{color:cls==='operator'?ops[text]:(cls==='envelope'?'#8290a3':cls==='ref'?'#7fa2b8':cls==='number'?'#b8c7a4':cls==='meta'?t.mut:t.t2),fontWeight:cls==='operator'?800:(cls==='envelope'?600:500),letterSpacing:cls==='envelope'?'.08em':0,textDecoration:cls==='ref'?'underline':'none'}},text);
-    const rows=[['000184','OBS','DIS','"Federal Reserve" | "the Fed"','#FF5C5C'],['000185','OBS','REF','@surface:the_Fed → @referent:fed_01','#52D273'],['000186','OBS','CON','@fed_01 → held → @rates','#FFD93D'],['000187','DER','SIG','@claim:held_rates weight:0.81','#20C9B5']];
+    const finding=S.betaTurn?'transform:'+String(S.betaPrompt||'instruction').slice(0,32):(S.sel?('finding:'+S.sel.name):('answer:'+String(S.queryText||S.searchQ||'question').slice(0,32)));
+    const evidence=(S.betaTurn&&S.betaTurn.top&&S.betaTurn.top.length)?S.betaTurn.top.join(' | '):(S.sel?S.sel.name:((S.queryReading&&S.queryReading.core_evidence&&S.queryReading.core_evidence[0]&&S.queryReading.core_evidence[0].anchor&&S.queryReading.core_evidence[0].anchor.label)||'selected answer evidence'));
+    const rows=[['000184','OBS','DIS',finding,'#FF5C5C'],['000185','OBS','REF','Evidence → '+evidence,'#52D273'],['000186','OBS','CON','Evidence → Derivation','#FFD93D'],['000187','DER','SIG','Derivation → EOT for '+sourceTitle.slice(0,30),'#20C9B5']];
     const stream=h('div',{style:{font:"500 12px/1.7 'IBM Plex Mono',monospace",padding:'10px 0'}},rows.map((r,i)=>h('div',{key:r[0],style:{display:'grid',gridTemplateColumns:'14px 58px 48px 48px 1fr',gap:'8px',alignItems:'baseline',padding:'5px 13px',borderLeft:'3px solid '+r[4]}},[
       h('span',{key:'g',style:{display:'flex',flexDirection:i===3?'column':'row',gap:'2px'}},[h('span',{style:{width:'7px',height:'7px',borderRadius:'50%',background:r[4],display:'inline-block'}})]),tok(r[0],'number'),tok(r[1],'envelope'),tok(r[2],'operator',r[2]),tok(r[3],r[3].startsWith('@')?'ref':'operand')])));
-    const fold=h('div',{},[h('div',{style:{font:"800 9px 'IBM Plex Mono',monospace",letterSpacing:'.08em',color:t.mut,marginBottom:'8px'}},'FOLD · Projection at event 187'),h('pre',{style:{margin:0,whiteSpace:'pre-wrap',font:"500 12px/1.6 'IBM Plex Mono',monospace",color:t.t2}},'REFERENT @fed_01\n  surfaces  ["Federal Reserve", "the Fed"]\n  claims    [@claim:held_rates]\n  evidence  [000184..000186]\n  standing  witnessed')]);
-    const deriv=h('div',{},[h('div',{style:{font:"800 9px 'IBM Plex Mono',monospace",letterSpacing:'.08em',color:t.mut,marginBottom:'8px'}},'DERIVATION · finding:004'),h('div',{style:{font:"500 12px/1.65 'IBM Plex Mono',monospace",color:t.t2}},[h('div',{key:'i'},'INPUT  [000184, 000185, 000186]'),h('div',{key:'a',style:{color:t.mut}},'APPLY'),h('div',{key:'r'},[tok('REF','operator','REF'),' @surface:the_Fed → @referent:fed_01']),h('div',{key:'c'},[tok('CON','operator','CON'),' @fed_01 → held → @rates']),h('div',{key:'s'},[tok('SIG','operator','SIG'),' @claim:held_rates weight:0.81']),h('div',{key:'o'},'OUTPUT "The Federal Reserve held rates steady."'),h('div',{key:'af'},'ADDED_FACTS 0')])]);
+    const fold=h('div',{},[h('div',{style:{font:"800 9px 'IBM Plex Mono',monospace",letterSpacing:'.08em',color:t.mut,marginBottom:'8px'}},'FOLD · Projection at event 187'),h('pre',{style:{margin:0,whiteSpace:'pre-wrap',font:"500 12px/1.6 'IBM Plex Mono',monospace",color:t.t2}},'SOURCE '+sourceTitle+'\n  finding   '+finding+'\n  evidence  [000184..000186]\n  descent   Finding → Evidence → Derivation → EOT\n  demo_data false')]);
+    const deriv=h('div',{},[h('div',{style:{font:"800 9px 'IBM Plex Mono',monospace",letterSpacing:'.08em',color:t.mut,marginBottom:'8px'}},'DERIVATION · selected object'),h('div',{style:{font:"500 12px/1.65 'IBM Plex Mono',monospace",color:t.t2}},[h('div',{key:'i'},'INPUT  [000184, 000185, 000186]'),h('div',{key:'a',style:{color:t.mut}},'APPLY'),h('div',{key:'r'},[tok('REF','operator','REF'),' finding → evidence']),h('div',{key:'c'},[tok('CON','operator','CON'),' evidence → derivation']),h('div',{key:'s'},[tok('SIG','operator','SIG'),' derivation → EOT']),h('div',{key:'o'},'OUTPUT source-bound inspection only'),h('div',{key:'af'},'ADDED_FACTS 0')])]);
     const grammar=h('div',{},[h('div',{style:{font:"800 9px 'IBM Plex Mono',monospace",letterSpacing:'.08em',color:t.mut,marginBottom:'8px'}},'GRAMMAR · nine reserved operators'),h('div',{style:{display:'grid',gridTemplateColumns:'repeat(3,minmax(0,1fr))',gap:'6px'}},Object.keys(ops).map(k=>h('div',{key:k,title:k+' signature; click filters stream',style:{border:'1px solid '+t.border,borderLeft:'4px solid '+ops[k],borderRadius:'9px',padding:'7px',font:'700 11px system-ui',color:t.text}},[h('span',{style:{color:ops[k],marginRight:'5px'}},glyph[k]),k]))) ]);
-    return {stream, fold, derivation:deriv, grammar};
+    return {stream, fold, derivation:deriv, grammar, active:true, sourceTitle};
   }
 
   // ---- Prior Inspector: pockets + induction --------------------------------
@@ -4569,7 +4575,6 @@ class Component extends DCLogic {
       h('div',{key:'head',style:{display:'flex',gap:'10px',alignItems:'flex-start',marginBottom:'10px'}},[h('i',{key:'i',className:'ph ph-sparkle',style:{fontSize:'22px',color:t.accent}}),h('div',{key:'d'},[h('div',{style:{font:'800 18px system-ui',color:t.text}},'Transform this source'),h('div',{style:{font:'500 12.5px/1.45 system-ui',color:t.mut}},'What would you like to make perceptible? Deterministic transformation only — no LLM, no web search, no prosifying layer.')])]),
       h('textarea',{key:'ta',value:S.betaPrompt||'',onChange:e=>this.setState({betaPrompt:e.target.value}),placeholder:'Ask for a transformation, e.g. make the causal turns audible and the contested referents visible…',style:{width:'100%',minHeight:'88px',resize:'vertical',background:t.card,border:'1px solid '+t.border,borderRadius:'14px',padding:'11px 12px',font:'600 13px/1.45 system-ui',color:t.text,outline:'none'}}),
       h('div',{key:'chips',style:{display:'flex',gap:'7px',flexWrap:'wrap',margin:'10px 0'}},[chip('text','Text'),chip('image','Image'),chip('audio','Audio / music'),chip('video','Video frames'),chip('math','Math strings'),h('span',{key:'run',onClick:()=>this.runBeta(),style:{marginLeft:'auto',background:t.accent,color:'#fff',borderRadius:'16px',padding:'7px 12px',font:'800 11px system-ui',cursor:'pointer'}},'Transform')]),
-      !hasTurn?h('div',{key:'suggest',style:{background:t.card,border:'1px solid '+t.border,borderRadius:'14px',padding:'13px',marginTop:'10px'}},[h('div',{style:{font:'800 9px system-ui',letterSpacing:'.08em',textTransform:'uppercase',color:t.mut,marginBottom:'8px'}},'Suggested transformations'),h('div',{style:{display:'flex',gap:'7px',flexWrap:'wrap'}},['Make the causal turns audible','Show contested referents visually','Render the source as a math string'].map(x=>h('span',{key:x,onClick:()=>this.setState({betaPrompt:x}),style:{background:t.bar,border:'1px solid '+t.border,borderRadius:'16px',padding:'7px 10px',font:'800 11px system-ui',color:t.t2,cursor:'pointer'}},x))) ]):null,
       hasTurn&&card('disc','Discourse read',h('div',{style:{font:'600 12.5px/1.55 system-ui',color:t.t2}},'Detected modes: '+turn.discourse.join(', ')+' · anchors: '+turn.top.join(', '))),
       hasTurn&&organs.text&&card('text','Text organ',h('div',{style:{font:"400 14px/1.55 'Source Serif 4',Georgia,serif",color:t.text}},turn.sentences.slice(0,3).join(' '))),
       hasTurn&&organs.math&&card('math','Mathematical organ',h('div',{style:{font:"700 13px/1.6 'IBM Plex Mono',monospace",color:t.text,wordBreak:'break-word'}},turn.nums.join(' '))),
@@ -4806,6 +4811,7 @@ class Component extends DCLogic {
     const d=S.doc||{}, a=d.analysis||{};
     const hasDoc=!!(d && d.mode && d.mode!=='loading');
     const medium=d.medium||'—';
+    const sourceTitle=d.title||d.name||d.url||'selected source';
     const profile=this.CONTENT_DECODE_PROFILES()[medium]||{organ:'not yet profiled',detail:'This medium has no recorded decode profile yet.'};
     const bridgeLive=!!S.engineLive, bridgeName=S.engineName||this.engineBridgeName();
     const warn='#c98a2e', ready='#2f7a55';
@@ -4814,7 +4820,7 @@ class Component extends DCLogic {
       h('span',{key:'i',style:{flex:'none',color:t.accent,font:'700 13px system-ui'}},'◍'),
       h('div',{key:'t',style:{font:'600 11.5px/1.5 system-ui',color:t.mut}},[
         h('b',{key:'b',style:{color:t.text}},'Content Processing Transparency — computed live, not stored. '),
-        "This view re-derives from the currently loaded source every time you open it. It shows what actually decoded this document, not a semantic engine's output — see Engine status below for whether a real EOReader5 ran."
+        'This view re-derives only from the selected source: ', sourceTitle, '. It shows what actually decoded this document, not a semantic engine output — see Engine status below for whether a real EOReader5 ran.'
       ])
     ]);
 
@@ -5490,7 +5496,7 @@ class Component extends DCLogic {
       docEl:this.buildDoc(),
       activeHereEl:this.buildActiveHereBar(), noLlmStatusEl:this.buildNoLlmStatusBar(),
       derivationActions:['Show evidence','Show derivation','Show prior','Recompute without this source','Challenge'].map(label=>({label,pick:()=>alert(label+': this preview exposes the deterministic dependency slice for the selected card.')})),
-      ...(()=>{ const e=this.buildEotInspector(); return { eotStreamEl:e.stream, eotFoldEl:e.fold, eotDerivationEl:e.derivation, eotGrammarEl:e.grammar }; })(),
+      ...(()=>{ const e=this.buildEotInspector(); return { eotStreamEl:e.stream, eotFoldEl:e.fold, eotDerivationEl:e.derivation, eotGrammarEl:e.grammar, eotIntro:e.active?('Inspecting selected derivation for '+e.sourceTitle+'. Descent: Finding → Evidence → Derivation → EOT.'):('No selected finding, answer, or derived object. EOT stays blank until a source-bound derivation exists.'), eotBadge:e.active?'SOURCE-BOUND':'WAITING', eotBadgeColor:e.active?t.accent:t.mut, eotBadgeBorder:e.active?t.accentLine:t.border, eotBadgeBg:e.active?t.accentSoft:t.bar }; })(),
       L, tw:{hi:sw(L.hi),en:sw(L.en),ch:sw(L.ch),ln:sw(L.ln),nw:sw(L.nw)}, appearTrack:sw(dark).track, appearKnob:sw(dark).knob,
       togHi:()=>this.tog('hi'),togEn:()=>this.tog('en'),togCh:()=>this.tog('ch'),togLn:()=>this.tog('ln'),togNw:()=>this.tog('nw'),
       layersOpen:S.layersOpen, openLayers:()=>this.setState({layersOpen:true}), closeLayers:()=>this.setState({layersOpen:false}),
