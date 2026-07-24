@@ -22,7 +22,6 @@
   .eo-shell{min-height:100svh!important;padding:8px 0 0!important;align-items:flex-start}
   .eo-device{width:100%!important;min-height:100svh!important;padding:0!important;border-radius:0!important;box-shadow:none!important;background:transparent!important}
   .eo-screen{width:100%!important;height:100svh!important;min-height:100svh!important;border-radius:0!important}
-  .eo-info-sheet{max-height:82svh!important}
   @media (min-width: 520px){
     .eo-shell{padding:14px 16px 28px!important}
     .eo-device{width:min(402px,100%)!important;min-height:0!important;padding:6px!important;border-radius:54px!important;background:#0c0d10!important;box-shadow:0 22px 60px rgba(0,0,0,.4),inset 0 0 0 2px #24262c!important}
@@ -2166,13 +2165,14 @@ class Component extends DCLogic {
     const sel=S.sel?this.entMap()[S.sel]:null, lvl=S.level;
     const linkSel=S.linkSel||null, lp=S.linkPeek||{status:'idle'};
     const explore=S.explore||null;
-    const fullSheetH='calc(100% - 24px)';
+    const fullSheetH='100%';
     const sheetH = explore ? fullSheetH : ((!sel && !linkSel) ? '56px' : (linkSel ? (lp.status==='done'?'520px':'360px') : (lvl==='peek'?'112px':(lvl==='half'?'340px':fullSheetH))));
     const a=(d&&d.analysis)?d.analysis:{hi:[],list:[],chapters:0,links:0,toc:[]};
     const order=['native','annotated','reader'], vi=order.indexOf(S.view);
     const dotOn=t.accent, dotOff=t.bStrong;
     const vlabel={native:'Native',annotated:'Native +',reader:'Reader'};
-    const chromeCollapsed = S.tab==='reader' && !!S.chromeHidden;
+    const sheetFull = (((!!sel||!!linkSel)) && lvl==='full') || !!explore;
+    const chromeCollapsed = (S.tab==='reader' && !!S.chromeHidden) || sheetFull;
 
     // spaces
     const spaceTabs=(S.spaces||[]).map(x=>{ const on=x.id===S.spaceId; return {id:x.id,name:x.name,on,
