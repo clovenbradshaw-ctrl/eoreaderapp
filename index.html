@@ -1353,6 +1353,150 @@ function deriveRung(terrainId, rungIdx, d, a, scope){
   return { absent:true, reason:'unknown rung', perceiver:null };
 }
 
+// ── EPUB (zip) reading ──────────────────────────────────────────────────────────────────────
+// An EPUB is a ZIP of XHTML chapter files plus an OPF manifest naming their reading order. No
+// dependency: this is a minimal store/deflate ZIP directory reader, and modern browsers already
+// decompress raw DEFLATE natively via DecompressionStream, so nothing needs to be vendored.
+async function inflateRaw(bytes){
+  if(typeof DecompressionStream==='undefined') throw new Error('this browser can’t inflate zip data (no DecompressionStream)');
+  const stream=new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
+  return new Uint8Array(await new Response(stream).arrayBuffer());
+}
+async function readZipEntries(buf){
+  const bytes=new Uint8Array(buf), dv=new DataView(buf);
+  let eocd=-1;
+  for(let i=bytes.length-22; i>=Math.max(0,bytes.length-22-65557); i--){ if(dv.getUint32(i,true)===0x06054b50){ eocd=i; break; } }
+  if(eocd<0) throw new Error('not a zip file');
+  const entryCount=dv.getUint16(eocd+10,true), cdOffset=dv.getUint32(eocd+16,true);
+  const entries=[]; let p=cdOffset;
+  for(let i=0;i<entryCount;i++){
+    if(dv.getUint32(p,true)!==0x02014b50) break;
+    const method=dv.getUint16(p+10,true), compSize=dv.getUint32(p+20,true),
+      nameLen=dv.getUint16(p+28,true), extraLen=dv.getUint16(p+30,true), commentLen=dv.getUint16(p+32,true),
+      localOffset=dv.getUint32(p+42,true);
+    const name=new TextDecoder('utf-8').decode(bytes.subarray(p+46,p+46+nameLen));
+    entries.push({name,method,compSize,localOffset});
+    p+=46+nameLen+extraLen+commentLen;
+  }
+  return {bytes,dv,entries};
+}
+async function readZipEntry(zip,entry){
+  const {bytes,dv}=zip, lp=entry.localOffset;
+  if(dv.getUint32(lp,true)!==0x04034b50) throw new Error('bad zip entry: '+entry.name);
+  const nameLen=dv.getUint16(lp+26,true), extraLen=dv.getUint16(lp+28,true), dataStart=lp+30+nameLen+extraLen;
+  const raw=bytes.subarray(dataStart,dataStart+entry.compSize);
+  if(entry.method===0) return raw;
+  if(entry.method===8) return inflateRaw(raw);
+  throw new Error('unsupported zip compression ('+entry.method+') for '+entry.name);
+}
+// resolveHref(base,href) → href resolved against the OPF's directory, collapsing ./ and ../ —
+// spine hrefs are relative to the manifest file, not the zip root.
+function resolveHref(base,href){
+  href=String(href||'').split('#')[0];
+  if(!href) return href;
+  const out=[];
+  for(const part of (base?base+'/':'').split('/').concat(href.split('/'))){
+    if(part===''||part==='.') continue;
+    if(part==='..') out.pop(); else out.push(part);
+  }
+  return out.join('/');
+}
+async function findOpfPath(zip){
+  const container=zip.entries.find(e=>e.name==='META-INF/container.xml');
+  if(!container) throw new Error('not an EPUB (no container.xml)');
+  const xml=new TextDecoder('utf-8').decode(await readZipEntry(zip,container));
+  const m=/<rootfile[^>]*full-path=["']([^"']+)["']/i.exec(xml);
+  if(!m) throw new Error('not an EPUB (no rootfile)');
+  return m[1];
+}
+function parseOpfXml(xmlText){
+  const doc=new DOMParser().parseFromString(xmlText,'application/xml');
+  if(doc.querySelector('parsererror')) throw new Error('malformed EPUB manifest');
+  const manifest={};
+  doc.querySelectorAll('manifest > item').forEach(item=>{ manifest[item.getAttribute('id')]={href:item.getAttribute('href'),type:item.getAttribute('media-type')||''}; });
+  const spineIds=Array.from(doc.querySelectorAll('spine > itemref')).map(x=>x.getAttribute('idref')).filter(Boolean);
+  const spineHrefs=spineIds.map(id=>manifest[id]).filter(it=>it&&/x?html/i.test(it.type)).map(it=>it.href);
+  const dcText=(local)=>{ const el=doc.getElementsByTagNameNS('http://purl.org/dc/elements/1.1/',local)[0]; return el?bookNorm(el.textContent):''; };
+  return {spineHrefs, title:dcText('title'), creator:dcText('creator')};
+}
+// epubChapterBlocks(xhtml) → [{text, heading}] — the lowest element that owns its text directly
+// (not just through descendants), in document order; a heading tag also carries its level. This
+// is content-shaped rather than a fixed tag allowlist because Gutenberg's own epub markup nests
+// prose under arbitrary <div>/<span> wrappers (its *** START OF THE PROJECT GUTENBERG EBOOK ***
+// marker sits in a bare <span>, not a <p>) — a tag allowlist silently drops text like that.
+const EPUB_SKIP_TAGS=new Set(['SCRIPT','STYLE','NAV']);
+const epubHasOwnText=(el)=>Array.from(el.childNodes).some(n=>n.nodeType===3 && n.textContent.trim());
+function epubChapterBlocks(xhtmlText){
+  const doc=new DOMParser().parseFromString(xhtmlText,'text/html');
+  if(!doc.body) return [];
+  const blocks=[];
+  const walk=(node)=>{
+    for(const child of Array.from(node.children||[])){
+      const tag=child.tagName;
+      if(EPUB_SKIP_TAGS.has(tag)) continue;
+      const isHeading=/^H[1-6]$/.test(tag);
+      // a heading is captured by tag alone, whole-subtree: XHTML's self-closing <a id="x"/> before
+      // the title text re-parses as HTML into an unclosed <a> that swallows the heading's own text
+      // as its child, so requiring the text to sit directly on the Hn element would miss it.
+      if(isHeading || epubHasOwnText(child)){
+        const text=bookNorm(child.textContent||'');
+        if(text) blocks.push({text, heading:isHeading?Number(tag[1]):0});
+        continue;
+      }
+      walk(child);
+    }
+  };
+  walk(doc.body);
+  return blocks;
+}
+// extractEpubBook(buf) → {paras, toc, title, creator} — walks the spine in reading order,
+// flattening every chapter's blocks into one paragraph list; heading blocks are recorded as toc
+// entries by their real tag level, so there's no need to *detect* structure the way a Gutenberg
+// .txt requires — the markup already names its own chapters.
+async function extractEpubBook(buf){
+  const zip=await readZipEntries(buf);
+  const opfPath=await findOpfPath(zip);
+  const opfDir=opfPath.includes('/')?opfPath.slice(0,opfPath.lastIndexOf('/')):'';
+  const opfEntry=zip.entries.find(e=>e.name===opfPath);
+  if(!opfEntry) throw new Error('EPUB manifest missing: '+opfPath);
+  const opfXml=new TextDecoder('utf-8').decode(await readZipEntry(zip,opfEntry));
+  const {spineHrefs, title, creator}=parseOpfXml(opfXml);
+  if(!spineHrefs.length) throw new Error('EPUB has no readable spine');
+  const paras=[], toc=[];
+  for(const href of spineHrefs){
+    const entry=zip.entries.find(e=>e.name===resolveHref(opfDir,href));
+    if(!entry) continue;
+    let xhtml=''; try{ xhtml=new TextDecoder('utf-8').decode(await readZipEntry(zip,entry)); }catch(_){ continue; }
+    for(const b of epubChapterBlocks(xhtml)){
+      if(b.heading) toc.push({title:b.text.slice(0,72), level:b.heading, pi:paras.length});
+      paras.push(b.text);
+    }
+  }
+  if(!paras.length) throw new Error('EPUB produced no readable text');
+  // Gutenberg's epub carries the same *** START/END OF THE PROJECT GUTENBERG EBOOK *** markers
+  // as its .txt sibling (transcriber boilerplate before, licence text after) — cut the same span
+  // stripGutenbergBoilerplate cuts from the .txt, so both formats land on the same reading start.
+  let cutParas=paras, cutToc=toc;
+  const startIdx=cutParas.findIndex(p=>PG_START.test(p));
+  if(startIdx>=0){
+    const endIdx=cutParas.findIndex((p,i)=>i>startIdx && PG_END.test(p));
+    const from=startIdx+1, to=endIdx>=0?endIdx:cutParas.length;
+    cutParas=cutParas.slice(from,to);
+    cutToc=cutToc.filter(t=>t.pi>=from && t.pi<to).map(t=>({...t, pi:t.pi-from}));
+  }
+  // The book's own title page and printed contents list (its own <h2>CONTENTS</h2> plus the
+  // link-per-chapter table under it) still precede the real text — trimBookFrontFurniture's job
+  // for the .txt path. The markup already names the cut: drop through the heading right after
+  // "Contents", which is the first real chapter.
+  const contentsIdx=cutToc.findIndex(t=>/^(?:contents|table of contents)\.?$/i.test(bookNorm(t.title)));
+  if(contentsIdx>=0 && contentsIdx+1<cutToc.length){
+    const from=cutToc[contentsIdx+1].pi;
+    cutParas=cutParas.slice(from);
+    cutToc=cutToc.slice(contentsIdx+1).map(t=>({...t, pi:t.pi-from}));
+  }
+  return {paras:cutParas, toc:cutToc, title, creator};
+}
+
 class Component extends DCLogic {
   constructor(props){
     super(props);
@@ -1561,7 +1705,7 @@ class Component extends DCLogic {
 
   medium(name){
     const x=(name.split('.').pop()||'').toLowerCase();
-    const map={pdf:'PDF',doc:'Document',docx:'Document',csv:'Spreadsheet',tsv:'Spreadsheet',xlsx:'Spreadsheet',xls:'Spreadsheet',mp3:'Audio',wav:'Audio',m4a:'Audio',flac:'Audio',ogg:'Audio',mp4:'Video',mov:'Video',webm:'Video',mkv:'Video',png:'Image',jpg:'Image',jpeg:'Image',gif:'Image',webp:'Image',svg:'Image',bmp:'Image',ppt:'Slides',pptx:'Slides',md:'Text',markdown:'Text',txt:'Text',rtf:'Text',log:'Text',html:'Webpage',htm:'Webpage',json:'Data',xml:'Data',yaml:'Data',yml:'Data',js:'Code',ts:'Code',py:'Code',css:'Code',java:'Code',go:'Code',rb:'Code',c:'Code',cpp:'Code'};
+    const map={pdf:'PDF',epub:'Book',doc:'Document',docx:'Document',csv:'Spreadsheet',tsv:'Spreadsheet',xlsx:'Spreadsheet',xls:'Spreadsheet',mp3:'Audio',wav:'Audio',m4a:'Audio',flac:'Audio',ogg:'Audio',mp4:'Video',mov:'Video',webm:'Video',mkv:'Video',png:'Image',jpg:'Image',jpeg:'Image',gif:'Image',webp:'Image',svg:'Image',bmp:'Image',ppt:'Slides',pptx:'Slides',md:'Text',markdown:'Text',txt:'Text',rtf:'Text',log:'Text',html:'Webpage',htm:'Webpage',json:'Data',xml:'Data',yaml:'Data',yml:'Data',js:'Code',ts:'Code',py:'Code',css:'Code',java:'Code',go:'Code',rb:'Code',c:'Code',cpp:'Code'};
     return map[x]||'File';
   }
   medColor(m){ const c={Webpage:'#5b9bd5',PDF:'#d0472e',Document:'#4f9a6b',Image:'#c77dba',Audio:'#8e6fb3',Video:'#c0662e',Spreadsheet:'#2f7a55',Slides:'#b0842f',Text:'#8a8578',Data:'#3fb0a0',Code:'#3fb0a0',File:'#8a8578',Book:'#8a6d3b',Article:'#3366cc'}; return c[m]||'#8a8578'; }
@@ -2027,6 +2171,13 @@ class Component extends DCLogic {
     try{ const r=await fetch(this.proxied(u)); if(r.ok){ const t=await r.text(); if(t) return t; } }catch(_){}
     return null;
   }
+  // fetchRawBinary(url) → the bytes at url as an ArrayBuffer, same direct-then-proxied hop as
+  // fetchRawText — used for the EPUB fallback, which a text proxy can't safely pass through.
+  async fetchRawBinary(u){
+    try{ const r=await fetch(u,{mode:'cors'}); if(r.ok){ const b=await r.arrayBuffer(); if(b&&b.byteLength) return b; } }catch(_){}
+    try{ const r=await fetch(this.proxied(u)); if(r.ok){ const b=await r.arrayBuffer(); if(b&&b.byteLength) return b; } }catch(_){}
+    return null;
+  }
   gutenbergTextUrl(id){ return 'https://www.gutenberg.org/cache/epub/'+id+'/pg'+id+'.txt'; }
   pickGutenbergTextFormat(formats){
     const entries=Object.entries(formats||{}).filter(([mime,url])=>{
@@ -2036,23 +2187,58 @@ class Component extends DCLogic {
     const utf8=entries.find(([mime])=>/utf-?8/i.test(mime));
     return (utf8||entries[0])[1];
   }
+  // pickGutenbergEpubUrl(formats) → the book's .epub asset, used when no plain-text format is
+  // published (some Gutenberg titles — mostly image-heavy ones — ship epub/PDF only).
+  pickGutenbergEpubUrl(formats){
+    const entries=Object.entries(formats||{}).filter(([mime])=>/^application\/epub\+zip/i.test(mime));
+    if(!entries.length) return null;
+    const noImages=entries.find(([,url])=>/noimages/i.test(String(url||'')));
+    return (noImages||entries[0])[1];
+  }
   looksLikeBookText(t){ const s=String(t||'').replace(/^﻿/,'').trimStart(); return s.length>=200 && !/^<(?:!doctype|html|head|body|div|meta|title)\b/i.test(s); }
+  // openEpubBuffer(buf, meta) → {title, byline, analysis} — the EPUB counterpart of buildBookDoc.
+  // The spine's own headings are used directly for the toc (no form-detection heuristic needed:
+  // unlike a hard-wrapped .txt, the markup already says what's a chapter).
+  async openEpubBuffer(buf, meta){
+    const {paras, toc, title, creator}=await extractEpubBook(buf);
+    const whole=paras.join('\n\n');
+    const analysis=this.analyzeText(whole);
+    const withLead=toc.length&&toc[0].pi>0 ? [{title:'',level:0,pi:0,implicit:true},...toc] : toc;
+    analysis.toc=withLead; analysis.chapters=withLead.filter(e=>!e.implicit).length;
+    const finalTitle=(meta&&meta.title)||title||'Untitled';
+    const author=creator||(meta&&meta.author)||'';
+    return {title:finalTitle, byline:author?('by '+author):'', analysis};
+  }
   async openGutenbergBook(item){
     this.setState({searching:false});
     this.setDoc(this.bookLoadingDoc(item.bookTitle||item.title), {view:'reader'});
+    const meta={title:item.bookTitle||item.title, author:item.author};
     const id=item.gutenbergId;
     const candidates=[this.pickGutenbergTextFormat(item.formats), this.gutenbergTextUrl(id)].filter(Boolean);
-    let text=null;
     for(const u of candidates){
-      try{ const t=await this.fetchRawText(u); if(this.looksLikeBookText(t)){ text=t; break; } }catch(_){}
+      try{
+        const t=await this.fetchRawText(u);
+        if(this.looksLikeBookText(t)){
+          const built=this.buildBookDoc(t, meta);
+          this.setDoc({name:item.url,url:item.url,medium:'Book',mode:'text',size:'', ...built}, {view:'reader'});
+          return;
+        }
+      }catch(_){}
     }
-    if(!text){
-      this.setDoc({name:item.url,url:item.url,title:item.bookTitle||item.title,medium:'Book',mode:'binary',size:'',
-        mime:'could not fetch this book’s text — open '+item.url+' directly, or try again'}, {view:'native'});
-      return;
+    // no usable plain text — fall back to the book's .epub rather than dead-ending on an error.
+    const epubUrl=this.pickGutenbergEpubUrl(item.formats);
+    if(epubUrl){
+      try{
+        const buf=await this.fetchRawBinary(epubUrl);
+        if(buf){
+          const built=await this.openEpubBuffer(buf, meta);
+          this.setDoc({name:item.url,url:item.url,medium:'Book',mode:'text',size:'', ...built}, {view:'reader'});
+          return;
+        }
+      }catch(_){}
     }
-    const built=this.buildBookDoc(text, {title:item.bookTitle||item.title, author:item.author});
-    this.setDoc({name:item.url,url:item.url,medium:'Book',mode:'text',size:'', ...built}, {view:'reader'});
+    this.setDoc({name:item.url,url:item.url,title:item.bookTitle||item.title,medium:'Book',mode:'binary',size:'',
+      mime:'could not fetch this book’s text — open '+item.url+' directly, or try again'}, {view:'native'});
   }
   async openWikipediaArticle(item){
     this.setState({searching:false});
@@ -2157,6 +2343,7 @@ class Component extends DCLogic {
     if(aud.includes(ext)||(f.type||'').startsWith('audio')){ this.ingestAudio(f,name,size); return; }
     if(vid.includes(ext)||(f.type||'').startsWith('video')){ this.setDoc({name,title:name,medium:'Video',mode:'media',mtype:'video',url:URL.createObjectURL(f),size}); return; }
     if(ext==='pdf'||(f.type||'')==='application/pdf'){ this.ingestPdf(f,name,size); return; }
+    if(ext==='epub'||(f.type||'')==='application/epub+zip'){ this.ingestEpub(f,name,size); return; }
     if(ext==='html'||ext==='htm'){ const r=new FileReader(); r.onload=()=>{ let txt='', linkMap={}; try{ const d=this.dechrome(r.result||''); txt=d.text; linkMap=d.linkMap; }catch(_){txt=r.result||'';} this.setDoc({name,title:name,medium:'Webpage',mode:'text',size,rawHtml:r.result||'',analysis:this.analyzeText(txt,linkMap)}); }; r.readAsText(f); return; }
     if(textLike.includes(ext)||(f.type||'').startsWith('text')){ const r=new FileReader(); r.onload=()=>{ const raw=r.result||''; const csv=(ext==='csv'||ext==='tsv')?this.parseCsvRows(raw):null; this.setDoc({name,title:name,medium,mode:'text',size,rawText:raw,csv,analysis:this.analyzeText(raw)}); }; r.readAsText(f); return; }
     const r=new FileReader();
@@ -2206,6 +2393,15 @@ class Component extends DCLogic {
       for(let i=1;i<=Math.min(pdf.numPages,20);i++){ const pg=await pdf.getPage(i); const c=await pg.getTextContent(); text+=c.items.map(it=>it.str).join(' ')+'\n\n'; }
       this.setDoc({name,title:name,medium:'PDF',mode:'text',size,pdfUrl,analysis:this.analyzeText(text)});
     }catch(err){ this.setDoc({name,title:name,medium:'PDF',mode:'binary',size,pdfUrl,mime:'application/pdf'}); }
+  }
+  async ingestEpub(f,name,size){
+    try{
+      const buf=await f.arrayBuffer();
+      const built=await this.openEpubBuffer(buf, {title:name.replace(/\.epub$/i,'')});
+      this.setDoc({name,url:'',medium:'Book',mode:'text',size, ...built});
+    }catch(err){
+      this.setDoc({name,title:name,medium:'Book',mode:'binary',size,mime:'could not read this EPUB: '+err.message});
+    }
   }
 
   prepMarks(a, marksOn){
@@ -2773,7 +2969,7 @@ class Component extends DCLogic {
       L, tw:{hi:sw(L.hi),en:sw(L.en),ch:sw(L.ch),ln:sw(L.ln),nw:sw(L.nw)}, appearTrack:sw(dark).track, appearKnob:sw(dark).knob,
       togHi:()=>this.tog('hi'),togEn:()=>this.tog('en'),togCh:()=>this.tog('ch'),togLn:()=>this.tog('ln'),togNw:()=>this.tog('nw'),
       layersOpen:S.layersOpen, openLayers:()=>this.setState({layersOpen:true}), closeLayers:()=>this.setState({layersOpen:false}),
-      openLibrary:()=>this.setState({tab:'structure'}),
+      openLibrary:()=>this.setState({importOpen:true,spaceEditOpen:false}),
       openLayersFromSettings:()=>this.setState({settingsOpen:false,layersOpen:true}),
       openExploreFromLayers:()=>{ this.setState({layersOpen:false}); this.openExplore(); },
       settingsOpen:S.settingsOpen, openSettings:()=>this.setState({settingsOpen:true}), closeSettings:()=>this.setState({settingsOpen:false}),
