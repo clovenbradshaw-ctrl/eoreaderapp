@@ -114,6 +114,28 @@
     </div>
   </div>
 
+  <!-- Persistent source bar: title + byline stay visible once the inline header scrolls out
+       of view, with a thin fill showing how far into the source the reader is. Tapping it
+       opens the chapter/section list when the source has real chapters to jump between. -->
+  <sc-if value="{{ srcBarShown }}">
+  <div onClick="{{ srcBarPick }}" style="flex:none;padding:9px 14px 8px;cursor:{{ srcBarClick }};background:{{ t.screen }};position:relative;z-index:4;border-bottom:1px solid {{ t.border }}">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div style="flex:1;min-width:0">
+        <div style="font:700 13px system-ui;color:{{ t.text }};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ srcBarTitle }}</div>
+        <sc-if value="{{ srcBarByline }}">
+          <div style="font:500 11px system-ui;color:{{ t.mut }};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:1px">{{ srcBarByline }}</div>
+        </sc-if>
+      </div>
+      <sc-if value="{{ srcBarLoc }}">
+        <div style="flex:none;font:600 10.5px 'IBM Plex Mono',monospace;color:{{ t.faint }};white-space:nowrap">{{ srcBarLoc }}</div>
+      </sc-if>
+    </div>
+    <div style="height:3px;border-radius:2px;background:{{ t.border }};margin-top:8px;overflow:hidden">
+      <div style="height:100%;border-radius:2px;background:{{ t.accent }};width:{{ srcBarPct }};transition:width .12s linear"></div>
+    </div>
+  </div>
+  </sc-if>
+
   <div ref="{{ scrollRef }}" class="eo-main" style="flex:1;min-height:0;overflow-y:auto;position:relative;padding-bottom:{{ scrollPadB }}">
     <sc-if value="{{ isReader }}" hint-placeholder-val="{{ true }}">
       <div style="position:relative;min-height:100%">{{ docEl }}</div>
@@ -1989,7 +2011,8 @@ class Component extends DCLogic {
       searchQ:'', searchResults:[], mediaResults:[], searching:false, searchMsg:'', libraryShelf:'web', _exTick:0,
       spaceEditOpen:false, spacePickerOpen:false, _sk:0,
       sourcesOpen:false, srcQuery:'', srcExpand:null, recPulse:0,
-      chromeHidden:false, webFrameActiveIds:[]
+      chromeHidden:false, webFrameActiveIds:[],
+      readingProgress:0, srcBarShown:false
     };
     this.scrollRef=(el)=>{
       if(!el) return;
@@ -2007,6 +2030,13 @@ class Component extends DCLogic {
           const reading=this.state.tab==='reader';
           if(reading && y>56 && dy>4){ if(!this.state.chromeHidden) this.setState({chromeHidden:true}); }
           else if(!reading || dy<-4 || y<40){ if(this.state.chromeHidden) this.setState({chromeHidden:false}); }
+          // The inline h1/byline at the top of the doc carries the title while it's on
+          // screen; once it scrolls away past ~72px the persistent source bar takes over,
+          // same handoff point the chrome uses for its own hide threshold.
+          if(reading && this.state.view==='reader'){
+            const progress=this.computeReadingProgress(el), shown=y>72;
+            if(progress!==this.state.readingProgress || shown!==this.state.srcBarShown) this.setState({readingProgress:progress, srcBarShown:shown});
+          }
         });
       },{passive:true});
     };
@@ -2189,7 +2219,21 @@ class Component extends DCLogic {
     if(toc.length && toc[0].pi>0) toc.unshift({title:'',level:0,pi:0,implicit:true});
     return toc;
   }
-  gotoChap(i){ const toc=(this.state.doc&&this.state.doc.analysis&&this.state.doc.analysis.toc)||[]; const n=toc.length||1; const ci=Math.max(0,Math.min(i,n-1)); this.setState({chap:ci,tocOpen:false}); requestAnimationFrame(()=>{ if(this._scroll) this._scroll.scrollTop=0; }); }
+  gotoChap(i){ const toc=(this.state.doc&&this.state.doc.analysis&&this.state.doc.analysis.toc)||[]; const n=toc.length||1; const ci=Math.max(0,Math.min(i,n-1)); this.setState({chap:ci,tocOpen:false,srcBarShown:false}); requestAnimationFrame(()=>{ if(this._scroll){ this._scroll.scrollTop=0; this.setState({readingProgress:this.computeReadingProgress(this._scroll)}); } }); }
+  // How far into the source the reader is, as a 0..1 fraction. Chaptered sources (books) advance
+  // chapter-by-chapter (each chapter resets scroll to 0), so overall progress is the completed
+  // chapters plus the fraction scrolled through the current one — not just the visible pane's
+  // own scroll ratio, which would jump backward to 0% on every chapter turn.
+  computeReadingProgress(el){
+    if(!el) return 0;
+    const d=this.state.doc, a=d&&d.analysis, toc=(a&&a.toc)||[];
+    const chapterMode=!!(d && d.medium!=='Webpage' && toc.filter(e=>!e.implicit).length>=3);
+    const max=el.scrollHeight-el.clientHeight;
+    const frac=max>2?Math.max(0,Math.min(1,el.scrollTop/max)):1;
+    if(!chapterMode) return frac;
+    const n=toc.length||1, ci=Math.max(0,Math.min(this.state.chap,n-1));
+    return Math.max(0,Math.min(1,(ci+frac)/n));
+  }
   analyzeText(raw, linkMap, images){
     const text=(raw||'').replace(/\r/g,'').slice(0,3000000);
     let paras=text.split(/\n{2,}/).map(s=>s.trim()).filter(Boolean);
@@ -2306,6 +2350,7 @@ class Component extends DCLogic {
   }
   terrainClusters(){ return this.entityKindSegments(); }
   openExplore(){ this.setState({explore:{terrain:null}, sel:null, linkSel:null, level:'full'}); }
+  openChapterNav(){ this.setState({explore:{terrain:'__structure__'}, sel:null, linkSel:null, level:'full'}); }
   openTerrain(id){ this.setState(s=>({explore:{...s.explore,terrain:id}})); }
   exploreBack(){ this.setState(s=>({explore:{...s.explore,terrain:null}})); }
   closeExplore(){ this.setState({explore:null, sel:null, linkSel:null, level:'prompt'}); }
@@ -2578,7 +2623,7 @@ class Component extends DCLogic {
     const autoRecord = !(opts&&opts.skipRecord) && d && d.kind!=='loading' && d.mode!=='loading';
     this._webFrameDoc=null; this._webFrameCleanHTML=null; this._webFrameClickBound=false; this._webFrameActiveIds=[];
     this.setState(s=>{
-      const next={doc:d, importOpen:false, searchResults:[], mediaResults:[], searchMsg:'', sel:null, level:'prompt', chap:0, tab:'reader',
+      const next={doc:d, importOpen:false, searchResults:[], mediaResults:[], searchMsg:'', sel:null, level:'prompt', chap:0, tab:'reader', readingProgress:0, srcBarShown:false,
         searchProjection:'evidence', searchScope:'all', queryText:'', queryReading:null, queryWhy:null,
         view:(opts&&opts.view)||this.load('eo5.readerType','native'), webFrameActiveIds:[], cardPath:[], lensByRung:{},
         src:{label:d.name||d.title, det, dot:this.medColor(d.medium)}};
@@ -2598,7 +2643,7 @@ class Component extends DCLogic {
       return next;
     });
   }
-  resetSample(){ this.setState({doc:this.demoDoc(), importOpen:false, sel:null, level:'prompt', chap:0, tab:'reader', view:'reader', cardPath:[], lensByRung:{}, src:{label:'theatlantic.com/…/the-quiet-collapse',det:'News · sample',dot:'#c0662e'}}); }
+  resetSample(){ this.setState({doc:this.demoDoc(), importOpen:false, sel:null, level:'prompt', chap:0, tab:'reader', view:'reader', cardPath:[], lensByRung:{}, readingProgress:0, srcBarShown:false, src:{label:'theatlantic.com/…/the-quiet-collapse',det:'News · sample',dot:'#c0662e'}}); }
 
   // ── space-scoped memory ──
   mem(){ return (this.state.memoryBySpace||{})[this.state.spaceId]||[]; }
@@ -3582,6 +3627,13 @@ class Component extends DCLogic {
 
     // ── explore: progressive disclosure from top-level terrains down to a single entity ──
     const toc=a.toc||[];
+    // ── persistent source bar: title/byline pinned above the reading pane once the inline
+    // header scrolls away, plus how far into the source the reader is (§computeReadingProgress).
+    const chapterMode=!!(d && d.medium!=='Webpage' && toc.filter(e=>!e.implicit).length>=3);
+    const srcBarPct=Math.round((S.readingProgress||0)*100);
+    const srcBarLoc=chapterMode?('Ch '+(Math.max(0,Math.min(S.chap,toc.length-1))+1)+' of '+toc.length):(d&&d.mode==='text'?srcBarPct+'%':'');
+    const srcBarShown=!!(S.tab==='reader'&&S.view==='reader'&&S.srcBarShown&&d&&d.mode!=='loading'&&(d.title||d.byline));
+    const srcBarPick=chapterMode?()=>this.openChapterNav():()=>{};
     const terrains=this.terrainClusters();
     const explOpen=!!explore && !sel && !linkSel;
     const explTerrainId=explore&&explore.terrain;
@@ -3760,6 +3812,8 @@ class Component extends DCLogic {
       chromeOpacity:chromeCollapsed?0:1, chromePE:chromeCollapsed?'none':'auto',
       chromeBottomT:chromeCollapsed?'translateY(96px)':'translateY(0)',
       chromeBottomOp:chromeCollapsed?0:1, chromeBottomPE:chromeCollapsed?'none':'auto',
+      srcBarShown, srcBarTitle:(d&&d.title)||'', srcBarByline:(d&&d.byline)||'',
+      srcBarLoc, srcBarPct:srcBarPct+'%', srcBarClick:chapterMode?'pointer':'default', srcBarPick,
       sheetScrollPadB:chromeCollapsed?'22px':'calc(80px + env(safe-area-inset-bottom,0px))',
       setReader:()=>this.setState({tab:'reader'}), setCross:()=>this.setState({tab:'search'}),
       tabRB:S.tab==='reader'?activeBg:'transparent', tabRC:S.tab==='reader'?activeC:t.mut,
