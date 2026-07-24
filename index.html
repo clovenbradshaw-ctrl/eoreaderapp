@@ -47,7 +47,7 @@
   @media (min-width: 900px){
     .eo-device{width:100%!important;max-width:none!important;box-shadow:none!important}
     .eo-screen{width:100%!important;padding-left:264px}
-    .eo-nav{position:fixed!important;left:0!important;top:0!important;bottom:0!important;right:auto!important;width:264px!important;flex-direction:column!important;align-items:stretch!important;justify-content:flex-start!important;gap:3px!important;border:0!important;border-right:1px solid rgba(0,0,0,.09)!important;border-radius:0!important;box-shadow:none!important;padding:24px 14px 18px!important;background:transparent!important;transform:none!important;opacity:1!important;pointer-events:auto!important}
+    .eo-nav{position:fixed!important;left:0!important;top:0!important;bottom:0!important;right:auto!important;width:264px!important;flex-direction:column!important;align-items:stretch!important;justify-content:flex-start!important;gap:3px!important;border:0!important;border-right:1px solid rgba(0,0,0,.09)!important;border-radius:0!important;box-shadow:none!important;padding:70px 14px 18px!important;background:var(--eo-nav-bg)!important;transform:none!important;opacity:1!important;pointer-events:auto!important}
     .eo-nav button{flex:0 0 auto!important;text-align:left!important;padding:11px 15px!important;border-radius:11px!important;font:700 14px system-ui!important}
     .eo-nav{overflow-y:auto!important;min-height:0!important}
     .eo-spaces-rail{display:flex!important;flex:0 0 auto!important;min-height:0!important}
@@ -71,7 +71,7 @@
 
 <div class="eo-shell" style="min-height:100vh;background:{{ t.bg }};display:flex;align-items:flex-start;justify-content:center;font-family:system-ui,-apple-system,sans-serif;transition:background .3s">
 <div class="eo-device">
-<div class="eo-screen {{ panelOpenClass }}" style="position:relative;overflow:hidden;background:linear-gradient(180deg,{{ t.accentTop }} 0%,{{ t.screen }} 270px);display:flex;flex-direction:column;transition:background .35s">
+<div class="eo-screen {{ panelOpenClass }}" style="position:relative;overflow:hidden;background:{{ t.screen }};display:flex;flex-direction:column;transition:background .35s">
 
   <!-- Real safe-area spacer (respects notches/status bars on device) —
        replaces the former simulated iOS status bar (9:41 / Dynamic Island / 5G). -->
@@ -737,7 +737,7 @@
   </div>
 
 
-  <div class="eo-nav" style="position:absolute;left:14px;right:14px;bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:25;background:{{ t.sheet }};border:1px solid {{ t.border }};box-shadow:0 10px 30px rgba(0,0,0,.16);border-radius:22px;padding:6px;display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;font-family:system-ui;transform:{{ chromeBottomT }};opacity:{{ chromeBottomOp }};pointer-events:{{ chromeBottomPE }};transition:transform .3s cubic-bezier(.4,0,.2,1),opacity .22s ease">
+  <div class="eo-nav" style="position:absolute;left:14px;right:14px;bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:25;background:{{ t.sheet }};--eo-nav-bg:{{ t.bg }};border:1px solid {{ t.border }};box-shadow:0 10px 30px rgba(0,0,0,.16);border-radius:22px;padding:6px;display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;font-family:system-ui;transform:{{ chromeBottomT }};opacity:{{ chromeBottomOp }};pointer-events:{{ chromeBottomPE }};transition:transform .3s cubic-bezier(.4,0,.2,1),opacity .22s ease">
     <div class="eo-spaces-rail" style="display:none;flex-direction:column;gap:2px;margin-bottom:10px">
       <div style="display:flex;align-items:center;gap:8px;padding:0 6px 14px">
         <span style="flex:none;width:26px;height:26px;border-radius:7px;background:#3b6fed;display:flex;align-items:center;justify-content:center">
@@ -1773,7 +1773,7 @@ function eoIsHeadingPara(p){ return /^#{1,6}\s+/.test(String(p||'').trim()); }
 // marks flowing prose over Title-Case UI/headline text; explicit penalties knock
 // out agency credits ("…/AP", "via Getty Images"), stock caption verbs, and the
 // masthead boilerplate feeds prepend to their first block.
-const EO_AGENCY_CREDIT=/[\/·]\s*(?:AP|Getty(?: Images)?|Reuters|Bloomberg|AFP|EPA|NurPhoto|Shutterstock|AFP\/Getty)\b|\bvia Getty Images\b/i;
+const EO_AGENCY_CREDIT=/[\/·]\s*(?:AP|Getty(?: Images)?|Reuters|Bloomberg|AFP|EPA|NurPhoto|Shutterstock|AFP\/Getty|iStock(?:photo)?|Alamy)\b|\bvia Getty Images\b/i;
 const EO_CAPTION_VERB=/\b(?:is|are)\s+(?:seen|pictured|displayed|shown)\b|\b(?:speaks|arrives|listens|walks|attends|waves|gestures|departs)\b/i;
 const EO_BOILERPLATE=/breaking news, analysis|nonprofit journalism|this is npr|top stories in the u\.?s\.?|all rights reserved|sign up for|subscribe to|our newsletter|© ?\d{4}/i;
 function eoPassageScore(p){
@@ -2487,8 +2487,8 @@ class Component extends DCLogic {
     let proxy=this.load('eo5.proxy',null);
     if(!proxy||!proxy.fetch) proxy={on:true,fetch:'https://n8n.intelechia.com/webhook/feed?url={urlenc}',search:'https://s.jina.ai/?q={q}'};
     this.state = {
-      dark:(props.theme||'Light')==='Dark',
-      customBg:this.colorValue(this.load('eo5.customBg','#fafaf8'),'#fafaf8'), customText:this.colorValue(this.load('eo5.customText','#1e1c19'),'#1e1c19'),
+      dark:this.load('eo5.dark',(props.theme||'Light')==='Dark'),
+      customBg:this.colorValue(this.load('eo5.customBg',null),null), customText:this.colorValue(this.load('eo5.customText',null),null),
       tab:'reader',
       betaPrompt:'', betaOrgans:{text:true,image:true,audio:true,video:false,math:false}, betaTurn:null,
       searchProjection:'evidence', searchScope:'all', queryText:'', queryReading:null, queryWhy:null,
@@ -2619,12 +2619,13 @@ class Component extends DCLogic {
   deleteSpace(){ this.setState(s=>{ if(s.spaces.length<=1) return {}; const spaces=s.spaces.filter(x=>x.id!==s.spaceId); const memoryBySpace={...s.memoryBySpace}; delete memoryBySpace[s.spaceId]; this.save('eo5.spaces',spaces); this.save('eo5.memBySpace',memoryBySpace); this.save('eo5.space',spaces[0].id); return {spaces,memoryBySpace,spaceId:spaces[0].id,spaceEditOpen:false}; }); }
   colorValue(v, fallback){ const s=String(v||'').trim(); return /^#[0-9a-fA-F]{6}$/.test(s)?s:fallback; }
   setCustomColor(key, storageKey, value, fallback){ const color=this.colorValue(value, fallback); this.save(storageKey, color); this.setState({[key]:color}); }
-  resetCustomColors(){ const customBg='#fafaf8', customText='#1e1c19'; this.save('eo5.customBg', customBg); this.save('eo5.customText', customText); this.setState({customBg, customText}); }
+  resetCustomColors(){ this.save('eo5.customBg', null); this.save('eo5.customText', null); this.setState({customBg:null, customText:null}); }
 
   theme(){
     const light={bg:'#fafaf8',screen:'#fdfaf4',bar:'#f4f1ea',border:'#e7e3d9',bStrong:'#d3cec2',text:'#1e1c19',t2:'#5c574d',mut:'#9a9385',faint:'#b0a99a',card:'#ffffff',sheet:'#ffffff'};
     const night={bg:'#05060c',screen:'#0e1322',bar:'#171d30',border:'#242e4a',bStrong:'#333d5c',text:'#eef1fb',t2:'#b8c0da',mut:'#828bab',faint:'#68719a',card:'#161d31',sheet:'#151b2c'};
-    const base={...(this.state.dark?night:light), bg:this.state.customBg||light.bg, screen:this.state.customBg||light.screen, text:this.state.customText||light.text};
+    const themed=this.state.dark?night:light;
+    const base={...themed, bg:this.state.customBg||themed.bg, screen:this.state.customBg||themed.screen, text:this.state.customText||themed.text};
     const sp=this.curSpace(); const acc=(sp&&sp.accent)||'#c0662e'; const rgb=this.hexRgb(acc);
     return {...base, accent:acc,
       accentSoft:`rgba(${rgb},.12)`, accentWash:`rgba(${rgb},.07)`, accentLine:`rgba(${rgb},.34)`,
@@ -2756,7 +2757,12 @@ class Component extends DCLogic {
     // → "Australian Open"). These are conjunctions/prepositions/articles/adverbs — never a
     // name-part like "New"/"San"/"Fort"/"Saint" — and the trailing connector is trimmed too.
     const LEAD=/^(?:(?:but|and|or|nor|for|yet|so|if|then|else|when|while|where|whereas|because|since|although|though|during|among|amongst|between|through|throughout|after|before|until|into|onto|upon|over|under|above|below|at|on|in|to|of|by|with|within|without|from|about|now|here|there|thus|hence|also|still|even|the|a|an)\s+)+/i;
-    const add=(name, weight)=>{ name=(''+name).replace(/\s+/g,' ').replace(/['’]s$/,'').replace(/['’]$/,'').replace(/[.,;:!?)]$/,'').replace(/\s+(?:of|the|and|for|de|du|van|von)$/i,'').replace(LEAD,'').trim(); if(!name||name.length<2||name.length>90)return null; const parts=name.split(' '); if(parts.length===1 && stop.has(name))return null; if(name.toUpperCase()===name && name.length>6)return null; const key=name.toLowerCase(); freq[key]=(freq[key]||0)+(weight||1); if(!surfaces[key]||name.length>surfaces[key].length)surfaces[key]=name; return key; };
+    // Stock-photo/wire-service credit lines ("Getty Images", "AFP/Getty", "Shutterstock") are page
+    // chrome, not document content — they name the caption's rights holder, not an entity the text
+    // is about, so they must never become a graph node even when they surface as a bare Title-Case
+    // fragment that would otherwise pass the prose-anchored harvester below.
+    const STOCK_AGENCY=/^(?:getty(?: images)?|istock(?:photo)?|shutterstock|afp(?:\/getty(?: images)?)?|reuters|associated press|\bap\b|bloomberg|epa|nurphoto|alamy)$/i;
+    const add=(name, weight)=>{ name=(''+name).replace(/\s+/g,' ').replace(/['’]s$/,'').replace(/['’]$/,'').replace(/[.,;:!?)]$/,'').replace(/\s+(?:of|the|and|for|de|du|van|von)$/i,'').replace(LEAD,'').trim(); if(!name||name.length<2||name.length>90)return null; if(STOCK_AGENCY.test(name))return null; const parts=name.split(' '); if(parts.length===1 && stop.has(name))return null; if(name.toUpperCase()===name && name.length>6)return null; const key=name.toLowerCase(); freq[key]=(freq[key]||0)+(weight||1); if(!surfaces[key]||name.length>surfaces[key].length)surfaces[key]=name; return key; };
     // Prose-anchored harvesting: a real named entity is embedded in running prose —
     // a sentence with lowercase context and end punctuation — whereas page chrome
     // ("Listen", "Download Embed", "Transcript Toggle", "Getty Images") surfaces only
@@ -3833,7 +3839,7 @@ class Component extends DCLogic {
       .replace(/\b(?:hide|toggle)\s+caption\b/gi,'')       // NPR-style caption toggles (inline)
       .replace(/\benlarge this image\b/gi,'');
     // agencies/labels that mark a photo-credit or UI fragment rather than prose
-    const AGENCY=/(getty images|reuters|associated press|\bafp\b|bloomberg|shutterstock|\bnpr\b|\bap\b)/i;
+    const AGENCY=/(getty images|istock(?:photo)?|reuters|associated press|\bafp\b|bloomberg|shutterstock|\bnpr\b|\bap\b|alamy)/i;
     const UI=/^(hide caption|toggle caption|enlarge(?: this image)?|advertisement|sponsor(?:ed)? (?:message|content)|listen|download|embed|transcript|loading…?|copy link|share(?: this)?|read more|see more|more stories|related(?: stories)?|watch:|photos?:|video:|subscribe|sign up|newsletter|follow us|updated|published|\d+\s*min read|facebook|twitter|instagram|linkedin|whatsapp|reddit|email|print)\b/i;
     const isCreditLine=(b)=>{
       const l=b.trim();
@@ -5451,7 +5457,7 @@ class Component extends DCLogic {
       startAllRec:()=>this.setAllRecording(true), stopAllRec:()=>this.setAllRecording(false),
       recordNew:()=>this.setState({sourcesOpen:false,importOpen:true}),
       memCount:memList.length, memEmpty:memList.length===0, memHas:memList.length>0, spaceName:sp?sp.name:'',
-      t, themeGlyph:dark?'☾':'☀', flipDark:()=>this.setState({dark:!dark}),
+      t, themeGlyph:dark?'☾':'☀', flipDark:()=>{ this.save('eo5.dark', !dark); this.setState({dark:!dark}); },
       customBg:S.customBg||'#fafaf8', customText:S.customText||'#1e1c19',
       onCustomBg:(e)=>this.setCustomColor('customBg','eo5.customBg',e.target.value,'#fafaf8'),
       onCustomText:(e)=>this.setCustomColor('customText','eo5.customText',e.target.value,'#1e1c19'),
