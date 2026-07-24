@@ -56,6 +56,7 @@
     .eo-native-clear{padding-right:min(440px,40vw)!important}
     /* The reading detail sheet docks as a right panel on desktop instead of a bottom sheet. */
     .eo-info-sheet{left:auto!important;right:0!important;top:0!important;bottom:0!important;height:100vh!important;width:min(440px,40vw)!important;border-top:0!important;border-left:1px solid rgba(0,0,0,.10)!important;border-radius:0!important;box-shadow:-14px 0 40px rgba(0,0,0,.13)!important}
+    .eo-screen.eo-panel-docked .eo-chrome{margin-right:min(440px,40vw)!important}
     /* Sources are integrated inline in the left rail on desktop — the overlay drawer and its trigger are mobile-only. */
     .eo-sources-sheet, .eo-src-toolbtn{display:none!important}
     .eo-rail-sources{display:flex!important}
@@ -67,13 +68,13 @@
 
 <div class="eo-shell" style="min-height:100vh;background:{{ t.bg }};display:flex;align-items:flex-start;justify-content:center;font-family:system-ui,-apple-system,sans-serif;transition:background .3s">
 <div class="eo-device">
-<div class="eo-screen" style="position:relative;overflow:hidden;background:linear-gradient(180deg,{{ t.accentTop }} 0%,{{ t.screen }} 270px);display:flex;flex-direction:column;transition:background .35s">
+<div class="eo-screen {{ panelOpenClass }}" style="position:relative;overflow:hidden;background:linear-gradient(180deg,{{ t.accentTop }} 0%,{{ t.screen }} 270px);display:flex;flex-direction:column;transition:background .35s">
 
   <!-- Real safe-area spacer (respects notches/status bars on device) —
        replaces the former simulated iOS status bar (9:41 / Dynamic Island / 5G). -->
   <div style="flex:none;height:env(safe-area-inset-top,0px)"></div>
 
-  <div style="flex:none;padding:{{ chromePadT }} 14px 0;max-height:{{ chromeMaxH }};opacity:{{ chromeOpacity }};pointer-events:{{ chromePE }};overflow:hidden;transition:max-height .3s cubic-bezier(.4,0,.2,1),opacity .22s ease,padding-top .3s ease">
+  <div class="eo-chrome" style="flex:none;padding:{{ chromePadT }} 14px 0;max-height:{{ chromeMaxH }};opacity:{{ chromeOpacity }};pointer-events:{{ chromePE }};overflow:hidden;transition:max-height .3s cubic-bezier(.4,0,.2,1),opacity .22s ease,padding-top .3s ease">
     <div style="display:flex;align-items:center;gap:6px">
       <span onClick="{{ openSpacePicker }}" title="Spaces" style="flex:none;width:34px;height:34px;border-radius:10px;background:{{ t.bar }};border:1px solid {{ t.border }};display:flex;align-items:center;justify-content:center;cursor:pointer">
         <i class="ph ph-book-open" style="font-size:16px;color:{{ t.accent }}"></i>
@@ -119,13 +120,13 @@
     </sc-if>
     <sc-if value="{{ isProfile }}">
     <div style="padding:14px 14px 44px;font-family:system-ui;max-width:760px;margin:0 auto">
-      <div style="font:800 10px system-ui;letter-spacing:.08em;text-transform:uppercase;color:{{ t.mut }};margin-bottom:10px">Meaning map · paradigms &amp; entities</div>
+      <div style="font:800 10px system-ui;letter-spacing:.08em;text-transform:uppercase;color:{{ t.mut }};margin-bottom:10px">Scope · {{ mapScopeLabel }} · Map</div>
       <sc-if value="{{ hasMeaningMap }}" hint-placeholder-val="{{ true }}">
         <div key="{{ solarKey }}" ref="{{ solarRef }}" style="height:380px;border-radius:16px;overflow:hidden;background:{{ t.bar }};border:1px solid {{ t.border }}"></div>
-        <div style="font:500 12.5px/1.55 system-ui;color:{{ t.mut }};margin:12px 0 4px">This document sits at the centre; its largest referents orbit as paradigms, each carrying the entities that appear alongside it. Drag to pan, click any body to inspect it.</div>
+        <div style="font:500 12.5px/1.55 system-ui;color:{{ t.mut }};margin:12px 0 4px">Legend: size shows structural importance, color shows referent kind, and each body is a canonical referent with evidence in this source fold. Use the list below if the graph is not accessible.</div>
       </sc-if>
       <sc-if value="{{ profileNoMap }}">
-        <div style="padding:26px;border-radius:16px;background:{{ t.bar }};border:1px solid {{ t.border }};font:500 13px/1.6 system-ui;color:{{ t.mut }}">Open a source with named entities to see its meaning map.</div>
+        <div style="padding:26px;border-radius:16px;background:{{ t.bar }};border:1px solid {{ t.border }};font:500 13px/1.6 system-ui;color:{{ t.mut }}">Open a source with resolved, evidence-bearing referents to see its Map.</div>
       </sc-if>
 
       <sc-if value="{{ isEntSel }}">
@@ -143,20 +144,44 @@
           <div style="flex:1;background:{{ t.bar }};border-radius:11px;padding:10px 11px"><div style="font:700 20px system-ui;color:{{ t.text }}">{{ sel.links }}</div><div style="font:600 9.5px system-ui;letter-spacing:.04em;text-transform:uppercase;color:{{ t.mut }}">Links</div></div>
           <div style="flex:1;background:{{ t.bar }};border-radius:11px;padding:10px 11px"><div style="font:700 20px system-ui;color:{{ flagColor }}">{{ sel.flags }}</div><div style="font:600 9.5px system-ui;letter-spacing:.04em;text-transform:uppercase;color:{{ t.mut }}">Flags</div></div>
         </div>
+        <sc-if value="{{ selWikiWait }}">
+          <div style="margin:14px 0 2px;font:500 12.5px system-ui;color:{{ t.mut }};display:flex;align-items:center;gap:7px"><i class="ph ph-book-open-text" style="font-size:15px"></i>Looking up Wikipedia…</div>
+        </sc-if>
+        <sc-if value="{{ selHasWiki }}">
+          <a href="{{ selWikiUrl }}" target="_blank" rel="noopener" style="display:block;margin:14px 0 2px;background:{{ t.bar }};border:1px solid {{ t.border }};border-radius:13px;overflow:hidden;text-decoration:none">
+            <sc-if value="{{ selHasWikiImage }}">
+              <img src="{{ selWikiImage }}" alt="{{ selWikiTitle }}" loading="lazy" referrerpolicy="no-referrer" style="display:block;width:100%;height:auto;max-height:220px;object-fit:cover">
+            </sc-if>
+            <div style="padding:11px 13px">
+              <div style="font:700 13px system-ui;color:{{ t.accent }}">{{ selWikiTitle }} ↗</div>
+              <sc-if value="{{ selHasWikiDesc }}"><div style="font:600 11px system-ui;color:{{ t.mut }};margin-top:2px">{{ selWikiDesc }}</div></sc-if>
+              <div style="font:400 12.5px/1.5 'Source Serif 4',Georgia,serif;color:{{ t.t2 }};margin-top:7px">{{ selWikiText }}</div>
+              <div style="font:600 9px system-ui;letter-spacing:.06em;text-transform:uppercase;color:{{ t.faint }};margin-top:9px">From Wikipedia</div>
+            </div>
+          </a>
+        </sc-if>
+        <sc-if value="{{ selHasRelImages }}">
+          <div style="font:600 10px system-ui;letter-spacing:.05em;text-transform:uppercase;color:{{ t.mut }};margin:18px 0 7px">Images from this source</div>
+          <div style="display:flex;gap:7px;flex-wrap:wrap">
+            <sc-for list="{{ selRelImages }}" as="im" hint-placeholder-count="3">
+              <img onClick="{{ im.open }}" src="{{ im.src }}" alt="{{ im.alt }}" loading="lazy" referrerpolicy="no-referrer" style="width:90px;height:90px;object-fit:cover;border-radius:10px;border:1px solid {{ t.border }};cursor:pointer">
+            </sc-for>
+          </div>
+        </sc-if>
         <div style="font:600 10px system-ui;letter-spacing:.05em;text-transform:uppercase;color:{{ t.mut }};margin:18px 0 2px">Mentions in context · {{ sel.count }}</div>
         <sc-for list="{{ sel.ctx }}" as="x" hint-placeholder-count="3">
           <div style="display:flex;gap:9px;align-items:flex-start;padding:9px 0;border-top:1px solid {{ t.border }}"><span style="width:6px;height:6px;border-radius:50%;background:{{ sel.color }};margin-top:6px;flex:none"></span><div style="flex:1;font:400 13.5px/1.5 'Source Serif 4',Georgia,serif;color:{{ t.t2 }}">{{ x }}</div></div>
         </sc-for>
       </sc-if>
       <sc-if value="{{ profileNoSel }}">
-        <div style="margin-top:16px;display:flex;gap:9px;align-items:flex-start;color:{{ t.mut }};font:500 13px/1.5 system-ui"><span style="font-size:15px;color:{{ t.faint }};flex:none">☞</span><span>Click a body in the map, or a name in the source, to inspect an entity.</span></div>
+        <div style="margin-top:16px;display:flex;gap:9px;align-items:flex-start;color:{{ t.mut }};font:500 13px/1.5 system-ui"><span style="font-size:15px;color:{{ t.faint }};flex:none">☞</span><span>Choose a canonical referent in the Map or Reader to inspect aliases, role, related claims, and evidence.</span></div>
       </sc-if>
     </div>
     </sc-if>
     <sc-if value="{{ isSearch }}">
     <div style="padding:14px 14px 40px;font-family:system-ui">
       <div style="display:flex;align-items:center;gap:8px;background:{{ t.card }};border:1px solid {{ t.border }};border-radius:14px;padding:9px 10px;margin-bottom:10px">
-        <input defaultValue="{{ queryText }}" onInput="{{ onQueryInput }}" onKeyDown="{{ onQueryKey }}" placeholder="Search this reading…" style="flex:1;min-width:0;background:transparent;border:0;outline:none;font:700 14px system-ui;color:{{ t.text }}">
+        <input defaultValue="{{ queryText }}" onInput="{{ onQueryInput }}" onKeyDown="{{ onQueryKey }}" placeholder="{{ searchPlaceholderMain }}" style="flex:1;min-width:0;background:transparent;border:0;outline:none;font:700 14px system-ui;color:{{ t.text }}">
         <span onClick="{{ clearQuery }}" style="font:800 14px system-ui;color:{{ t.mut }};cursor:pointer">×</span>
       </div>
       <div style="display:flex;align-items:center;justify-content:space-between;background:{{ t.bar }};border:1px solid {{ t.border }};border-radius:12px;padding:10px 12px;margin-bottom:10px">
@@ -208,7 +233,7 @@
         <div style="text-align:center;padding:48px 22px;color:{{ t.mut }}">
           <div style="font-size:30px;margin-bottom:12px;color:{{ t.faint }}">◍</div>
           <div style="font:700 15px system-ui;color:{{ t.text }};margin-bottom:7px">{{ spaceName }} has no memory yet</div>
-          <div style="font:400 13px/1.55 system-ui">Read anything, then <b style="color:{{ t.accent }}">Add to memory</b>. What you keep becomes this space's corpus — the structure across it shows up here.</div>
+          <div style="font:400 13px/1.55 system-ui">Pages you visit are <b style="color:{{ t.accent }}">recorded automatically</b>. Excluded pages stay out of this space's corpus — the structure across it shows up here.</div>
         </div>
       </sc-if>
 
@@ -220,8 +245,8 @@
       </div>
 
       <div style="margin:0 2px 11px">
-        <div style="font:700 10px 'IBM Plex Mono',monospace;letter-spacing:.06em;color:{{ t.accent }}">INSIGHT · {{ activeSrcCount }} OF {{ totalSrcCount }} SOURCES ACTIVE</div>
-        <div style="font:400 12.5px/1.45 system-ui;color:{{ t.mut }};margin-top:3px">What {{ spaceName }} is telling you — read across everything active, then broken down by source below.</div>
+        <div style="font:700 10px 'IBM Plex Mono',monospace;letter-spacing:.06em;color:{{ t.accent }}">WORKSPACE · {{ activeSrcCount }} OF {{ totalSrcCount }} SOURCES ACTIVE</div>
+        <div style="font:400 12.5px/1.45 system-ui;color:{{ t.mut }};margin-top:3px">Evidence base for {{ spaceName }} — counts describe active fold versions; findings below require supporting passages.</div>
       </div>
 
       <sc-for list="{{ crossInsights }}" as="ci" hint-placeholder-count="2">
@@ -549,10 +574,10 @@
       <div style="height:1px;background:{{ t.border }};margin:11px 6px 5px"></div>
       <div style="font:800 9px 'IBM Plex Mono',monospace;letter-spacing:.09em;color:{{ t.mut }};padding:0 6px 2px">VIEW</div>
     </div>
-    <button onClick="{{ setReader }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;min-height:44px;display:flex;align-items:center;justify-content:center;background:{{ tabRB }};color:{{ tabRC }};font:800 12px system-ui;cursor:pointer">Source</button>
+    <button onClick="{{ setReader }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;min-height:44px;display:flex;align-items:center;justify-content:center;background:{{ tabRB }};color:{{ tabRC }};font:800 12px system-ui;cursor:pointer">Reader</button>
     <button onClick="{{ setOverview }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;min-height:44px;display:flex;align-items:center;justify-content:center;background:{{ tabOB }};color:{{ tabOC }};font:800 12px system-ui;cursor:pointer">Overview</button>
-    <button onClick="{{ setStruct }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;min-height:44px;display:flex;align-items:center;justify-content:center;background:{{ tabSB }};color:{{ tabSC }};font:800 12px system-ui;cursor:pointer">Structure</button>
-    <button onClick="{{ setProfile }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;min-height:44px;display:flex;align-items:center;justify-content:center;background:{{ tabPB }};color:{{ tabPC }};font:800 12px system-ui;cursor:pointer">Profile</button>
+    <button onClick="{{ setStruct }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;min-height:44px;display:flex;align-items:center;justify-content:center;background:{{ tabSB }};color:{{ tabSC }};font:800 12px system-ui;cursor:pointer">Workspace</button>
+    <button onClick="{{ setProfile }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;min-height:44px;display:flex;align-items:center;justify-content:center;background:{{ tabPB }};color:{{ tabPC }};font:800 12px system-ui;cursor:pointer">Map</button>
     <button onClick="{{ setCross }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;min-height:44px;display:flex;align-items:center;justify-content:center;background:{{ tabCB }};color:{{ tabCC }};font:800 12px system-ui;cursor:pointer">Search</button>
   </div>
 
@@ -585,11 +610,35 @@
           <div style="flex:1;background:{{ t.bar }};border-radius:11px;padding:10px 11px"><div style="font:700 20px system-ui;color:{{ flagColor }}">{{ sel.flags }}</div><div style="font:600 9.5px system-ui;letter-spacing:.04em;text-transform:uppercase;color:{{ t.mut }}">Flags</div></div>
         </div>
         <sc-if value="{{ hasMeaningMap }}">
-          <div style="font:600 10px system-ui;letter-spacing:.05em;text-transform:uppercase;color:{{ t.mut }};margin:16px 0 6px">Meaning map · paradigms &amp; entities</div>
+          <div style="font:600 10px system-ui;letter-spacing:.05em;text-transform:uppercase;color:{{ t.mut }};margin:16px 0 6px">Scope · {{ mapScopeLabel }} · Map</div>
           <div ref="{{ solarRef }}" style="height:220px;border-radius:14px;overflow:hidden;background:{{ t.bar }};border:1px solid {{ t.border }}"></div>
         </sc-if>
         <sc-if value="{{ hasNote }}">
           <div style="margin-top:13px;background:rgba(208,71,46,.08);border:1px solid rgba(208,71,46,.28);border-radius:11px;padding:10px 12px;font:500 12.5px/1.45 system-ui;color:{{ t.t2 }}"><span style="color:#c0341a;font-weight:700">Noteworthy · </span>{{ sel.note }}</div>
+        </sc-if>
+        <sc-if value="{{ selWikiWait }}">
+          <div style="margin:14px 0 2px;font:500 12.5px system-ui;color:{{ t.mut }};display:flex;align-items:center;gap:7px"><i class="ph ph-book-open-text" style="font-size:15px"></i>Looking up Wikipedia…</div>
+        </sc-if>
+        <sc-if value="{{ selHasWiki }}">
+          <a href="{{ selWikiUrl }}" target="_blank" rel="noopener" style="display:block;margin:14px 0 2px;background:{{ t.bar }};border:1px solid {{ t.border }};border-radius:13px;overflow:hidden;text-decoration:none">
+            <sc-if value="{{ selHasWikiImage }}">
+              <img src="{{ selWikiImage }}" alt="{{ selWikiTitle }}" loading="lazy" referrerpolicy="no-referrer" style="display:block;width:100%;height:auto;max-height:200px;object-fit:cover">
+            </sc-if>
+            <div style="padding:11px 13px">
+              <div style="font:700 13px system-ui;color:{{ t.accent }}">{{ selWikiTitle }} ↗</div>
+              <sc-if value="{{ selHasWikiDesc }}"><div style="font:600 11px system-ui;color:{{ t.mut }};margin-top:2px">{{ selWikiDesc }}</div></sc-if>
+              <div style="font:400 12.5px/1.5 'Source Serif 4',Georgia,serif;color:{{ t.t2 }};margin-top:7px">{{ selWikiText }}</div>
+              <div style="font:600 9px system-ui;letter-spacing:.06em;text-transform:uppercase;color:{{ t.faint }};margin-top:9px">From Wikipedia</div>
+            </div>
+          </a>
+        </sc-if>
+        <sc-if value="{{ selHasRelImages }}">
+          <div style="font:600 10px system-ui;letter-spacing:.05em;text-transform:uppercase;color:{{ t.mut }};margin:18px 0 7px">Images from this source</div>
+          <div style="display:flex;gap:7px;flex-wrap:wrap">
+            <sc-for list="{{ selRelImages }}" as="im" hint-placeholder-count="3">
+              <img onClick="{{ im.open }}" src="{{ im.src }}" alt="{{ im.alt }}" loading="lazy" referrerpolicy="no-referrer" style="width:84px;height:84px;object-fit:cover;border-radius:10px;border:1px solid {{ t.border }};cursor:pointer">
+            </sc-for>
+          </div>
         </sc-if>
       </sc-if>
       <sc-if value="{{ showHalf }}">
@@ -1929,12 +1978,13 @@ class Component extends DCLogic {
       layersOpen:false, settingsOpen:false, importOpen:false, urlVal:'', engineLive:false,
       layers:{hi:true,en:true,ch:true,ln:true,nw:props.candidates!==false},
       sel:null, linkSel:null, linkPeek:{status:'idle'}, linkFromOpen:true, level:'prompt', chap:0, tocOpen:false, explore:null,
+      wiki:this.load('eo5.wikiCache',{}),
       cardPath:[], lensByRung:{},
       plain:this.load('eo5.readerPlain',false),
       structFilter:'all', structExp:{}, structRows:{}, structActive:{},
       doc:this.loadingDoc('https://www.npr.org'),
       src:{label:'npr.org',det:'Loading…',dot:'#5b9bd5'},
-      spaces, spaceId, memoryBySpace,
+      spaces, spaceId, memoryBySpace, memoryExclusions:this.load('eo5.memExclusions',{}),
       proxy, proxyOpen:false,
       searchQ:'', searchResults:[], mediaResults:[], searching:false, searchMsg:'', libraryShelf:'web', _exTick:0,
       spaceEditOpen:false, spacePickerOpen:false, _sk:0,
@@ -2170,8 +2220,11 @@ class Component extends DCLogic {
     ents.slice(0,240).forEach((e,i)=>{ const id='e'+i,color=pal[i%pal.length],ctx=[];
       const er=new RegExp('(^|\\b)'+e.name.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'(\\b|$)','i');
       for(const p of paras){ if(ctx.length>=30)break; if(!er.test(p))continue; const ss=p.split(/(?<=[.?!])\s+/); for(const s of ss){ if(ctx.length>=30)break; if(er.test(s)){ const c=s.replace(/\s+/g,' ').trim(); if(c) ctx.push(c); } } }
-      const role=suffix.test(e.name)?'Detected organization':(/@/.test(e.name)?'Detected contact':(/\d/.test(e.name)?'Detected value/date':'Detected entity'));
-      const o={id,name:e.name,color,count:e.count,role,links:0,flags:0,conns:[],note:'',related:[],ctx};
+      const hasDate=/\b(?:20\d{2}|19\d{2}|Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?|\d{1,2}\/\d{1,2}\/\d{2,4})\b/i.test(e.name);
+      const kind=suffix.test(e.name)?'organization':(/@/.test(e.name)?'contact':(hasDate?'date':(/\d/.test(e.name)?'value':'entity')));
+      const kindLabel={organization:'Organization',contact:'Contact',date:'Date',value:'Value',entity:'Entity'}[kind]||'Entity';
+      const role='Detected '+kindLabel.toLowerCase();
+      const o={id,name:e.name,color,count:e.count,kind,kindLabel,role,links:0,flags:0,conns:[],note:'',related:[],ctx};
       entById[id]=o; list.push(o);
     });
     const top=list.slice(0,120); top.forEach(e=>e._co={});
@@ -2232,22 +2285,26 @@ class Component extends DCLogic {
   }
   expand(){ if(!this.state.sel && !this.state.linkSel)return; const o=['peek','half','full']; let i=o.indexOf(this.state.level); if(i<0)i=1; this.setState({level:o[(i+1)%3]}); }
   entMap(){ const d=this.state.doc; return (d&&d.analysis)?d.analysis.entById:{}; }
-  // ── terrains: entity clusters named from their own co-occurring entities, not a fixed taxonomy ──
-  terrainClusters(){
+  // ── entity kinds: segment the entity browser by the extracted kind of each referent ──
+  entityKindSegments(){
     const d=this.state.doc, a=d&&d.analysis; if(!a||!a.list||!a.list.length) return [];
-    const ents=a.list.slice(0,40);
-    const parent={}; ents.forEach(e=>parent[e.id]=e.id);
-    const find=x=>parent[x]===x?x:(parent[x]=find(parent[x]));
-    const union=(x,y)=>{ const rx=find(x),ry=find(y); if(rx!==ry) parent[rx]=ry; };
-    const byName={}; ents.forEach(e=>byName[e.name]=e);
-    ents.forEach(e=>(e.related||[]).forEach(r=>{ const t=byName[r.n]; if(t) union(e.id,t.id); }));
+    const order=['organization','entity','date','value','contact'];
+    const meta={
+      organization:{label:'Organizations',color:'#6bbf8a'},
+      entity:{label:'Entities',color:'#c77dba'},
+      date:{label:'Dates',color:'#e0a94c'},
+      value:{label:'Values',color:'#5b9bd5'},
+      contact:{label:'Contacts',color:'#3fb0a0'}
+    };
     const groups={};
-    ents.forEach(e=>{ const r=find(e.id); (groups[r]=groups[r]||[]).push(e); });
-    return Object.values(groups).map((g,i)=>{
-      const sorted=g.slice().sort((x,y)=>y.count-x.count);
-      return {id:'t'+i, label:sorted.slice(0,2).map(e=>e.name).join(' & '), color:sorted[0].color, entities:sorted, total:sorted.reduce((s,e)=>s+e.count,0)};
+    a.list.forEach(e=>{ const k=e.kind||'entity'; (groups[k]=groups[k]||[]).push(e); });
+    return Object.keys(groups).sort((a,b)=>(order.indexOf(a)<0?99:order.indexOf(a))-(order.indexOf(b)<0?99:order.indexOf(b))).map(k=>{
+      const sorted=groups[k].slice().sort((x,y)=>y.count-x.count||x.name.localeCompare(y.name));
+      const m=meta[k]||{label:(sorted[0]&&sorted[0].kindLabel?sorted[0].kindLabel:k).replace(/^./,c=>c.toUpperCase())+'s',color:sorted[0]&&sorted[0].color||'#8a8578'};
+      return {id:'kind-'+k, kind:k, label:m.label, color:m.color, entities:sorted, total:sorted.reduce((s,e)=>s+e.count,0)};
     }).sort((x,y)=>y.total-x.total);
   }
+  terrainClusters(){ return this.entityKindSegments(); }
   openExplore(){ this.setState({explore:{terrain:null}, sel:null, linkSel:null, level:'full'}); }
   openTerrain(id){ this.setState(s=>({explore:{...s.explore,terrain:id}})); }
   exploreBack(){ this.setState(s=>({explore:{...s.explore,terrain:null}})); }
@@ -2346,6 +2403,7 @@ class Component extends DCLogic {
   componentDidUpdate(prevProps){
     const prevSel=this._prevSel, prevDoc=this._prevDoc, prevView=this._prevView, prevLayers=this._prevLayers;
     this._prevSel=this.state.sel; this._prevDoc=this.state.doc; this._prevView=this.state.view; this._prevLayers=this.state.layers;
+    if(prevSel!==this.state.sel && this.state.sel) this.ensureEntityWiki(this.state.sel);
     if(this._solars && prevSel!==this.state.sel && this.state.sel){
       for(const e of this._solars){ if(e.isConnected && e.__solar) e.__solar.focus(this.state.sel); }
     }
@@ -2517,11 +2575,28 @@ class Component extends DCLogic {
   bucketOf(m){ const b={Webpage:'Web & news',PDF:'Documents',Document:'Documents',Slides:'Documents',Spreadsheet:'Data & sheets',Data:'Data & sheets',Code:'Code',Image:'Media',Audio:'Media',Video:'Media',Text:'Notes'}; return b[m]||'Other'; }
   setDoc(d, opts){
     const det = d.mode==='loading' ? 'Loading…' : (d.mode==='text' ? (d.medium+' · '+this.nf(d.analysis.words)+' words') : (d.medium+' · imported'));
+    const autoRecord = !(opts&&opts.skipRecord) && d && d.kind!=='loading' && d.mode!=='loading';
     this._webFrameDoc=null; this._webFrameCleanHTML=null; this._webFrameClickBound=false; this._webFrameActiveIds=[];
-    this.setState({doc:d, importOpen:false, searchResults:[], mediaResults:[], searchMsg:'', sel:null, level:'prompt', chap:0, tab:'reader',
-      searchProjection:'evidence', searchScope:'all', queryText:'', queryReading:null, queryWhy:null,
-      view:(opts&&opts.view)||this.load('eo5.readerType','native'), webFrameActiveIds:[], cardPath:[], lensByRung:{},
-      src:{label:d.name||d.title, det, dot:this.medColor(d.medium)}});
+    this.setState(s=>{
+      const next={doc:d, importOpen:false, searchResults:[], mediaResults:[], searchMsg:'', sel:null, level:'prompt', chap:0, tab:'reader',
+        searchProjection:'evidence', searchScope:'all', queryText:'', queryReading:null, queryWhy:null,
+        view:(opts&&opts.view)||this.load('eo5.readerType','native'), webFrameActiveIds:[], cardPath:[], lensByRung:{},
+        src:{label:d.name||d.title, det, dot:this.medColor(d.medium)}};
+      if(!autoRecord) return next;
+      const key=this.docKey(d);
+      const excluded=(s.memoryExclusions&&s.memoryExclusions[s.spaceId]||[]).includes(key);
+      if(excluded) return next;
+      const item=this.memoryItemForDoc(d,{recording:true,proactive:true});
+      const cur=(s.memoryBySpace[s.spaceId]||[]);
+      const prior=cur.find(m=>m.key===item.key);
+      const merged=prior?{...prior,...item,id:prior.id,addedAt:prior.addedAt||item.addedAt,recording:prior.recording!==false,lastUpdate:Date.now(),proactive:true}:item;
+      const list=[merged,...cur.filter(m=>m.key!==item.key)];
+      const memoryBySpace={...s.memoryBySpace,[s.spaceId]:list};
+      this.save('eo5.memBySpace',memoryBySpace);
+      next.memoryBySpace=memoryBySpace;
+      next.structActive={...s.structActive,[merged.id]:true};
+      return next;
+    });
   }
   resetSample(){ this.setState({doc:this.demoDoc(), importOpen:false, sel:null, level:'prompt', chap:0, tab:'reader', view:'reader', cardPath:[], lensByRung:{}, src:{label:'theatlantic.com/…/the-quiet-collapse',det:'News · sample',dot:'#c0662e'}}); }
 
@@ -2529,38 +2604,51 @@ class Component extends DCLogic {
   mem(){ return (this.state.memoryBySpace||{})[this.state.spaceId]||[]; }
   docKey(d){ return d.url||d.name||d.title||'doc'; }
   inMemory(d){ const k=this.docKey(d); return this.mem().some(m=>m.key===k); }
-  toggleMemory(d){ if(this.inMemory(d)) this.removeFromMemory(this.docKey(d)); else this.addToMemory(d); }
-  addToMemory(d){
+  toggleMemory(d){ if(this.inMemory(d)) this.excludeFromMemory(this.docKey(d)); else this.addToMemory(d); }
+  memoryItemForDoc(d, opts){
     const a=d.analysis;
     const ents=(a&&a.list?a.list:[]).slice(0,40).map(e=>({name:e.name,count:e.count,color:e.color,links:e.links||0,related:(e.related||[]).slice(0,3)}));
-    const item={ key:this.docKey(d), id:'mem'+Date.now().toString(36),
+    return { key:this.docKey(d), id:'mem'+Date.now().toString(36),
       title:d.title||d.name||'Untitled', source:d.name||d.url||'', medium:d.medium, addedAt:Date.now(),
-      words:a?a.words:0, links:a?a.links:0, ents,
+      words:a?a.words:0, links:a?a.links:0, ents, recording:!!(opts&&opts.recording),
+      lastUpdate:Date.now(), newCount:0, proactive:!!(opts&&opts.proactive),
       highlights:(a&&a.hi?a.hi:[]).slice(0,20),
       toc:(a&&a.toc?a.toc:[]).filter(x=>!x.implicit).map(x=>x.title).filter(Boolean).slice(0,14) };
+  }
+  addToMemory(d){
+    const item=this.memoryItemForDoc(d);
     this.setState(s=>{ const cur=(s.memoryBySpace[s.spaceId]||[]); const list=[item,...cur.filter(m=>m.key!==item.key)];
-      const memoryBySpace={...s.memoryBySpace,[s.spaceId]:list}; this.save('eo5.memBySpace',memoryBySpace);
-      return {memoryBySpace, structActive:{...s.structActive,[item.id]:true}}; });
+      const memoryBySpace={...s.memoryBySpace,[s.spaceId]:list};
+      const exCur=(s.memoryExclusions&&s.memoryExclusions[s.spaceId]||[]).filter(k=>k!==item.key);
+      const memoryExclusions={...(s.memoryExclusions||{}),[s.spaceId]:exCur};
+      this.save('eo5.memBySpace',memoryBySpace); this.save('eo5.memExclusions',memoryExclusions);
+      return {memoryBySpace, memoryExclusions, structActive:{...s.structActive,[item.id]:true}}; });
   }
   removeFromMemory(key){ this.setState(s=>{ const cur=(s.memoryBySpace[s.spaceId]||[]).filter(m=>m.key!==key);
     const memoryBySpace={...s.memoryBySpace,[s.spaceId]:cur}; this.save('eo5.memBySpace',memoryBySpace); return {memoryBySpace}; }); }
+  excludeFromMemory(key){ this.setState(s=>{ const cur=(s.memoryBySpace[s.spaceId]||[]).filter(m=>m.key!==key);
+    const memoryBySpace={...s.memoryBySpace,[s.spaceId]:cur};
+    const exCur=s.memoryExclusions&&s.memoryExclusions[s.spaceId]||[];
+    const memoryExclusions={...(s.memoryExclusions||{}),[s.spaceId]:exCur.includes(key)?exCur:[key,...exCur]};
+    this.save('eo5.memBySpace',memoryBySpace); this.save('eo5.memExclusions',memoryExclusions);
+    return {memoryBySpace,memoryExclusions}; }); }
 
   // ── seed: a few sources across spaces so recording/toggle/membership are visible on first run ──
   mkSeed(o){ return { key:o.key, id:o.id, title:o.title, source:o.source||o.key, medium:o.medium,
     addedAt:Date.now()-(o.age||1)*3600000, words:o.words||0, links:o.links||0,
-    recording:!!o.recording, lastUpdate:Date.now()-(o.recording?45000:(o.age||1)*3600000), newCount:o.newCount||0,
+    recording:!!o.recording, lastUpdate:Date.now()-(o.recording?45000:(o.age||1)*3600000), newCount:0,
     ents:(o.ents||[]).map((e,i)=>({name:e,count:6+((i*7)%22),color:this.PALETTE[i%this.PALETTE.length],links:2+i,related:[]})),
     highlights:o.hi||[], toc:o.toc||[] }; }
   seedMemory(spaces){
     const s1=spaces[0].id, s2=(spaces[1]||spaces[0]).id, s3=(spaces[2]||spaces[0]).id;
-    const reuters=this.mkSeed({key:'reuters.com/markets',id:'seed_reuters',title:'Reuters — Markets live wire',medium:'Webpage',words:4200,links:38,recording:true,newCount:3,age:2,ents:['Federal Reserve','ECB','Treasury yields','Nikkei'],hi:['Yields slipped after the auction','The dollar steadied against the yen']});
+    const reuters=this.mkSeed({key:'reuters.com/markets',id:'seed_reuters',title:'Demo · Reuters — Markets live wire',medium:'Webpage',words:4200,links:38,recording:true,newCount:3,age:2,ents:['Federal Reserve','ECB','Treasury yields','Nikkei'],hi:['Yields slipped after the auction','The dollar steadied against the yen']});
     const out={};
     out[s1]=[ reuters,
-      this.mkSeed({key:'npr.org/politics',id:'seed_npr',title:'NPR Politics feed',medium:'Webpage',words:3100,links:29,recording:true,newCount:1,age:1,ents:['Congress','the White House','the Senate'],hi:['The floor vote was delayed again']}),
-      this.mkSeed({key:'riverton-budget-2026.pdf',id:'seed_pdf',title:'Riverton budget deal (2026).pdf',medium:'PDF',words:8600,links:12,age:20,ents:['Riverton','clinic closures','the budget deal'],hi:['Clinic closures concentrated downtown']}) ];
-    out[s2]=[ this.mkSeed({key:'gutenberg/frankenstein',id:'seed_book',title:'Frankenstein — Mary Shelley',medium:'Book',words:78000,age:72,ents:['Victor','the creature','Elizabeth','Geneva'],toc:['Letters','The making','The pursuit']}),
+      this.mkSeed({key:'npr.org/politics',id:'seed_npr',title:'Demo · NPR Politics feed',medium:'Webpage',words:3100,links:29,recording:true,newCount:1,age:1,ents:['Congress','the White House','the Senate'],hi:['The floor vote was delayed again']}),
+      this.mkSeed({key:'riverton-budget-2026.pdf',id:'seed_pdf',title:'Demo · Riverton budget deal (2026).pdf',medium:'PDF',words:8600,links:12,age:20,ents:['Riverton','clinic closures','the budget deal'],hi:['Clinic closures concentrated downtown']}) ];
+    out[s2]=[ this.mkSeed({key:'gutenberg/frankenstein',id:'seed_book',title:'Demo · Frankenstein — Mary Shelley',medium:'Book',words:78000,age:72,ents:['Victor','the creature','Elizabeth','Geneva'],toc:['Letters','The making','The pursuit']}),
       {...reuters} ];
-    out[s3]=[ this.mkSeed({key:'notes/interview-01',id:'seed_notes',title:'Interview — housing caseworker',medium:'Document',words:2400,links:4,age:5,ents:['the caseworker','the waitlist','vouchers'],hi:['The waitlist now exceeds eight months']}) ];
+    out[s3]=[ this.mkSeed({key:'notes/interview-01',id:'seed_notes',title:'Demo · Interview — housing caseworker',medium:'Document',words:2400,links:4,age:5,ents:['the caseworker','the waitlist','vouchers'],hi:['The waitlist now exceeds eight months']}) ];
     return out;
   }
 
@@ -2577,9 +2665,8 @@ class Component extends DCLogic {
   setAllRecording(on){ this.setState(s=>{ const keys=new Set((s.memoryBySpace[s.spaceId]||[]).map(m=>m.key)); const mbs={...s.memoryBySpace}; for(const sid in mbs){ mbs[sid]=(mbs[sid]||[]).map(m=>keys.has(m.key)?{...m,recording:on,lastUpdate:Date.now()}:m); } this.save('eo5.memBySpace',mbs); return {memoryBySpace:mbs}; }); }
   bulkActive(on){ this.setState(s=>{ const structActive={...s.structActive}; (s.memoryBySpace[s.spaceId]||[]).forEach(m=>{ structActive[m.id]=on; }); return {structActive}; }); }
   recordingTick(){ const mbs0=this.state.memoryBySpace||{}; const recKeys=new Set(); for(const sid in mbs0)(mbs0[sid]||[]).forEach(m=>{ if(m.recording) recKeys.add(m.key); }); if(!recKeys.size) return;
-    const inc={}; recKeys.forEach(k=>{ if(Math.random()<0.5) inc[k]=1; });
-    const mbs={...mbs0}; for(const sid in mbs){ mbs[sid]=(mbs[sid]||[]).map(m=>{ if(!m.recording) return m; const g=inc[m.key]||0; return {...m, lastUpdate:Date.now(), newCount:(m.newCount||0)+g, words:(m.words||0)+(g?Math.floor(30+Math.random()*140):0)}; }); }
-    this.save('eo5.memBySpace',mbs); this.setState({memoryBySpace:mbs,recPulse:Date.now()}); }
+    return; // Recording badges now reflect real committed source updates only; no synthetic activity ticks.
+  }
   openSources(){ this.setState({sourcesOpen:true,spacePickerOpen:false,settingsOpen:false,importOpen:false}); }
   closeSources(){ this.setState({sourcesOpen:false}); }
   relTime(ts){ if(!ts) return 'never'; const s=Math.max(0,Math.round((Date.now()-ts)/1000)); if(s<5)return 'just now'; if(s<60)return s+'s ago'; const m=Math.floor(s/60); if(m<60)return m+'m ago'; const h=Math.floor(m/60); if(h<24)return h+'h ago'; return Math.floor(h/24)+'d ago'; }
@@ -2779,6 +2866,82 @@ class Component extends DCLogic {
     this.setDoc({name:item.title,url:item.fullUrl||item.thumb,title:item.title,medium:'Image',mode:'image',
       size:bits||(item.width&&item.height?item.width+'×'+item.height:'')}, {view:'reader'});
   }
+  // open a single image (from a profile's "images from this source" strip) as its own doc
+  openImage(src, alt){ if(!src) return; this.setDoc({name:alt||src,url:src,title:alt||'Image',medium:'Image',mode:'image',size:''}, {view:'reader'}); }
+  // ── Wikipedia referent for a selected entity (ported from eoreader4.2) ──
+  // One MediaWiki Action-API call does search + intro extract + short description +
+  // lead thumbnail + disambiguation flag at once (origin=* → direct CORS, no proxy).
+  // The result is only surfaced when it clears a confirmation gate, so an unrelated
+  // article never masquerades as the referent's page (the honesty rule from 4.2).
+  WIKI_GENERIC(){ return this._wikiGeneric||(this._wikiGeneric=new Set('the of and for de du van von inc corp company co llc ltd group holdings university institute foundation ministry department agency report memo chapter book part volume mr mrs ms dr monday tuesday wednesday thursday friday saturday sunday january february march april may june july august september october november december'.split(' '))); }
+  wikiKey(name){ return String(name||'').toLowerCase().replace(/\s+/g,' ').trim(); }
+  wikiToks(s){ return String(s||'').toLowerCase().split(/[^a-z0-9]+/).filter(t=>t.length>1 && !this.WIKI_GENERIC().has(t)); }
+  clipExtract(s,max){ const t=String(s||'').replace(/\s+/g,' ').trim(); if(t.length<=max) return t; const cut=t.slice(0,max); const dot=cut.lastIndexOf('. '); return dot>max*0.5 ? cut.slice(0,dot+1) : cut.replace(/\s+\S*$/,'')+'…'; }
+  async fetchEntityWiki(name, ctxNames){
+    const q=String(name||'').trim(); if(!q) return null;
+    const url='https://en.wikipedia.org/w/api.php?action=query&format=json&origin=*&redirects=1'
+      +'&generator=search&gsrlimit=5&gsrsearch='+encodeURIComponent(q)
+      +'&prop=extracts%7Cdescription%7Cpageprops%7Cpageimages&exintro=1&explaintext=1&exlimit=max'
+      +'&piprop=thumbnail&pithumbsize=360&ppprop=disambiguation';
+    const r=await fetch(url); const j=await r.json();
+    const pages=Object.values((j&&j.query&&j.query.pages)||{})
+      .filter(p=>p&&p.extract&&(!p.pageprops||p.pageprops.disambiguation===undefined));
+    if(!pages.length) return null;
+    const nameToks=this.wikiToks(q);
+    const ctxToks=new Set(); (ctxNames||[]).forEach(n=>this.wikiToks(n).forEach(t=>{ if(t.length>=4) ctxToks.add(t); }));
+    const scored=pages.map(p=>{
+      const titleToks=this.wikiToks(p.title);
+      const overlap=nameToks.filter(t=>titleToks.indexOf(t)>=0).length;
+      const affinity=nameToks.length?overlap/nameToks.length:0;
+      const ex=(p.extract||'').toLowerCase();
+      let coref=0; ctxToks.forEach(t=>{ if(ex.indexOf(t)>=0) coref++; });
+      return {p,affinity,coref,score:affinity*2+coref};
+    }).sort((a,b)=>b.score-a.score);
+    const best=scored[0], p=best.p, multiTok=nameToks.length>=2;
+    // Confirm on a near-exact title match, or a decent lexical match that is either a
+    // multi-word proper name or corroborated by a shared context name from this source.
+    const confirmed = best.affinity>=0.99 || (best.affinity>=0.5 && (multiTok || best.coref>=1));
+    return {
+      title:p.title,
+      description:p.description||'',
+      text:this.clipExtract(p.extract,320),
+      url:'https://en.wikipedia.org/wiki/'+encodeURIComponent(String(p.title).replace(/ /g,'_')),
+      image:(p.thumbnail&&p.thumbnail.source)||'',
+      confirmed
+    };
+  }
+  saveWikiCache(w){ try{ const out={},keys=Object.keys(w).filter(k=>w[k]&&!w[k].busy); for(const k of keys.slice(-300)) out[k]=w[k]; this.save('eo5.wikiCache',out); }catch(_){} }
+  // Kick a lookup for a selected entity, once, memoized by name across sources + sessions.
+  ensureEntityWiki(id){
+    const ent=this.entMap()[id]; if(!ent||!ent.name) return;
+    if(ent.kind==='date'||ent.kind==='value'||ent.kind==='contact') return; // not encyclopedia referents
+    const key=this.wikiKey(ent.name); const cache=this.state.wiki||{};
+    if(cache[key]!==undefined) return; // busy, resolved, or known-absent already
+    this.setState(s=>({wiki:{...(s.wiki||{}),[key]:{busy:true}}}));
+    const ctxNames=(ent.related||[]).map(r=>r.n).concat((ent.conns||[]).map(c=>c.t));
+    this.fetchEntityWiki(ent.name, ctxNames).then(res=>{
+      const val=(res&&res.confirmed)?res:{none:true};
+      this.setState(s=>{ const w={...(s.wiki||{}),[key]:val}; this.saveWikiCache(w); return {wiki:w}; });
+    }).catch(()=>this.setState(s=>({wiki:{...(s.wiki||{}),[key]:{none:true}}})));
+  }
+  // Related images from the source page: images whose alt names the entity, or that sit
+  // in/next to a paragraph that mentions it (image blocks are single-token paragraphs).
+  entityImages(ent){
+    const d=this.state.doc, a=d&&d.analysis; if(!a||!a.images||!a.images.length||!ent||!ent.name) return [];
+    const paras=a.paras||[];
+    const er=new RegExp('(^|\\b)'+ent.name.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'(\\b|$)','i');
+    const out=[],seen=new Set();
+    a.images.forEach((im,idx)=>{
+      if(!im||!im.src||seen.has(im.src)) return;
+      let related=!!(im.alt&&er.test(im.alt));
+      if(!related){
+        const tok=eoImgToken(idx), pi=paras.findIndex(pp=>pp.indexOf(tok)>=0);
+        if(pi>=0){ for(let k=Math.max(0,pi-1);k<=Math.min(paras.length-1,pi+1);k++){ if(er.test(paras[k])){ related=true; break; } } }
+      }
+      if(related){ seen.add(im.src); out.push({src:im.src, alt:im.alt||ent.name, open:()=>this.openImage(im.src, im.alt||ent.name)}); }
+    });
+    return out.slice(0,6);
+  }
   readUrl(){ const u=(this.state.urlVal||'').trim(); if(!u) return; this.readUrlValue(this.normUrl(u)); }
   async fetchNative(u){
     try{ const r=await fetch(u,{mode:'cors'}); if(r.ok){ const txt=await r.text(); if(/^\s*</.test(txt)) return txt; } }catch(_){}
@@ -2893,8 +3056,8 @@ class Component extends DCLogic {
   }
   crossInsights(){
     return this.sharedMap().slice(0,3).map(x=>({
-      kind:'SHARED ENTITY', color:x.color,
-      text:'“'+x.name+'” appears across '+x.codes.length+' of your sources in this space.',
+      kind:'RECURRING REFERENT', color:x.color,
+      text:'“'+x.name+'” recurs across '+x.codes.length+' active source folds; open the sources to inspect evidence.',
       srcs:x.codes, chips:[{t:x.name,c:x.color}]
     }));
   }
@@ -2923,18 +3086,22 @@ class Component extends DCLogic {
   }
   ingestAudio(f,name,size){
     const url=URL.createObjectURL(f);
-    this.setDoc({name,title:name,medium:'Audio',mode:'media',mtype:'audio',url,size,waveformPeaks:null});
+    this.setDoc({name,title:name,medium:'Audio',mode:'media',mtype:'audio',url,size,waveformPeaks:null,audioBuffer:null});
     const AC=window.AudioContext||window.webkitAudioContext;
     if(!AC) return;
     const reader=new FileReader();
     reader.onload=()=>{
       const ctx=new AC();
-      const done=(peaks,duration)=>{
-        this.setState(s=>(s.doc&&s.doc.url===url)?{doc:{...s.doc,waveformPeaks:peaks||[],duration:duration||0}}:{});
+      // Retain the decoded AudioBuffer (omnimodal perception spec §3/§10) instead
+      // of letting it fall out of scope once peaks are computed — field-vector
+      // extraction (chroma/timbre/moments, src/senses/audio/) needs the PCM this
+      // buffer still holds, and previously nothing kept a reference to it.
+      const done=(peaks,duration,buf)=>{
+        this.setState(s=>(s.doc&&s.doc.url===url)?{doc:{...s.doc,waveformPeaks:peaks||[],duration:duration||0,audioBuffer:buf||null}}:{});
         ctx.close();
       };
-      const onDecoded=(buf)=>done(this.computeWaveformPeaks(buf,240),buf.duration);
-      const onErr=()=>done([],0);
+      const onDecoded=(buf)=>done(this.computeWaveformPeaks(buf,240),buf.duration,buf);
+      const onErr=()=>done([],0,null);
       try{
         const p=ctx.decodeAudioData(reader.result.slice(0),onDecoded,onErr);
         if(p&&p.then) p.then(onDecoded,onErr);
@@ -3381,9 +3548,9 @@ class Component extends DCLogic {
       return { id:m.id, key:m.key, code, dot, title:m.title, det:m.words?(m.medium+' · '+this.nf(m.words)+' words'):m.medium,
         on, track:on?t.accent:t.bStrong, knob:on?'16px':'2px', knobSm:on?'14px':'2px', rowOp:on?1:0.55, rowBgFill:'transparent',
         recording:!!m.recording, recColor:m.recording?'#2f9e57':t.mut,
-        recLabel:m.recording?('Recording · updated '+this.relTime(m.lastUpdate)):'Not recording',
+        recLabel:m.recording?('Recording · last fold '+this.relTime(m.lastUpdate)):'Static',
         newCount:m.newCount||0, hasNew:(m.newCount||0)>0,
-        recBtnBg:m.recording?'rgba(47,158,87,.12)':t.bar, recBtnFg:m.recording?'#2f9e57':t.mut, recBtnBd:m.recording?'rgba(47,158,87,.42)':t.border, recBtnLabel:m.recording?'Stop recording':'Start recording',
+        recBtnBg:m.recording?'rgba(47,158,87,.12)':t.bar, recBtnFg:m.recording?'#2f9e57':t.mut, recBtnBd:m.recording?'rgba(47,158,87,.42)':t.border, recBtnLabel:m.recording?'Mark static':'Mark recording',
         toggleOn:()=>this.toggleStructActive(m.id),
         toggleRec:()=>this.toggleRecording(m.key),
         open:()=>{ this.clearNew(m.key); this.setState(s=>({sourcesOpen:false,tab:'structure',structExp:{...s.structExp,[m.id]:true}})); },
@@ -3402,7 +3569,9 @@ class Component extends DCLogic {
     const queryText=S.queryText || S.searchQ || '';
     const reading=S.queryReading || this.buildLocalQueryReading(queryText || (d&&d.title) || '');
     const projection=S.searchProjection || 'evidence';
-    const coverageColor={sufficient:'#2f7a55',partial:'#b0842f',ambiguous:'#b0842f',absent:'#c0392b'}[reading.coverage]||t.mut;
+    const coverageColor={sufficient:'#2f7a55',partial:'#b0842f',ambiguous:'#b0842f',absent:'#c0392b',guidance:t.mut}[reading.coverage]||t.mut;
+    const coverageText={sufficient:'Evidence found',partial:'Related evidence only',absent:'No evidence found in this scope',guidance:'Search a committed fold'}[reading.coverage]||'Search index unavailable';
+    const searchScopeLabel=(S.searchScope&&S.searchScope!=='all')?'This source':'Workspace';
     const sourceKeys=(memList.length?memList:[d].filter(Boolean)).map((m,i)=>({id:m.id||m.title||m.name||('source'+i),label:(m.title||m.name||'Source').slice(0,18),dot:this.medColor(m.medium)}));
     const scopeChips=[{id:'all',label:'All',dot:t.accent},...sourceKeys].map(x=>{const on=(S.searchScope||'all')===x.id;return{label:x.label,dot:x.dot,bg:on?t.accent:t.bar,fg:on?'#fff':t.t2,bd:on?t.accent:t.border,pick:()=>this.setState({searchScope:x.id,queryReading:this.buildLocalQueryReading(queryText,x.id)})};});
     const projectionTabs=['Evidence','Structure','All'].map(x=>{ const id=x.toLowerCase(); const on=projection===id; return {label:x,bg:on?t.accent:t.bar,fg:on?'#fff':t.t2,bd:on?t.accent:t.border,pick:()=>this.setState({searchProjection:id})}; });
@@ -3419,7 +3588,7 @@ class Component extends DCLogic {
     const curTerrain=(explTerrainId && explTerrainId!=='__quotes__' && explTerrainId!=='__structure__') ? terrains.find(x=>x.id===explTerrainId) : null;
     const explKind = !explTerrainId ? 'top' : (explTerrainId==='__quotes__'?'quotes':(explTerrainId==='__structure__'?'structure':'entities'));
     const explTopRows=[
-      ...terrains.map(tr=>({id:tr.id,label:tr.label,color:tr.color,sub:tr.entities.length+' entit'+(tr.entities.length===1?'y':'ies')+' · '+tr.total+' mention'+(tr.total===1?'':'s'),pick:()=>this.openTerrain(tr.id)})),
+      ...terrains.map(tr=>({id:tr.id,label:tr.label,color:tr.color,sub:tr.entities.length+' item'+(tr.entities.length===1?'':'s')+' · '+tr.total+' mention'+(tr.total===1?'':'s'),pick:()=>this.openTerrain(tr.id)})),
       ...((a.hi||[]).length?[{id:'__quotes__',label:'Quotes',color:'#e8b04a',sub:a.hi.length+' highlighted line'+(a.hi.length===1?'':'s'),pick:()=>this.openTerrain('__quotes__')}]:[]),
       ...(toc.filter(e=>!e.implicit).length>=3?[{id:'__structure__',label:'Structure',color:'#2a78d6',sub:toc.length+' section'+(toc.length===1?'':'s'),pick:()=>this.openTerrain('__structure__')}]:[])
     ];
@@ -3549,10 +3718,11 @@ class Component extends DCLogic {
       setStruct:()=>this.setState({tab:'structure'}),
       tabSB:S.tab==='structure'?activeBg:'transparent', tabSC:S.tab==='structure'?activeC:t.mut,
       sheetDisp:(S.tab==='structure'||S.tab==='search'||S.tab==='overview'||S.tab==='profile'||(!sel&&!linkSel&&!explore))?'none':'flex',
+      panelOpenClass:(S.tab==='structure'||S.tab==='search'||S.tab==='overview'||S.tab==='profile'||(!sel&&!linkSel&&!explore))?'':'eo-panel-docked',
       structSources, corpusStats, sharedEnts, hasShared:sharedEnts.length>0, mediumFilters, crossInsights, crossSources,
       hasCross:crossInsights.length>0, noCross:crossInsights.length===0,
       queryText, onQueryInput:(e)=>this.setState({queryText:e.target.value}), onQueryKey:(e)=>{ if(e.key==='Enter') this.runLocalSearch(e.target.value); }, clearQuery:()=>this.runLocalSearch(''),
-      coverageLabel:String(reading.coverage||'absent'), coverageColor, searchSources:(reading.searched_scope.sources||[]).length, searchPassages:(reading.core_evidence||[]).length+(reading.context_evidence||[]).length, searchContrasts:(reading.counterevidence||[]).length,
+      coverageLabel:coverageText, coverageColor, searchPlaceholderMain:(searchScopeLabel==='This source'?('Search '+((d&&d.title)||'this source')+'…'):('Search '+(sp?sp.name:'workspace')+'…')), searchSources:(reading.searched_scope.sources||[]).length, searchPassages:(reading.core_evidence||[]).length+(reading.context_evidence||[]).length, searchContrasts:(reading.counterevidence||[]).length,
       projectionTabs, searchScopeChips:scopeChips, showEvidence:projection==='evidence'||projection==='all', showStructure:projection==='structure'||projection==='all', coreEvidence, contextEvidence, hasGaps:gaps.length>0, gapText:gaps.length?('Missing evidence roles: '+gaps.join(', ')):'',
       activeSrcCount:act.length, totalSrcCount:raw.length,
       sourcesOpen:S.sourcesOpen, openSources:()=>this.openSources(), closeSources:()=>this.closeSources(),
@@ -3565,7 +3735,7 @@ class Component extends DCLogic {
       memCount:memList.length, memEmpty:memList.length===0, memHas:memList.length>0, spaceName:sp?sp.name:'',
       t, themeGlyph:dark?'☾':'☀', flipDark:()=>this.setState({dark:!dark}),
       memColor:memIn?'#2f7a55':t.accent, memBg:memIn?'rgba(47,122,85,.10)':t.accentSoft, memBorder:memIn?'#2f7a55':t.accentLine,
-      memIconClass:memIn?'ph-fill ph-bookmark-simple':'ph ph-bookmark-simple', memTitle:memIn?'Saved to space — tap to remove':'Save to space',
+      memIconClass:memIn?'ph-fill ph-bookmark-simple':'ph ph-bookmark-simple', memTitle:memIn?'Recorded in memory — tap to exclude':'Excluded from memory — tap to record',
       toggleMemBtn:()=>{ if(d) this.toggleMemory(d); },
       isReader:S.tab==='reader', isSearch:S.tab==='search',
       isOverview:S.tab==='overview', setOverview:()=>this.setState({tab:'overview'}),
@@ -3664,7 +3834,7 @@ class Component extends DCLogic {
       editName:sp?sp.name:'', onSpaceName:(e)=>this.setSpaceField({name:e.target.value||'Untitled'}),
       palette, canDelete:(S.spaces||[]).length>1, deleteSpace:()=>this.deleteSpace(),
       sel, hasSel:!!sel||!!linkSel, noSel:!sel&&!linkSel&&!explOpen, sheetH,
-      hasMeaningMap:!!(a.list&&a.list.length),
+      hasMeaningMap:!!(a.list&&a.list.length), mapScopeLabel:'This source: '+((d&&d.title)||'Untitled'),
       solarKey:(d&&(d.url||d.title||d.name))||'doc',
       isProfile:S.tab==='profile', setProfile:()=>this.setState({tab:'profile'}),
       tabPB:S.tab==='profile'?activeBg:'transparent', tabPC:S.tab==='profile'?activeC:t.mut,
@@ -3676,6 +3846,14 @@ class Component extends DCLogic {
       solarRef:this.solarRef,
       relatedChips:sel?(sel.related||[]).map(r=>({n:r.n,c:r.c,pick:r.id?(()=>this.pick(r.id)):null})):[],
       flagColor:(sel&&sel.flags>0)?'#c0341a':t.text,
+      ...(()=>{ const wk=sel?(S.wiki||{})[this.wikiKey(sel.name)]:null; const ok=!!(wk&&!wk.busy&&!wk.none); const imgs=sel?this.entityImages(sel):[]; return {
+        selWikiWait:!!(wk&&wk.busy),
+        selHasWiki:ok,
+        selWikiTitle:ok?wk.title:'', selWikiUrl:ok?wk.url:'#', selWikiText:ok?wk.text:'',
+        selHasWikiDesc:!!(ok&&wk.description), selWikiDesc:ok?wk.description:'',
+        selHasWikiImage:!!(ok&&wk.image), selWikiImage:ok?wk.image:'',
+        selRelImages:imgs, selHasRelImages:imgs.length>0
+      }; })(),
       linkText:linkSel?linkSel.text:'', linkUrl:linkSel?linkSel.url:'#', linkHost:linkSel?this.hostOf(linkSel.url):'',
       hasLinkFrom:!!(linkSel&&linkSel.from), linkFromText:linkSel?(linkSel.from||''):'', linkFromOpen:S.linkFromOpen,
       linkFromCaret:S.linkFromOpen?'▾':'▸', toggleLinkFrom:()=>this.setState(s=>({linkFromOpen:!s.linkFromOpen})),
