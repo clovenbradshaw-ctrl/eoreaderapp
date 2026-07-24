@@ -226,6 +226,47 @@
       </sc-if>
     </div>
     </sc-if>
+
+    <sc-if value="{{ isPriors }}">
+    <div style="padding:14px 14px 40px;font-family:system-ui;max-width:880px;margin:0 auto">
+      <div style="display:flex;align-items:center;gap:9px;margin-bottom:10px">
+        <i class="ph ph-books" style="font-size:20px;color:{{ t.accent }}"></i>
+        <div style="flex:1;min-width:0">
+          <div style="font:800 18px system-ui;color:{{ t.text }}">Priors</div>
+          <div style="font:500 12.5px/1.45 system-ui;color:{{ t.mut }}">Inspectable prior sources, grouped by genre. Turn them on/off to include or exclude them from workspace structure and search.</div>
+        </div>
+        <span style="font:800 10px 'IBM Plex Mono',monospace;color:{{ t.mut }}">{{ priorOnCount }}/{{ priorTotal }} ON</span>
+      </div>
+      <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:13px">
+        <span onClick="{{ priorAllOn }}" style="background:{{ t.accent }};color:#fff;border-radius:16px;padding:7px 11px;font:800 11px system-ui;cursor:pointer">All priors on</span>
+        <span onClick="{{ priorAllOff }}" style="background:{{ t.bar }};border:1px solid {{ t.border }};color:{{ t.t2 }};border-radius:16px;padding:7px 11px;font:800 11px system-ui;cursor:pointer">All priors off</span>
+      </div>
+      <sc-for list="{{ priorGenres }}" as="g" hint-placeholder-count="3">
+        <div style="background:{{ t.card }};border:1px solid {{ t.border }};border-radius:15px;margin-bottom:10px;overflow:hidden">
+          <div style="display:flex;align-items:center;gap:8px;padding:11px 12px;border-bottom:1px solid {{ t.border }}">
+            <div style="font:800 12px system-ui;color:{{ t.text }};flex:1">{{ g.label }}</div>
+            <span style="font:800 10px 'IBM Plex Mono',monospace;color:{{ t.mut }}">{{ g.onCount }}/{{ g.total }} on</span>
+            <span onClick="{{ g.allOn }}" style="font:800 10px system-ui;color:{{ t.accent }};cursor:pointer">All on</span>
+            <span onClick="{{ g.allOff }}" style="font:800 10px system-ui;color:{{ t.mut }};cursor:pointer">Off</span>
+          </div>
+          <sc-for list="{{ g.rows }}" as="p" hint-placeholder-count="2">
+            <div style="padding:10px 12px;border-top:1px solid {{ t.border }};opacity:{{ p.op }}">
+              <div style="display:flex;align-items:center;gap:9px">
+                <span style="font:800 9px 'IBM Plex Mono',monospace;color:#fff;background:{{ p.dot }};border-radius:5px;padding:4px 6px">PR</span>
+                <div onClick="{{ p.open }}" style="flex:1;min-width:0;cursor:pointer">
+                  <div style="font:700 13px system-ui;color:{{ t.text }};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ p.title }}</div>
+                  <div style="font:500 10.5px system-ui;color:{{ t.mut }};margin-top:2px">{{ p.det }}</div>
+                </div>
+                <span onClick="{{ p.toggle }}" title="Use this prior" style="flex:none;width:34px;height:20px;border-radius:20px;background:{{ p.track }};position:relative;cursor:pointer"><span style="position:absolute;top:2px;left:{{ p.knob }};width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25)"></span></span>
+                <span onClick="{{ p.expand }}" style="color:{{ t.faint }};cursor:pointer;transform:rotate({{ p.chev }});font-size:12px">▸</span>
+              </div>
+              <sc-if value="{{ p.opened }}"><div style="margin:10px 0 0 43px;font:400 13px/1.55 'Source Serif 4',Georgia,serif;color:{{ t.t2 }}">{{ p.summary }}</div></sc-if>
+            </div>
+          </sc-for>
+        </div>
+      </sc-for>
+    </div>
+    </sc-if>
     <sc-if value="{{ isStructure }}">
     <div style="padding:14px 14px 40px;font-family:system-ui">
 
@@ -578,6 +619,7 @@
     <button onClick="{{ setOverview }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;min-height:44px;display:flex;align-items:center;justify-content:center;background:{{ tabOB }};color:{{ tabOC }};font:800 12px system-ui;cursor:pointer">Overview</button>
     <button onClick="{{ setStruct }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;min-height:44px;display:flex;align-items:center;justify-content:center;background:{{ tabSB }};color:{{ tabSC }};font:800 12px system-ui;cursor:pointer">Workspace</button>
     <button onClick="{{ setProfile }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;min-height:44px;display:flex;align-items:center;justify-content:center;background:{{ tabPB }};color:{{ tabPC }};font:800 12px system-ui;cursor:pointer">Map</button>
+    <button onClick="{{ setPriors }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;min-height:44px;display:flex;align-items:center;justify-content:center;background:{{ tabPrB }};color:{{ tabPrC }};font:800 12px system-ui;cursor:pointer">Priors</button>
     <button onClick="{{ setCross }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;min-height:44px;display:flex;align-items:center;justify-content:center;background:{{ tabCB }};color:{{ tabCC }};font:800 12px system-ui;cursor:pointer">Search</button>
   </div>
 
@@ -1989,6 +2031,7 @@ class Component extends DCLogic {
       searchQ:'', searchResults:[], mediaResults:[], searching:false, searchMsg:'', libraryShelf:'web', _exTick:0,
       spaceEditOpen:false, spacePickerOpen:false, _sk:0,
       sourcesOpen:false, srcQuery:'', srcExpand:null, recPulse:0,
+      priorActive:this.load('eo5.priorActive',{}), priorExpand:null,
       chromeHidden:false, webFrameActiveIds:[]
     };
     this.scrollRef=(el)=>{
@@ -2572,7 +2615,7 @@ class Component extends DCLogic {
     return doc;
   }
 
-  bucketOf(m){ const b={Webpage:'Web & news',PDF:'Documents',Document:'Documents',Slides:'Documents',Spreadsheet:'Data & sheets',Data:'Data & sheets',Code:'Code',Image:'Media',Audio:'Media',Video:'Media',Text:'Notes'}; return b[m]||'Other'; }
+  bucketOf(m){ const b={Prior:'Priors',Webpage:'Web & news',PDF:'Documents',Document:'Documents',Slides:'Documents',Spreadsheet:'Data & sheets',Data:'Data & sheets',Code:'Code',Image:'Media',Audio:'Media',Video:'Media',Text:'Notes'}; return b[m]||'Other'; }
   setDoc(d, opts){
     const det = d.mode==='loading' ? 'Loading…' : (d.mode==='text' ? (d.medium+' · '+this.nf(d.analysis.words)+' words') : (d.medium+' · imported'));
     const autoRecord = !(opts&&opts.skipRecord) && d && d.kind!=='loading' && d.mode!=='loading';
@@ -3021,6 +3064,21 @@ class Component extends DCLogic {
     }).catch(err=>this.setDoc({name:u,url:u,title:title||u,medium:'Webpage',mode:'binary',size:'',mime:'could not fetch: '+err.message+' — try routing through your proxy (edit routing in Search & open)'}));
   }
 
+
+  priorCatalog(){ return [
+    {id:'prior_news_agency',genre:'Reporting',title:'Wire-service article prior',medium:'Prior',summary:'News articles usually privilege recency, named actors, datelines, attributions, claims, and corrections. Treat headlines and ledes as source structure, not proof by themselves.',paras:['News articles usually privilege recency, named actors, datelines, attributions, claims, and corrections.','Inspect by comparing lede claims with attributed passages and later corrections.'],ents:[{name:'attribution',count:5,color:'#c0662e',links:0},{name:'dateline',count:3,color:'#2a78d6',links:0}]},
+    {id:'prior_policy_report',genre:'Documents',title:'Policy/report prior',medium:'Prior',summary:'Reports tend to separate executive summaries, methods, findings, recommendations, limitations, and appendices. Findings should be read with methods and scope.',paras:['Reports tend to separate executive summaries, methods, findings, recommendations, limitations, and appendices.','Findings should be read with methods, scope, assumptions, and cited evidence.'],ents:[{name:'methods',count:4,color:'#2f8f6b',links:0},{name:'recommendations',count:4,color:'#8e6fb3',links:0}]},
+    {id:'prior_literature',genre:'Books & literature',title:'Literary work prior',medium:'Prior',summary:'Books and literature often develop meaning through chapters, motifs, speakers, scenes, chronology, and recurring images rather than isolated assertions.',paras:['Books and literature often develop meaning through chapters, motifs, speakers, scenes, chronology, and recurring images.','A passage can carry irony, voice, and theme without acting like a factual claim.'],ents:[{name:'motif',count:6,color:'#e8b04a',links:0},{name:'speaker',count:3,color:'#c0662e',links:0}]},
+    {id:'prior_dataset',genre:'Data',title:'Dataset/table prior',medium:'Prior',summary:'Datasets are read through schema, units, rows, missingness, provenance, sampling frame, and transformations. Column names are evidence about structure.',paras:['Datasets are read through schema, units, rows, missingness, provenance, sampling frame, and transformations.','Column names, units, and null patterns are evidence about structure.'],ents:[{name:'schema',count:6,color:'#2a78d6',links:0},{name:'sampling frame',count:3,color:'#2f8f6b',links:0}]},
+    {id:'prior_audio',genre:'Media',title:'Audio/media prior',medium:'Prior',summary:'Audio and media sources carry meaning in segments, speakers, timing, transitions, volume, repetition, and nonverbal cues.',paras:['Audio and media sources carry meaning in segments, speakers, timing, transitions, volume, repetition, and nonverbal cues.','Read moments alongside transcript text when available.'],ents:[{name:'segment',count:5,color:'#8e6fb3',links:0},{name:'speaker',count:4,color:'#c0662e',links:0}]}
+  ]; }
+  activePriors(){ const pa=this.state.priorActive||{}; return this.priorCatalog().filter(p=>pa[p.id]!==false); }
+  setPriorActive(id,on){ this.setState(s=>{ const priorActive={...(s.priorActive||{}),[id]:on}; this.save('eo5.priorActive',priorActive); return {priorActive}; }); }
+  setPriorGenre(genre,on){ this.setState(s=>{ const priorActive={...(s.priorActive||{})}; this.priorCatalog().filter(p=>p.genre===genre).forEach(p=>{ priorActive[p.id]=on; }); this.save('eo5.priorActive',priorActive); return {priorActive}; }); }
+  setAllPriors(on){ this.setState(s=>{ const priorActive={...(s.priorActive||{})}; this.priorCatalog().forEach(p=>{ priorActive[p.id]=on; }); this.save('eo5.priorActive',priorActive); return {priorActive}; }); }
+  openPrior(p){ this.setDoc({name:'Prior · '+p.genre,url:'prior://'+p.id,title:p.title,medium:'Prior',mode:'text',size:'',analysis:{words:p.paras.join(' ').split(/\s+/).length,links:0,paras:p.paras,hi:[p.summary],list:p.ents,toc:[{title:p.genre,implicit:false}]}},{skipRecord:true}); }
+  priorMemoryItems(){ return this.activePriors().map(p=>({key:'prior://'+p.id,id:p.id,title:p.title,source:'Prior · '+p.genre,medium:'Prior',words:p.paras.join(' ').split(/\s+/).length,links:0,ents:p.ents,highlights:[p.summary],toc:[p.genre],analysis:{paras:p.paras}})); }
+
   // ── corpus from memory ──
   sourceCard(m){
     const ents=m.ents||[]; const top=ents[0];
@@ -3045,7 +3103,7 @@ class Component extends DCLogic {
       stats:{ent:ents.length,seg:(toc.length||1),ln:linkTotal,hl:hi.length},
       insight:{kind:(m.medium||'SOURCE').toUpperCase(),color:dot,text:insightText}, bands};
   }
-  corpusRaw(){ return this.mem().map(m=>this.sourceCard(m)); }
+  corpusRaw(){ return this.mem().concat(this.priorMemoryItems()).map(m=>this.sourceCard(m)); }
 
   sharedMap(){
     const map={};
@@ -3462,7 +3520,8 @@ class Component extends DCLogic {
   }
   buildLocalQueryReading(q, scopeOverride){
     const query=(q||'').trim(), norm=this.normalizeQuery(query), terms=norm.split(' ').filter(x=>x.length>2).slice(0,8);
-    const sources=(this.mem().length?this.mem():[this.state.doc].filter(Boolean)).filter(Boolean);
+    const baseSources=this.mem().concat(this.priorMemoryItems());
+    const sources=(baseSources.length?baseSources:[this.state.doc].filter(Boolean)).filter(Boolean);
     const scope=scopeOverride || this.state.searchScope || 'all';
     const scoped=scope&&scope!=='all'?sources.filter(s=>String(s.id||s.title||s.name)===scope):sources;
     const hits=[];
@@ -3563,6 +3622,10 @@ class Component extends DCLogic {
     const drawerOnCount=memList.filter(m=>S.structActive[m.id]!==false).length;
     const drawerRecCount=memList.filter(m=>m.recording).length;
     const drawerLastTs=memList.filter(m=>m.recording).reduce((a,m)=>Math.max(a,m.lastUpdate||0),0);
+
+    const priors=this.priorCatalog(), pa=S.priorActive||{};
+    const priorOnCount=priors.filter(p=>pa[p.id]!==false).length;
+    const priorGenres=[...new Set(priors.map(p=>p.genre))].map(genre=>{ const rows=priors.filter(p=>p.genre===genre); const onCount=rows.filter(p=>pa[p.id]!==false).length; return {label:genre,total:rows.length,onCount,allOn:()=>this.setPriorGenre(genre,true),allOff:()=>this.setPriorGenre(genre,false),rows:rows.map(p=>{ const on=pa[p.id]!==false, opened=S.priorExpand===p.id; return {title:p.title,det:p.genre+' · '+p.paras.length+' notes',summary:p.summary,dot:t.accent,op:on?1:.55,track:on?t.accent:t.bStrong,knob:on?'16px':'2px',opened,chev:opened?'90deg':'0deg',toggle:()=>this.setPriorActive(p.id,!on),expand:()=>this.setState(s=>({priorExpand:s.priorExpand===p.id?null:p.id})),open:()=>this.openPrior(p)};})}; });
 
     const proxyHost=(S.proxy&&S.proxy.on)?('proxy · '+this.hostOf((S.proxy.fetch||'').replace('{url}','').replace('{urlenc}',''))):'direct (no proxy)';
 
@@ -3717,8 +3780,8 @@ class Component extends DCLogic {
       isStructure:S.tab==='structure', notStructure:S.tab!=='structure',
       setStruct:()=>this.setState({tab:'structure'}),
       tabSB:S.tab==='structure'?activeBg:'transparent', tabSC:S.tab==='structure'?activeC:t.mut,
-      sheetDisp:(S.tab==='structure'||S.tab==='search'||S.tab==='overview'||S.tab==='profile'||(!sel&&!linkSel&&!explore))?'none':'flex',
-      panelOpenClass:(S.tab==='structure'||S.tab==='search'||S.tab==='overview'||S.tab==='profile'||(!sel&&!linkSel&&!explore))?'':'eo-panel-docked',
+      sheetDisp:(S.tab==='structure'||S.tab==='search'||S.tab==='priors'||S.tab==='overview'||S.tab==='profile'||(!sel&&!linkSel&&!explore))?'none':'flex',
+      panelOpenClass:(S.tab==='structure'||S.tab==='search'||S.tab==='priors'||S.tab==='overview'||S.tab==='profile'||(!sel&&!linkSel&&!explore))?'':'eo-panel-docked',
       structSources, corpusStats, sharedEnts, hasShared:sharedEnts.length>0, mediumFilters, crossInsights, crossSources,
       hasCross:crossInsights.length>0, noCross:crossInsights.length===0,
       queryText, onQueryInput:(e)=>this.setState({queryText:e.target.value}), onQueryKey:(e)=>{ if(e.key==='Enter') this.runLocalSearch(e.target.value); }, clearQuery:()=>this.runLocalSearch(''),
@@ -3729,6 +3792,7 @@ class Component extends DCLogic {
       srcQuery:S.srcQuery||'', onSrcQuery:(e)=>this.setState({srcQuery:e.target.value}),
       sourceRows, hasSources:sourceRows.length>0, noSources:memList.length===0,
       spacesMeta, drawerOnCount, drawerTotal:memList.length, drawerRecCount, drawerHasRec:drawerRecCount>0, drawerLastLabel:this.relTime(drawerLastTs),
+      priorGenres, priorOnCount, priorTotal:priors.length, priorAllOn:()=>this.setAllPriors(true), priorAllOff:()=>this.setAllPriors(false),
       bulkAllOn:()=>this.bulkActive(true), bulkAllOff:()=>this.bulkActive(false),
       startAllRec:()=>this.setAllRecording(true), stopAllRec:()=>this.setAllRecording(false),
       recordNew:()=>this.setState({sourcesOpen:false,importOpen:true}),
@@ -3737,7 +3801,7 @@ class Component extends DCLogic {
       memColor:memIn?'#2f7a55':t.accent, memBg:memIn?'rgba(47,122,85,.10)':t.accentSoft, memBorder:memIn?'#2f7a55':t.accentLine,
       memIconClass:memIn?'ph-fill ph-bookmark-simple':'ph ph-bookmark-simple', memTitle:memIn?'Recorded in memory — tap to exclude':'Excluded from memory — tap to record',
       toggleMemBtn:()=>{ if(d) this.toggleMemory(d); },
-      isReader:S.tab==='reader', isSearch:S.tab==='search',
+      isReader:S.tab==='reader', isSearch:S.tab==='search', isPriors:S.tab==='priors',
       isOverview:S.tab==='overview', setOverview:()=>this.setState({tab:'overview'}),
       tabOB:S.tab==='overview'?activeBg:'transparent', tabOC:S.tab==='overview'?activeC:t.mut,
       ovBackShown:cdBackShown, ovBackLabel:cdBackLabel, ovBack:()=>this.cardBack(),
@@ -3761,8 +3825,9 @@ class Component extends DCLogic {
       chromeBottomT:chromeCollapsed?'translateY(96px)':'translateY(0)',
       chromeBottomOp:chromeCollapsed?0:1, chromeBottomPE:chromeCollapsed?'none':'auto',
       sheetScrollPadB:chromeCollapsed?'22px':'calc(80px + env(safe-area-inset-bottom,0px))',
-      setReader:()=>this.setState({tab:'reader'}), setCross:()=>this.setState({tab:'search'}),
+      setReader:()=>this.setState({tab:'reader'}), setPriors:()=>this.setState({tab:'priors'}), setCross:()=>this.setState({tab:'search'}),
       tabRB:S.tab==='reader'?activeBg:'transparent', tabRC:S.tab==='reader'?activeC:t.mut,
+      tabPrB:S.tab==='priors'?activeBg:'transparent', tabPrC:S.tab==='priors'?activeC:t.mut,
       tabCB:S.tab==='search'?activeBg:'transparent', tabCC:S.tab==='search'?activeC:t.mut,
       view:S.view, viewLabel:(S.view==='reader'?(S.plain?'Reader':'Reader+'):vlabel[S.view]), progW:((vi+1)/3*100).toFixed(0)+'%',
       readerModes:(()=>{ const on=(a)=>({bg:a?t.accent:'transparent',fg:a?'#fff':t.mut});
