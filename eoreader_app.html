@@ -1901,7 +1901,7 @@ class Component extends DCLogic {
     this._webFrameDoc=null; this._webFrameCleanHTML=null; this._webFrameClickBound=false; this._webFrameActiveIds=[];
     this.setState({doc:d, importOpen:false, searchResults:[], mediaResults:[], searchMsg:'', sel:null, level:'prompt', chap:0, tab:'reader',
       searchProjection:'evidence', searchScope:'all', queryText:'', queryReading:null, queryWhy:null,
-      view:(opts&&opts.view)||'native', webFrameActiveIds:[], cardPath:[], lensByRung:{},
+      view:(opts&&opts.view)||this.load('eo5.readerType','native'), webFrameActiveIds:[], cardPath:[], lensByRung:{},
       src:{label:d.name||d.title, det, dot:this.medColor(d.medium)}});
   }
   resetSample(){ this.setState({doc:this.demoDoc(), importOpen:false, sel:null, level:'prompt', chap:0, tab:'reader', view:'reader', cardPath:[], lensByRung:{}, src:{label:'theatlantic.com/…/the-quiet-collapse',det:'News · sample',dot:'#c0662e'}}); }
@@ -2719,7 +2719,9 @@ class Component extends DCLogic {
       tabCB:S.tab==='search'?activeBg:'transparent', tabCC:S.tab==='search'?activeC:t.mut,
       view:S.view, viewLabel:vlabel[S.view], progW:((vi+1)/3*100).toFixed(0)+'%',
       dot0:vi>=0?dotOn:dotOff, dot1:vi>=1?dotOn:dotOff, dot2:vi>=2?dotOn:dotOff,
-      setV0:()=>this.setState({view:'native'}), setV1:()=>this.setState({view:'annotated'}), setV2:()=>this.setState({view:'reader'}),
+      setV0:()=>{ this.save('eo5.readerType','native'); this.setState({view:'native'}); },
+      setV1:()=>{ this.save('eo5.readerType','annotated'); this.setState({view:'annotated'}); },
+      setV2:()=>{ this.save('eo5.readerType','reader'); this.setState({view:'reader'}); },
       cycleView:()=>this.setState({view:order[(vi+1)%3]}),
       docEl:this.buildDoc(),
       L, tw:{hi:sw(L.hi),en:sw(L.en),ch:sw(L.ch),ln:sw(L.ln),nw:sw(L.nw)}, appearTrack:sw(dark).track, appearKnob:sw(dark).knob,
