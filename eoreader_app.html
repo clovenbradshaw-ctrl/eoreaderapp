@@ -8,7 +8,9 @@
 <body>
 <x-dc>
 <helmet>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EOReader — read the meaning and structure of a source</title>
+<meta name="description" content="EOReader loads a source and shows its meaning and structure — sections, claims, actors, and moments — so you can read what a document actually says and how it is organized.">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600;8..60,700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/@phosphor-icons/web"></script>
@@ -19,17 +21,18 @@
   body{margin:0;background:#dcd9d2;-webkit-font-smoothing:antialiased}
   a{color:inherit;text-decoration:none}a:hover{text-decoration:underline}
   ::-webkit-scrollbar{width:0;height:0}
-  .eo-shell{min-height:100svh!important;padding:8px 0 0!important;align-items:flex-start}
+  /* Production layout: a real centered app column, not a simulated phone.
+     The phone bezel, shadow, and iOS status bar were demo chrome; they are
+     removed here so the deployed product reads as an application rather than
+     a mockup. The mobile-first component hierarchy is retained — the column
+     is simply capped for readable line lengths and centered on wide screens. */
+  .eo-shell{min-height:100svh!important;padding:0!important;align-items:stretch;justify-content:center;background:#dcd9d2}
   .eo-device{width:100%!important;min-height:100svh!important;padding:0!important;border-radius:0!important;box-shadow:none!important;background:transparent!important}
   .eo-screen{width:100%!important;height:100svh!important;min-height:100svh!important;border-radius:0!important}
-  @media (min-width: 520px){
-    .eo-shell{padding:14px 16px 28px!important}
-    .eo-device{width:min(402px,100%)!important;min-height:0!important;padding:6px!important;border-radius:54px!important;background:#0c0d10!important;box-shadow:0 22px 60px rgba(0,0,0,.4),inset 0 0 0 2px #24262c!important}
-    .eo-screen{width:100%!important;height:min(844px,calc(100svh - 54px))!important;min-height:0!important;border-radius:48px!important}
-  }
-  @media (min-width: 900px){
-    .eo-shell{padding-top:18px!important}
-    .eo-screen{height:min(844px,calc(100svh - 58px))!important}
+  @media (min-width: 620px){
+    .eo-shell{padding:0!important;align-items:stretch}
+    .eo-device{width:min(460px,100%)!important;min-height:100svh!important;padding:0!important;border-radius:0!important;background:transparent!important;box-shadow:0 0 0 1px rgba(0,0,0,.06)!important}
+    .eo-screen{width:100%!important;height:100svh!important;min-height:100svh!important;border-radius:0!important}
   }
 </style>
 </helmet>
@@ -38,14 +41,9 @@
 <div class="eo-device" style="width:402px;padding:6px;background:#0c0d10;border-radius:54px;box-shadow:0 22px 60px rgba(0,0,0,.4),inset 0 0 0 2px #24262c">
 <div class="eo-screen" style="position:relative;width:390px;height:844px;border-radius:48px;overflow:hidden;background:linear-gradient(180deg,{{ t.accentTop }} 0%,{{ t.screen }} 270px);display:flex;flex-direction:column;transition:background .35s">
 
-  <div style="position:relative;height:52px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 27px;color:{{ t.text }}">
-    <span style="font:600 15px system-ui">9:41</span>
-    <div style="position:absolute;left:50%;top:11px;transform:translateX(-50%);width:104px;height:28px;background:#000;border-radius:16px"></div>
-    <div style="display:flex;align-items:center;gap:6px">
-      <span style="font:700 11px system-ui">5G</span>
-      <div style="width:23px;height:11px;border:1.4px solid {{ t.text }};border-radius:3px;position:relative;opacity:.9"><div style="position:absolute;top:1.5px;bottom:1.5px;left:1.5px;right:5px;background:{{ t.text }};border-radius:1px"></div></div>
-    </div>
-  </div>
+  <!-- Real safe-area spacer (respects notches/status bars on device) —
+       replaces the former simulated iOS status bar (9:41 / Dynamic Island / 5G). -->
+  <div style="flex:none;height:env(safe-area-inset-top,0px)"></div>
 
   <div style="flex:none;padding:{{ chromePadT }} 14px 0;max-height:{{ chromeMaxH }};opacity:{{ chromeOpacity }};pointer-events:{{ chromePE }};overflow:hidden;transition:max-height .3s cubic-bezier(.4,0,.2,1),opacity .22s ease,padding-top .3s ease">
     <div style="display:flex;align-items:center;gap:6px">
@@ -82,7 +80,7 @@
     </div>
   </div>
 
-  <div ref="{{ scrollRef }}" style="flex:1;min-height:0;overflow-y:auto;position:relative;padding-bottom:72px">
+  <div ref="{{ scrollRef }}" style="flex:1;min-height:0;overflow-y:auto;position:relative;padding-bottom:calc(88px + env(safe-area-inset-bottom,0px))">
     <sc-if value="{{ isReader }}" hint-placeholder-val="{{ true }}">
       <div style="position:relative;min-height:100%">{{ docEl }}</div>
     </sc-if>
@@ -418,7 +416,7 @@
   </div>
 
 
-  <div style="position:absolute;left:14px;right:14px;bottom:12px;z-index:25;background:{{ t.sheet }};border:1px solid {{ t.border }};box-shadow:0 10px 30px rgba(0,0,0,.16);border-radius:22px;padding:6px;display:flex;gap:6px;font-family:system-ui;transform:{{ chromeBottomT }};opacity:{{ chromeBottomOp }};pointer-events:{{ chromeBottomPE }};transition:transform .3s cubic-bezier(.4,0,.2,1),opacity .22s ease">
+  <div style="position:absolute;left:14px;right:14px;bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:25;background:{{ t.sheet }};border:1px solid {{ t.border }};box-shadow:0 10px 30px rgba(0,0,0,.16);border-radius:22px;padding:6px;display:flex;gap:6px;font-family:system-ui;transform:{{ chromeBottomT }};opacity:{{ chromeBottomOp }};pointer-events:{{ chromeBottomPE }};transition:transform .3s cubic-bezier(.4,0,.2,1),opacity .22s ease">
     <button onClick="{{ setReader }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;background:{{ tabRB }};color:{{ tabRC }};font:800 12px system-ui;cursor:pointer">Source</button>
     <button onClick="{{ setOverview }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;background:{{ tabOB }};color:{{ tabOC }};font:800 12px system-ui;cursor:pointer">Overview</button>
     <button onClick="{{ setStruct }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;background:{{ tabSB }};color:{{ tabSC }};font:800 12px system-ui;cursor:pointer">Structure</button>
