@@ -109,7 +109,7 @@
       <sc-if value="{{ isReader }}" hint-placeholder-val="{{ true }}">
         <div style="position:absolute;left:50%;top:50%;transform:translate(calc(-50% - 9px),-50%);flex:none;display:flex;align-items:center;gap:2px;background:{{ t.bar }};border:1px solid {{ t.border }};border-radius:20px;padding:3px">
           <sc-for list="{{ readerModes }}" as="m" hint-placeholder-count="4">
-            <span onClick="{{ m.pick }}" title="{{ m.title }}" style="display:flex;align-items:center;justify-content:center;width:32px;height:26px;border-radius:14px;cursor:pointer;background:{{ m.bg }};color:{{ m.fg }};transition:background .15s"><i class="{{ m.icon }}" style="font-size:15px"></i></span>
+            <span onClick="{{ m.pick }}" title="{{ m.title }}" style="display:flex;align-items:center;justify-content:center;gap:4px;min-width:72px;height:26px;border-radius:14px;cursor:pointer;background:{{ m.bg }};color:{{ m.fg }};transition:background .15s;padding:0 8px"><i class="{{ m.icon }}" style="font-size:14px"></i><span style="font:800 10px system-ui;white-space:nowrap">{{ m.label }}</span></span>
           </sc-for>
         </div>
       </sc-if>
@@ -193,9 +193,9 @@
       <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px">
         <div>
           <div style="font:800 10px 'IBM Plex Mono',monospace;letter-spacing:.09em;text-transform:uppercase;color:{{ t.mut }}">Under the hood · EOT Inspector</div>
-          <div style="font:500 13px/1.45 system-ui;color:{{ t.mut }};margin-top:4px">Raw EOT is rendered as a language: muted envelopes, saturated reserved operators, restrained operands, references, and metadata.</div>
+          <div style="font:500 13px/1.45 system-ui;color:{{ t.mut }};margin-top:4px">Nothing selected. Demo derivation · not from the active source. Select a finding, passage, entity, or answer to inspect source-bound EOT.</div>
         </div>
-        <span style="font:800 10px system-ui;color:{{ t.accent }};border:1px solid {{ t.accentLine }};background:{{ t.accentSoft }};border-radius:16px;padding:7px 10px">Operators only</span>
+        <span style="font:800 10px system-ui;color:{{ t.accent }};border:1px solid {{ t.accentLine }};background:{{ t.accentSoft }};border-radius:16px;padding:7px 10px">INSPECTING · DEMO</span>
       </div>
       <div style="display:flex;gap:7px;overflow-x:auto;margin:12px 0">
         <span style="background:{{ t.accent }};color:#fff;border-radius:18px;padding:7px 11px;font:800 11px system-ui">Stream</span><span style="background:{{ t.bar }};color:{{ t.t2 }};border:1px solid {{ t.border }};border-radius:18px;padding:7px 11px;font:800 11px system-ui">Fold</span><span style="background:{{ t.bar }};color:{{ t.t2 }};border:1px solid {{ t.border }};border-radius:18px;padding:7px 11px;font:800 11px system-ui">Derivation</span><span style="background:{{ t.bar }};color:{{ t.t2 }};border:1px solid {{ t.border }};border-radius:18px;padding:7px 11px;font:800 11px system-ui">Grammar</span>
@@ -221,7 +221,7 @@
       </div>
       <div style="display:flex;align-items:center;justify-content:space-between;background:{{ t.bar }};border:1px solid {{ t.border }};border-radius:12px;padding:10px 12px;margin-bottom:10px">
         <div style="font:800 10px 'IBM Plex Mono',monospace;letter-spacing:.06em;color:{{ coverageColor }};text-transform:uppercase">{{ coverageLabel }}</div>
-        <div style="font:700 11px system-ui;color:{{ t.mut }}">{{ searchSources }} sources · {{ searchPassages }} passages · {{ searchContrasts }} contrasts</div>
+        <div style="font:700 11px system-ui;color:{{ t.mut }}">Scope: {{ searchSources }} evidence sources · Conditioned by: {{ searchPriorCount }} selected priors · {{ searchPassages }} passages</div>
       </div>
       <div style="display:flex;gap:6px;overflow-x:auto;margin-bottom:8px">
         <sc-for list="{{ projectionTabs }}" as="pt" hint-placeholder-count="3">
@@ -234,6 +234,12 @@
         </sc-for>
       </div>
 
+      <sc-if value="{{ searchBlankState }}" hint-placeholder-val="{{ true }}">
+        <div style="background:{{ t.card }};border:1px solid {{ t.border }};border-radius:14px;padding:18px 16px;margin:12px 0 14px;text-align:center">
+          <div style="font:800 18px system-ui;color:{{ t.text }};margin-bottom:6px">Ask this workspace</div>
+          <div style="font:500 12.5px/1.5 system-ui;color:{{ t.mut }}">Type a question to search the selected evidence. An empty question is not treated as an absent answer.</div>
+        </div>
+      </sc-if>
       <sc-if value="{{ showEvidence }}" hint-placeholder-val="{{ true }}">
         <div style="font:800 9px system-ui;letter-spacing:.08em;color:{{ t.mut }};text-transform:uppercase;margin:0 2px 8px">Direct evidence</div>
         <sc-for list="{{ coreEvidence }}" as="ev" hint-placeholder-count="3">
@@ -255,6 +261,7 @@
         </sc-for>
       </sc-if>
 
+      <sc-if value="{{ searchHasAnswer }}">
       <div style="background:{{ t.card }};border:1px solid {{ t.border }};border-radius:14px;padding:12px 13px;margin:12px 0 10px">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px">
           <div style="font:800 9px system-ui;letter-spacing:.08em;color:{{ t.mut }};text-transform:uppercase">Answer integrity</div>
@@ -263,6 +270,7 @@
         <div style="font:700 12.5px/1.45 system-ui;color:{{ t.text }}">{{ integritySummary }}</div>
         <div style="font:500 11.5px/1.5 system-ui;color:{{ t.mut }};margin-top:7px">{{ integrityDetail }}</div>
       </div>
+      </sc-if>
 
       <sc-if value="{{ hasAbstention }}">
         <div style="background:{{ t.bar }};border:1px dashed {{ t.border }};border-radius:12px;padding:12px 13px;margin-bottom:10px">
@@ -432,8 +440,8 @@
       </div>
 
       <div style="margin:0 2px 11px">
-        <div style="font:700 10px 'IBM Plex Mono',monospace;letter-spacing:.06em;color:{{ t.accent }}">WORKSPACE · {{ activeSrcCount }} OF {{ totalSrcCount }} SOURCES ACTIVE</div>
-        <div style="font:400 12.5px/1.45 system-ui;color:{{ t.mut }};margin-top:3px">Evidence base for {{ spaceName }} — counts describe active fold versions; findings below require supporting passages.</div>
+        <div style="font:700 10px 'IBM Plex Mono',monospace;letter-spacing:.06em;color:{{ t.accent }}">WORKSPACE BRIEF · {{ spaceName }}</div>
+        <div style="font:400 12.5px/1.45 system-ui;color:{{ t.mut }};margin-top:3px">Stored: Library owns each source once. Included: this workspace references {{ totalSrcCount }} evidence sources and {{ notesCount }} note. Focused: {{ focusPath }} · {{ activeSrcCount }} evidence sources active. Priors are reading policy, not source children.</div>
       </div>
 
       <sc-if value="{{ priorHasReduction }}">
@@ -491,7 +499,7 @@
               <div style="font:600 13.5px system-ui;color:{{ t.text }};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ s.title }}</div>
               <div style="font:500 11px system-ui;color:{{ t.mut }};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ s.det }}</div>
             </div>
-            <span onClick="{{ s.toggleActive }}" title="Activate / mute in corpus" style="flex:none;width:34px;height:20px;border-radius:20px;background:{{ s.track }};position:relative;cursor:pointer;transition:background .18s"><span style="position:absolute;top:2px;left:{{ s.knob }};width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25);transition:left .18s"></span></span>
+            <span onClick="{{ s.toggleActive }}" title="Focus / unfocus for current questions" style="flex:none;width:34px;height:20px;border-radius:20px;background:{{ s.track }};position:relative;cursor:pointer;transition:background .18s"><span style="position:absolute;top:2px;left:{{ s.knob }};width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25);transition:left .18s"></span></span>
             <span style="flex:none;color:{{ t.faint }};font-size:12px;transform:rotate({{ s.chev }});transition:transform .2s">▸</span>
           </div>
           <sc-if value="{{ s.showInsight }}">
@@ -732,6 +740,11 @@
 
   <div class="eo-nav" style="position:absolute;left:14px;right:14px;bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:25;background:{{ t.sheet }};border:1px solid {{ t.border }};box-shadow:0 10px 30px rgba(0,0,0,.16);border-radius:22px;padding:6px;display:flex;gap:6px;font-family:system-ui;transform:{{ chromeBottomT }};opacity:{{ chromeBottomOp }};pointer-events:{{ chromeBottomPE }};transition:transform .3s cubic-bezier(.4,0,.2,1),opacity .22s ease">
     <div class="eo-spaces-rail" style="display:none;flex-direction:column;gap:2px;margin-bottom:10px">
+      <div style="font:800 9px 'IBM Plex Mono',monospace;letter-spacing:.09em;color:{{ t.mut }};padding:0 6px 5px">LIBRARY</div>
+      <div style="font:600 11px/1.35 system-ui;color:{{ t.mut }};padding:0 6px 9px">All recorded objects are stored once; workspaces reference them.</div>
+      <div style="font:800 9px 'IBM Plex Mono',monospace;letter-spacing:.09em;color:{{ t.mut }};padding:0 6px 5px">CURRENT FOCUS</div>
+      <div style="font:700 11px/1.35 system-ui;color:{{ t.text }};padding:0 6px 10px">{{ focusPath }}<div style="font:600 10px system-ui;color:{{ t.mut }};margin-top:2px">{{ focusDetail }}</div></div>
+      <div style="height:1px;background:{{ t.border }};margin:0 6px 9px"></div>
       <div style="font:800 9px 'IBM Plex Mono',monospace;letter-spacing:.09em;color:{{ t.mut }};padding:0 6px 7px">WORKSPACES</div>
       <sc-for list="{{ spaceTabs }}" as="sp" hint-placeholder-count="3">
         <div onClick="{{ sp.pick }}" style="display:flex;align-items:center;gap:8px;padding:8px 9px;border-radius:10px;cursor:pointer;background:{{ sp.rowBg }}">
@@ -743,7 +756,7 @@
         <sc-if value="{{ sp.on }}">
           <div class="eo-rail-sources" style="display:none;flex-direction:column;gap:3px;margin:1px 0 9px 5px;padding-left:9px;border-left:1.5px solid {{ t.border }}">
             <div style="display:flex;align-items:center;gap:7px;padding:1px 3px 4px">
-              <span style="font:700 9px 'IBM Plex Mono',monospace;color:{{ t.mut }};letter-spacing:.04em">{{ drawerOnCount }}/{{ drawerTotal }} ON</span>
+              <span style="font:700 9px 'IBM Plex Mono',monospace;color:{{ t.mut }};letter-spacing:.04em">All evidence · {{ drawerOnCount }}/{{ drawerTotal }} active</span>
               <span onClick="{{ bulkAllOn }}" style="font:700 10px system-ui;color:{{ t.accent }};cursor:pointer;margin-left:auto">All on</span>
               <span onClick="{{ bulkAllOff }}" style="font:700 10px system-ui;color:{{ t.mut }};cursor:pointer">Off</span>
               <span onClick="{{ startAllRec }}" title="Record every source" style="color:#2f9e57;cursor:pointer;display:flex;align-items:center"><i class="ph ph-record-fill" style="font-size:11px"></i></span>
@@ -766,7 +779,7 @@
                       {{ s.recLabel }}
                     </div>
                   </div>
-                  <span onClick="{{ s.toggleOn }}" title="On / off in this space" style="flex:none;width:30px;height:18px;border-radius:20px;background:{{ s.track }};position:relative;cursor:pointer;transition:background .18s"><span style="position:absolute;top:2px;left:{{ s.knobSm }};width:14px;height:14px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25);transition:left .18s"></span></span>
+                  <span onClick="{{ s.toggleOn }}" title="Focused for current questions" style="flex:none;width:30px;height:18px;border-radius:20px;background:{{ s.track }};position:relative;cursor:pointer;transition:background .18s"><span style="position:absolute;top:2px;left:{{ s.knobSm }};width:14px;height:14px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25);transition:left .18s"></span></span>
                   <span onClick="{{ s.toggleExpand }}" style="flex:none;color:{{ t.faint }};font-size:10px;transform:rotate({{ s.chevron }});transition:transform .2s;cursor:pointer">▸</span>
                 </div>
                 <sc-if value="{{ s.expanded }}">
@@ -796,15 +809,16 @@
       <div style="height:1px;background:{{ t.border }};margin:11px 6px 5px"></div>
       <div style="font:800 9px 'IBM Plex Mono',monospace;letter-spacing:.09em;color:{{ t.mut }};padding:0 6px 2px">VIEW</div>
     </div>
-    <button onClick="{{ setReader }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;min-height:44px;display:flex;align-items:center;justify-content:center;background:{{ tabRB }};color:{{ tabRC }};font:800 12px system-ui;cursor:pointer">Reader</button>
-    <button onClick="{{ setOverview }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;min-height:44px;display:flex;align-items:center;justify-content:center;background:{{ tabOB }};color:{{ tabOC }};font:800 12px system-ui;cursor:pointer">Overview</button>
-    <button onClick="{{ setStruct }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;min-height:44px;display:flex;align-items:center;justify-content:center;background:{{ tabSB }};color:{{ tabSC }};font:800 12px system-ui;cursor:pointer">Workspace</button>
-    <button onClick="{{ setBeta }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;min-height:44px;display:flex;align-items:center;justify-content:center;background:{{ tabBetaB }};color:{{ tabBetaC }};font:800 12px system-ui;cursor:pointer">Beta</button>
-    <button onClick="{{ setPriors }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;min-height:44px;display:flex;align-items:center;justify-content:center;background:{{ tabPrB }};color:{{ tabPrC }};font:800 12px system-ui;cursor:pointer">Priors</button>
-    <button onClick="{{ setInspector }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;min-height:44px;display:flex;align-items:center;justify-content:center;background:{{ tabInB }};color:{{ tabInC }};font:800 12px system-ui;cursor:pointer">Inspector</button>
-    <button onClick="{{ setTransparency }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;min-height:44px;display:flex;align-items:center;justify-content:center;background:{{ tabTrB }};color:{{ tabTrC }};font:800 12px system-ui;cursor:pointer">Process</button>
-    <button onClick="{{ setCross }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;min-height:44px;display:flex;align-items:center;justify-content:center;background:{{ tabCB }};color:{{ tabCC }};font:800 12px system-ui;cursor:pointer">Search</button>
-    <button onClick="{{ setEot }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;min-height:44px;display:flex;align-items:center;justify-content:center;background:{{ tabEB }};color:{{ tabEC }};font:800 12px system-ui;cursor:pointer">Under the hood</button>
+    <button onClick="{{ setOverview }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;min-height:44px;display:flex;align-items:center;justify-content:center;background:{{ tabOB }};color:{{ tabOC }};font:800 12px system-ui;cursor:pointer">Brief</button>
+    <button onClick="{{ setStruct }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;min-height:44px;display:flex;align-items:center;justify-content:center;background:{{ tabSB }};color:{{ tabSC }};font:800 12px system-ui;cursor:pointer">Evidence</button>
+    <button onClick="{{ setCross }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;min-height:44px;display:flex;align-items:center;justify-content:center;background:{{ tabCB }};color:{{ tabCC }};font:800 12px system-ui;cursor:pointer">Questions</button>
+    <button onClick="{{ setReader }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;min-height:44px;display:flex;align-items:center;justify-content:center;background:{{ tabRB }};color:{{ tabRC }};font:800 12px system-ui;cursor:pointer">Read</button>
+    <button onClick="{{ setBeta }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;min-height:44px;display:flex;align-items:center;justify-content:center;background:{{ tabBetaB }};color:{{ tabBetaC }};font:800 12px system-ui;cursor:pointer">Transform</button>
+    <div style="flex-basis:100%;height:1px;background:{{ t.border }};margin:4px 2px"></div>
+    <button onClick="{{ setTransparency }}" style="flex:1;border:0;border-radius:12px;padding:7px 4px;min-height:32px;display:flex;align-items:center;justify-content:center;background:{{ tabTrB }};color:{{ tabTrC }};font:800 10px system-ui;cursor:pointer">Advanced · Processing</button>
+    <button onClick="{{ setPriors }}" style="flex:1;border:0;border-radius:12px;padding:7px 4px;min-height:32px;display:flex;align-items:center;justify-content:center;background:{{ tabPrB }};color:{{ tabPrC }};font:800 10px system-ui;cursor:pointer">Settings · Priors</button>
+    <button onClick="{{ setInspector }}" style="flex:1;border:0;border-radius:12px;padding:7px 4px;min-height:32px;display:flex;align-items:center;justify-content:center;background:{{ tabInB }};color:{{ tabInC }};font:800 10px system-ui;cursor:pointer">Advanced · Lab</button>
+    <button onClick="{{ setEot }}" style="flex:1;border:0;border-radius:12px;padding:7px 4px;min-height:32px;display:flex;align-items:center;justify-content:center;background:{{ tabEB }};color:{{ tabEC }};font:800 10px system-ui;cursor:pointer">Advanced · EOT</button>
   </div>
 
   <sc-if value="{{ backdrop }}">
@@ -1063,7 +1077,7 @@
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
           <i class="ph ph-stack" style="font-size:19px;color:{{ t.accent }}"></i>
           <div style="font:700 16px system-ui;color:{{ t.text }}">Sources</div>
-          <span style="font:700 11px 'IBM Plex Mono',monospace;color:{{ t.mut }}">{{ drawerOnCount }}/{{ drawerTotal }} on</span>
+          <span style="font:700 11px 'IBM Plex Mono',monospace;color:{{ t.mut }}">{{ drawerOnCount }} evidence · {{ notesCount }} notes · {{ priorActiveCount }} priors</span>
           <span onClick="{{ closeSources }}" style="margin-left:auto;color:{{ t.accent }};font:600 13px system-ui;cursor:pointer">Done</span>
         </div>
         <div style="font:600 9px system-ui;letter-spacing:.05em;text-transform:uppercase;color:{{ t.mut }};margin-bottom:7px">Workspace</div>
@@ -1115,7 +1129,7 @@
                   {{ s.recLabel }}
                 </div>
               </div>
-              <span onClick="{{ s.toggleOn }}" title="On / off in this space" style="flex:none;width:34px;height:20px;border-radius:20px;background:{{ s.track }};position:relative;cursor:pointer;transition:background .18s"><span style="position:absolute;top:2px;left:{{ s.knob }};width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25);transition:left .18s"></span></span>
+              <span onClick="{{ s.toggleOn }}" title="Focused for current questions" style="flex:none;width:34px;height:20px;border-radius:20px;background:{{ s.track }};position:relative;cursor:pointer;transition:background .18s"><span style="position:absolute;top:2px;left:{{ s.knob }};width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25);transition:left .18s"></span></span>
               <span onClick="{{ s.toggleExpand }}" style="flex:none;color:{{ t.faint }};font-size:12px;transform:rotate({{ s.chevron }});transition:transform .2s">▸</span>
             </div>
             <sc-if value="{{ s.expanded }}">
@@ -2450,9 +2464,7 @@ class Component extends DCLogic {
     const vmap={'Native':'native','Native +':'annotated','Reader':'reader'};
     let spaces=this.load('eo5.spaces',null);
     if(!Array.isArray(spaces)||!spaces.length) spaces=[
-      {id:'sp1',name:'Reporting',accent:'#c0662e'},
-      {id:'sp2',name:'Library',accent:'#4f6bed'},
-      {id:'sp3',name:'Field notes',accent:'#2f8f6b'}
+      {id:'sp1',name:'Reporting',accent:'#c0662e'}
     ];
     let spaceId=this.load('eo5.space',null);
     if(!spaces.find(s=>s.id===spaceId)) spaceId=spaces[0].id;
@@ -4514,21 +4526,22 @@ class Component extends DCLogic {
     nums.slice(0,16).forEach((n,i)=>{ const t=ctx.currentTime+i*.18, osc=ctx.createOscillator(), gain=ctx.createGain(); osc.type=['sine','triangle','square','sawtooth'][n%4]; osc.frequency.value=220*Math.pow(2,(scale[n%scale.length]+12*Math.floor((n%24)/12))/12); gain.gain.setValueAtTime(.0001,t); gain.gain.exponentialRampToValueAtTime(.08,t+.02); gain.gain.exponentialRampToValueAtTime(.0001,t+.16); osc.connect(gain).connect(ctx.destination); osc.start(t); osc.stop(t+.18); });
   }
   buildBetaPanel(){
-    const S=this.state,t=this.theme(),h=React.createElement, organs=S.betaOrgans||{}, turn=S.betaTurn||this.betaAnalyze(S.betaPrompt||'');
+    const S=this.state,t=this.theme(),h=React.createElement, organs=S.betaOrgans||{}, hasTurn=!!S.betaTurn, turn=S.betaTurn||{top:[],sentences:[],discourse:[],nums:[]};
     const chip=(k,label)=>h('span',{key:k,onClick:()=>this.toggleBetaOrgan(k),style:{background:organs[k]?t.accent:t.bar,color:organs[k]?'#fff':t.t2,border:'1px solid '+(organs[k]?t.accent:t.border),borderRadius:'16px',padding:'7px 11px',font:'800 11px system-ui',cursor:'pointer'}},label);
     const card=(key,title,body)=>h('div',{key,style:{background:t.card,border:'1px solid '+t.border,borderRadius:'14px',padding:'12px 13px',marginTop:'10px'}},[h('div',{key:'t',style:{font:'800 9px system-ui',letterSpacing:'.08em',textTransform:'uppercase',color:t.mut,marginBottom:'8px'}},title),body]);
     const svg='data:image/svg+xml;utf8,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 240"><rect width="420" height="240" fill="#f3ede3"/>${turn.nums.slice(0,18).map((n,i)=>`<circle cx="${30+i*22}" cy="${40+(n%140)}" r="${8+n%18}" fill="hsl(${n*7},55%,55%)" opacity=".68"/>`).join('')}<text x="24" y="220" font-family="monospace" font-size="13" fill="#5b5147">${turn.discourse.join(' · ')}</text></svg>`);
     const frames=turn.nums.slice(0,5).map((n,i)=>h('div',{key:i,style:{height:'86px',minWidth:'120px',borderRadius:'11px',background:`radial-gradient(circle at ${20+n%70}% ${25+(n*2)%60}%, hsl(${n*9},65%,62%), transparent 42%), ${t.bar}`,border:'1px solid '+t.border,display:'flex',alignItems:'end',padding:'8px',font:'800 10px monospace',color:t.mut}},'frame '+(i+1)));
     return h('div',{},[
-      h('div',{key:'head',style:{display:'flex',gap:'10px',alignItems:'flex-start',marginBottom:'10px'}},[h('i',{key:'i',className:'ph ph-sparkle',style:{fontSize:'22px',color:t.accent}}),h('div',{key:'d'},[h('div',{style:{font:'800 18px system-ui',color:t.text}},'Beta generation lab'),h('div',{style:{font:'500 12.5px/1.45 system-ui',color:t.mut}},'Chat with uploaded or opened content using deterministic discourse awareness and active priors — no LLM, no web search, no prosifying layer.')])]),
+      h('div',{key:'head',style:{display:'flex',gap:'10px',alignItems:'flex-start',marginBottom:'10px'}},[h('i',{key:'i',className:'ph ph-sparkle',style:{fontSize:'22px',color:t.accent}}),h('div',{key:'d'},[h('div',{style:{font:'800 18px system-ui',color:t.text}},'Transform this source'),h('div',{style:{font:'500 12.5px/1.45 system-ui',color:t.mut}},'What would you like to make perceptible? Deterministic transformation only — no LLM, no web search, no prosifying layer.')])]),
       h('textarea',{key:'ta',value:S.betaPrompt||'',onChange:e=>this.setState({betaPrompt:e.target.value}),placeholder:'Ask for a transformation, e.g. make the causal turns audible and the contested referents visible…',style:{width:'100%',minHeight:'88px',resize:'vertical',background:t.card,border:'1px solid '+t.border,borderRadius:'14px',padding:'11px 12px',font:'600 13px/1.45 system-ui',color:t.text,outline:'none'}}),
-      h('div',{key:'chips',style:{display:'flex',gap:'7px',flexWrap:'wrap',margin:'10px 0'}},[chip('text','Text'),chip('image','Image'),chip('audio','Audio / music'),chip('video','Video frames'),chip('math','Math strings'),h('span',{key:'run',onClick:()=>this.runBeta(),style:{marginLeft:'auto',background:t.accent,color:'#fff',borderRadius:'16px',padding:'7px 12px',font:'800 11px system-ui',cursor:'pointer'}},'Generate locally')]),
-      card('disc','Discourse read',h('div',{style:{font:'600 12.5px/1.55 system-ui',color:t.t2}},'Detected modes: '+turn.discourse.join(', ')+' · anchors: '+turn.top.join(', '))),
-      organs.text&&card('text','Text organ',h('div',{style:{font:"400 14px/1.55 'Source Serif 4',Georgia,serif",color:t.text}},turn.sentences.slice(0,3).join(' '))),
-      organs.math&&card('math','Mathematical organ',h('div',{style:{font:"700 13px/1.6 'IBM Plex Mono',monospace",color:t.text,wordBreak:'break-word'}},turn.nums.join(' '))),
-      organs.image&&card('img','Image organ',h('img',{src:svg,alt:'Deterministic discourse image',style:{width:'100%',borderRadius:'10px',display:'block'}})),
-      organs.audio&&card('aud','Audio / music organ',h('button',{onClick:()=>this.playBetaAudio(),style:{border:0,borderRadius:'12px',background:t.accent,color:'#fff',padding:'10px 12px',font:'800 12px system-ui',cursor:'pointer'}},'Play MIDI-like sketch')),
-      organs.video&&card('vid','Video organ',h('div',{style:{display:'flex',gap:'8px',overflowX:'auto'}},frames))
+      h('div',{key:'chips',style:{display:'flex',gap:'7px',flexWrap:'wrap',margin:'10px 0'}},[chip('text','Text'),chip('image','Image'),chip('audio','Audio / music'),chip('video','Video frames'),chip('math','Math strings'),h('span',{key:'run',onClick:()=>this.runBeta(),style:{marginLeft:'auto',background:t.accent,color:'#fff',borderRadius:'16px',padding:'7px 12px',font:'800 11px system-ui',cursor:'pointer'}},'Transform')]),
+      !hasTurn?h('div',{key:'suggest',style:{background:t.card,border:'1px solid '+t.border,borderRadius:'14px',padding:'13px',marginTop:'10px'}},[h('div',{style:{font:'800 9px system-ui',letterSpacing:'.08em',textTransform:'uppercase',color:t.mut,marginBottom:'8px'}},'Suggested transformations'),h('div',{style:{display:'flex',gap:'7px',flexWrap:'wrap'}},['Make the causal turns audible','Show contested referents visually','Render the source as a math string'].map(x=>h('span',{key:x,onClick:()=>this.setState({betaPrompt:x}),style:{background:t.bar,border:'1px solid '+t.border,borderRadius:'16px',padding:'7px 10px',font:'800 11px system-ui',color:t.t2,cursor:'pointer'}},x))) ]):null,
+      hasTurn&&card('disc','Discourse read',h('div',{style:{font:'600 12.5px/1.55 system-ui',color:t.t2}},'Detected modes: '+turn.discourse.join(', ')+' · anchors: '+turn.top.join(', '))),
+      hasTurn&&organs.text&&card('text','Text organ',h('div',{style:{font:"400 14px/1.55 'Source Serif 4',Georgia,serif",color:t.text}},turn.sentences.slice(0,3).join(' '))),
+      hasTurn&&organs.math&&card('math','Mathematical organ',h('div',{style:{font:"700 13px/1.6 'IBM Plex Mono',monospace",color:t.text,wordBreak:'break-word'}},turn.nums.join(' '))),
+      hasTurn&&organs.image&&card('img','Image organ',h('img',{src:svg,alt:'Deterministic discourse image',style:{width:'100%',borderRadius:'10px',display:'block'}})),
+      hasTurn&&organs.audio&&card('aud','Audio / music organ',h('button',{onClick:()=>this.playBetaAudio(),style:{border:0,borderRadius:'12px',background:t.accent,color:'#fff',padding:'10px 12px',font:'800 12px system-ui',cursor:'pointer'}},'Play MIDI-like sketch')),
+      hasTurn&&organs.video&&card('vid','Video organ',h('div',{style:{display:'flex',gap:'8px',overflowX:'auto'}},frames))
     ]);
   }
 
@@ -4761,12 +4774,18 @@ class Component extends DCLogic {
       ])]);
     }
 
+    const serializedChars=(d.rawHtml||d.rawText||'').length;
+    const retainedLinks=Object.keys(a.linkMap||{}).length || (a.links||0);
+    const rawLinkCount=d.rawHtml ? ((d.rawHtml.match(/<a\b/gi)||[]).length) : retainedLinks;
+    const excludedLinks=Math.max(0,rawLinkCount-retainedLinks);
+    const headingCount=((a.blockInfo||[]).filter(b=>b&&b.kind==='heading').length);
+    const inferredChapters=(d.medium==='Webpage')?0:(a.chapters||0);
     const stages=[
-      {label:'Source bytes',detail:d.size||(d.mode==='text'?this.nf((d.rawText||'').length)+' chars':(d.mode||'—')),done:true},
+      {label:'Source bytes',detail:serializedChars?this.nf(serializedChars)+' chars':(d.size||(d.mode||'—')),done:true},
       {label:'Sense organ',detail:profile.organ,done:true},
       {label:'Observation',detail:d.mode==='text'?(this.nf((a.paras||[]).length)+' blocks'):(d.mode||'—'),done:true},
       {label:'EOReader5 engine',detail:bridgeLive?bridgeName:'idle — local finder used instead',done:bridgeLive},
-      {label:'Output organ',detail:'Reader · Structure · Search projections',done:true}
+      {label:'Output organ',detail:'Reader · Brief · Questions projections',done:true}
     ];
     const stepper=h('div',{style:{display:'flex',gap:'6px',overflowX:'auto',margin:'0 0 14px'}},
       stages.map((s,i)=>h('div',{key:i,style:{flex:'none',minWidth:'132px',background:t.card,border:'1px solid '+t.border,borderTop:'3px solid '+(s.done?ready:t.faint),borderRadius:'10px',padding:'8px 10px'}},[
@@ -4788,7 +4807,8 @@ class Component extends DCLogic {
       h('div',{key:'g',style:{font:'600 11.5px/1.6 system-ui',color:t.mut}},[
         h('div',{key:'a'},[h('b',{key:'k',style:{color:t.text}},'Detected as: '),medium+' · '+(d.mode||'—')+(d.size?' · '+d.size:'')]),
         h('div',{key:'b'},[h('b',{key:'k',style:{color:t.text}},'Decoded by: '),profile.organ]),
-        h('div',{key:'c',style:{marginTop:'4px'}},profile.detail)
+        h('div',{key:'c',style:{marginTop:'4px'}},profile.detail),
+        d.medium==='Webpage'?h('div',{key:'feed',style:{marginTop:'6px'}},[h('b',{style:{color:t.text}},'Source kind: '),'live publication homepage · collection/feed; items should be treated as story cards, not one narrative.']):null
       ])
     ]);
 
@@ -4800,15 +4820,16 @@ class Component extends DCLogic {
       const kindLabel={body:'Body text',heading:'Heading',image:'Image'};
       const maxK=Math.max(1,...Object.values(kindCounts));
       structureCard=h('div',{style:{background:t.card,border:'1px solid '+t.border,borderRadius:'15px',padding:'13px',marginBottom:'12px'}},[
-        h('div',{key:'h',style:{font:"800 9px 'IBM Plex Mono',monospace",letterSpacing:'.08em',color:t.mut,marginBottom:'9px'}},'STRUCTURE EXTRACTED'),
+        h('div',{key:'h',style:{font:"800 9px 'IBM Plex Mono',monospace",letterSpacing:'.08em',color:t.mut,marginBottom:'9px'}},'DECODED STRUCTURE · observed markup vs inferred semantics'),
         statRow([
-          {label:'Words',val:this.nf(a.words||0)},
+          {label:'Chars',val:this.nf(serializedChars)},
           {label:'Blocks',val:this.nf(paras.length)},
-          {label:'Headings',val:this.nf(kindCounts.heading||0)},
-          {label:'Images',val:this.nf(kindCounts.image||0)},
-          {label:'Chapters',val:this.nf(a.chapters||0)},
-          {label:'Links',val:this.nf(a.links||0)}
-        ])
+          {label:'Heading elements',val:this.nf(headingCount)},
+          {label:'Inferred chapters',val:this.nf(inferredChapters)},
+          {label:'Links retained',val:this.nf(retainedLinks)},
+          {label:'Links excluded',val:this.nf(excludedLinks)}
+        ]),
+        h('div',{key:'note',style:{font:'600 11px/1.45 system-ui',color:t.mut,marginTop:'9px'}},'HTML headings are observed markup only. They are not counted as chapters unless a chapter-level structural inference exists.')
       ]);
       blockCard=h('div',{style:{background:t.card,border:'1px solid '+t.border,borderRadius:'15px',padding:'13px',marginBottom:'12px'}},[
         h('div',{key:'h',style:{font:"800 9px 'IBM Plex Mono',monospace",letterSpacing:'.08em',color:t.mut,marginBottom:'9px'}},'BLOCK BREAKDOWN · read from real markup, never guessed from text shape'),
@@ -4835,7 +4856,7 @@ class Component extends DCLogic {
       statRow([
         {label:'Candidates kept',val:this.nf(entList.length)},
         {label:'Highlights',val:this.nf((a.hi||[]).length)},
-        {label:'Links found',val:this.nf(a.links||0)}
+        {label:'Links retained',val:this.nf(retainedLinks)}
       ]),
       Object.keys(entKinds).length?h('div',{key:'k',style:{display:'flex',flexWrap:'wrap',gap:'5px',marginTop:'9px'}},
         Object.keys(entKinds).map(k=>h('span',{key:k,style:{background:t.bar,border:'1px solid '+t.border,borderRadius:'14px',padding:'4px 9px',font:'600 10.5px system-ui',color:t.t2}},k+' · '+entKinds[k]))
@@ -5033,7 +5054,7 @@ class Component extends DCLogic {
   }
   buildLocalQueryReading(q, scopeOverride){
     const query=(q||'').trim(), norm=this.normalizeQuery(query), terms=norm.split(' ').filter(x=>x.length>2).slice(0,8);
-    const baseSources=this.mem().concat(this.priorMemoryItems());
+    const baseSources=this.mem();
     const sources=(baseSources.length?baseSources:[this.state.doc].filter(Boolean)).filter(Boolean);
     const scope=scopeOverride || this.state.searchScope || 'all';
     const scoped=scope&&scope!=='all'?sources.filter(s=>String(s.id||s.title||s.name)===scope):sources;
@@ -5133,6 +5154,9 @@ class Component extends DCLogic {
           toggle:()=>this.toggleMembership(m.key,x.id)}; }) };
     });
     const drawerOnCount=memList.filter(m=>S.structActive[m.id]!==false).length;
+    const notesCount=(S.memoryBySpace&&S.memoryBySpace.sp3&&Array.isArray(S.memoryBySpace.sp3))?S.memoryBySpace.sp3.length:1;
+    const focusPath=(sp?sp.name:'Workspace')+' › All evidence';
+    const focusDetail=drawerOnCount+' evidence source'+(drawerOnCount===1?'':'s')+' · '+notesCount+' note'+(notesCount===1?'':'s');
     const drawerRecCount=memList.filter(m=>m.recording).length;
     const drawerLastTs=memList.filter(m=>m.recording).reduce((a,m)=>Math.max(a,m.lastUpdate||0),0);
 
@@ -5159,7 +5183,8 @@ class Component extends DCLogic {
     const proxyHost=(S.proxy&&S.proxy.on)?('proxy · '+this.hostOf((S.proxy.fetch||'').replace('{url}','').replace('{urlenc}',''))):'direct (no proxy)';
 
     const queryText=S.queryText || S.searchQ || '';
-    const reading=S.queryReading || this.buildLocalQueryReading(queryText || (d&&d.title) || '');
+    const submittedQuestion=!!(S.queryReading && String(queryText).trim());
+    const reading=submittedQuestion ? S.queryReading : {coverage:'guidance',core_evidence:[],context_evidence:[],counterevidence:[],fold_path:[],unfilled_roles:[],searched_scope:{sources:[],channels:[]}};
     const projection=S.searchProjection || 'evidence';
     const coverageColor={sufficient:'#2f7a55',partial:'#b0842f',ambiguous:'#b0842f',absent:'#c0392b',guidance:t.mut}[reading.coverage]||t.mut;
     const coverageText={sufficient:'Answered from selected evidence',partial:'Thin answer — evidence is limited',absent:'Cannot answer from this scope',guidance:'Search a committed fold'}[reading.coverage]||'Search index unavailable';
@@ -5325,14 +5350,14 @@ class Component extends DCLogic {
       structSources, corpusStats, sharedEnts, hasShared:sharedEnts.length>0, mediumFilters, crossInsights, crossSources,
       hasCross:crossInsights.length>0, noCross:crossInsights.length===0,
       queryText, onQueryInput:(e)=>this.setState({queryText:e.target.value}), onQueryKey:(e)=>{ if(e.key==='Enter') this.runLocalSearch(e.target.value); }, clearQuery:()=>this.runLocalSearch(''),
-      coverageLabel:coverageText, coverageColor, searchPlaceholderMain:(searchScopeLabel==='This source'?('Search '+((d&&d.title)||'this source')+'…'):('Search '+(sp?sp.name:'workspace')+'…')), searchSources:(reading.searched_scope.sources||[]).length, searchPassages:(reading.core_evidence||[]).length+(reading.context_evidence||[]).length, searchContrasts:(reading.counterevidence||[]).length,
-      projectionTabs, searchScopeChips:scopeChips, showEvidence:projection==='evidence'||projection==='all', showStructure:projection==='structure'||projection==='all', coreEvidence, contextEvidence, hasGaps:gaps.length>0, gapText:gaps.length?('Missing evidence roles: '+gaps.join(', ')):'',
-      integrityStatus, integritySummary, integrityDetail, integrityColor, hasAbstention, abstentionTitle, abstentionText,
+      searchBlankState:!submittedQuestion, coverageLabel:coverageText, coverageColor, searchPlaceholderMain:(searchScopeLabel==='This source'?('Search '+((d&&d.title)||'this source')+'…'):('Search '+(sp?sp.name:'workspace')+'…')), searchSources:(submittedQuestion?(reading.searched_scope.sources||[]).length:(memList.length?memList:[d].filter(Boolean)).length), searchPriorCount:priorActiveCount, searchPassages:(reading.core_evidence||[]).length+(reading.context_evidence||[]).length, searchContrasts:(reading.counterevidence||[]).length,
+      projectionTabs, searchScopeChips:scopeChips, showEvidence:submittedQuestion&&(projection==='evidence'||projection==='all'), showStructure:submittedQuestion&&(projection==='structure'||projection==='all'), coreEvidence, contextEvidence, hasGaps:submittedQuestion&&gaps.length>0, gapText:gaps.length?('Missing evidence roles: '+gaps.join(', ')):'',
+      searchHasAnswer:submittedQuestion, integrityStatus, integritySummary, integrityDetail, integrityColor, hasAbstention:submittedQuestion&&hasAbstention, abstentionTitle, abstentionText,
       activeSrcCount:act.length, totalSrcCount:raw.length,
       sourcesOpen:S.sourcesOpen, openSources:()=>this.openSources(), closeSources:()=>this.closeSources(),
       srcQuery:S.srcQuery||'', onSrcQuery:(e)=>this.setState({srcQuery:e.target.value}),
       sourceRows, hasSources:sourceRows.length>0, noSources:memList.length===0,
-      spacesMeta, drawerOnCount, drawerTotal:memList.length, drawerRecCount, drawerHasRec:drawerRecCount>0, drawerLastLabel:this.relTime(drawerLastTs),
+      spacesMeta, drawerOnCount, drawerTotal:memList.length, notesCount, focusPath, focusDetail, drawerRecCount, drawerHasRec:drawerRecCount>0, drawerLastLabel:this.relTime(drawerLastTs),
       priorGenres, priorOnCount, priorTotal:priors.length, priorAllOn:()=>this.setAllPriors(true), priorAllOff:()=>this.setAllPriors(false),
       priorRankRows, hasPriorRank:priorRankRows.length>0, priorActiveCount, priorTargetLabel:priorTarget?priorTarget.label:'',
       priorOffBits:priorReading?priorReading.offBits.toFixed(2):'—', priorOnBits:priorReading?priorReading.onBits.toFixed(2):'—',
@@ -5392,10 +5417,10 @@ class Component extends DCLogic {
       readerModes:(()=>{ const on=(a)=>({bg:a?t.accent:'transparent',fg:a?'#fff':t.mut});
         const setRT=(v)=>this.save('eo5.readerType',v);
         return [
-          {key:'native',title:'Native — the original page',icon:'ph ph-browser',...on(S.view==='native'),pick:()=>{ setRT('native'); this.setState({view:'native'}); }},
-          {key:'annotated',title:'Native + — original with entity marks',icon:'ph ph-sparkle',...on(S.view==='annotated'),pick:()=>{ setRT('annotated'); this.setState({view:'annotated'}); }},
-          {key:'reader',title:'Reader — clean reading, no enrichment',icon:'ph ph-article',...on(S.view==='reader'&&S.plain),pick:()=>{ setRT('reader'); this.save('eo5.readerPlain',true); this.setState({view:'reader',plain:true}); }},
-          {key:'readerplus',title:'Reader + — clean reading with enrichment',icon:'ph ph-highlighter-circle',...on(S.view==='reader'&&!S.plain),pick:()=>{ setRT('reader'); this.save('eo5.readerPlain',false); this.setState({view:'reader',plain:false}); }}
+          {key:'native',label:'Native',title:'Native — the original page',icon:'ph ph-browser',...on(S.view==='native'),pick:()=>{ setRT('native'); this.setState({view:'native'}); }},
+          {key:'annotated',label:'Native+',title:'Native+ — original with entity marks',icon:'ph ph-sparkle',...on(S.view==='annotated'),pick:()=>{ setRT('annotated'); this.setState({view:'annotated'}); }},
+          {key:'reader',label:'Reader',title:'Reader — clean reading, no enrichment',icon:'ph ph-article',...on(S.view==='reader'&&S.plain),pick:()=>{ setRT('reader'); this.save('eo5.readerPlain',true); this.setState({view:'reader',plain:true}); }},
+          {key:'readerplus',label:'Reader+',title:'Reader+ — clean reading with enrichment',icon:'ph ph-highlighter-circle',...on(S.view==='reader'&&!S.plain),pick:()=>{ setRT('reader'); this.save('eo5.readerPlain',false); this.setState({view:'reader',plain:false}); }}
         ]; })(),
       showPlain:S.tab==='reader'&&S.view==='reader',
       plainLabel:S.plain?'Reader':'Reader+', plainColor:S.plain?t.mut:t.accent, plainDot:S.plain?t.faint:t.accent,
