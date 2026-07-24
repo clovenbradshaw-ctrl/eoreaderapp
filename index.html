@@ -2240,10 +2240,10 @@ const EO_OV_MONO="'IBM Plex Mono','SFMono-Regular',ui-monospace,monospace";
 const EO_OV_UI='system-ui,-apple-system,sans-serif';
 function eoOvEl(tag,style,text){ const n=document.createElement(tag); if(style) n.setAttribute('style',style); if(text!=null) n.textContent=text; return n; }
 function eoOvSpark(values,color){ const w=eoOvEl('div','display:flex;align-items:flex-end;gap:2px;height:34px'); const max=Math.max(1,...values);
-  values.forEach(v=>{ const h=Math.max(2,Math.round((v/max)*32)); w.appendChild(eoOvEl('div','flex:1;min-width:3px;height:'+h+'px;background:'+color+';border-radius:1px;opacity:'+(0.35+0.65*(v/max)))); }); return w; }
+  values.forEach(v=>{ const h=Math.max(2,Math.round((v/max)*32)); w.appendChild(eoOvEl('div','flex:1;min-width:1px;height:'+h+'px;background:'+color+';border-radius:1px;opacity:'+(0.35+0.65*(v/max)))); }); return w; }
 function eoOvMeter(frac,P,color){ const t=eoOvEl('div','flex:1;height:7px;background:'+P.track+';border-radius:4px;overflow:hidden');
   t.appendChild(eoOvEl('div','width:'+Math.round(Math.max(0,Math.min(1,frac))*100)+'%;height:100%;background:'+(color||P.accent))); return t; }
-function eoOvShell(P,title,right,onClick){ const c=eoOvEl('section','background:'+P.card+';border:1px solid '+P.border+';border-radius:14px;padding:13px 14px;display:flex;flex-direction:column;gap:10px;min-width:0');
+function eoOvShell(P,title,right,onClick){ const c=eoOvEl('section','background:'+P.card+';border:1px solid '+P.border+';border-radius:14px;padding:13px 14px;display:flex;flex-direction:column;gap:10px;min-width:0;max-width:100%;overflow-x:hidden;box-sizing:border-box');
   const head=eoOvEl('div','display:flex;align-items:center;gap:8px'); head.appendChild(eoOvEl('div','font:800 10px '+EO_OV_UI+';letter-spacing:.1em;color:'+P.mut,title));
   if(right){ const r=eoOvEl('div','margin-left:auto;font:600 10.5px '+EO_OV_MONO+';color:'+P.faint+(onClick?';cursor:pointer':''),right); if(onClick){ r.onclick=onClick; } head.appendChild(r); }
   c.appendChild(head); return c; }
@@ -2254,7 +2254,8 @@ function eoRenderOverviewDash(root, model, opts){
     warn:opts.dark?'#e0b24c':'#b8791f',track:th.bStrong||th.bar||'#e7e2d5',good:opts.dark?'#5fae7f':'#3f7a55'};
   const open=opts.onOpen||{};
   root.innerHTML='';
-  const shell=eoOvEl('div','display:flex;flex-direction:column;gap:12px');
+  root.setAttribute('style',(root.getAttribute('style')||'')+';max-width:100%;overflow-x:hidden;box-sizing:border-box');
+  const shell=eoOvEl('div','display:flex;flex-direction:column;gap:12px;min-width:0;max-width:100%');
   // STORY header
   const s=model.story;
   const hdr=eoOvEl('header','display:flex;flex-wrap:wrap;align-items:flex-end;gap:6px 18px;padding:0 2px 2px');
@@ -2275,10 +2276,10 @@ function eoRenderOverviewDash(root, model, opts){
   shell.appendChild(fc);
   // DIVISIONS
   const dv=model.divisions; const dc=eoOvShell(P,'DIVISIONS',dv.candidateSets+' candidate sets ›',open.divisions);
-  dv.derivations.forEach(d=>{ const row=eoOvEl('div','display:flex;align-items:center;gap:10px');
-    row.appendChild(eoOvEl('div','font:700 12px '+EO_OV_UI+';color:'+(d.id==='dom'?P.warn:P.text)+';flex:1;min-width:0',d.label));
+  dv.derivations.forEach(d=>{ const row=eoOvEl('div','display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;min-width:0');
+    row.appendChild(eoOvEl('div','font:700 12px '+EO_OV_UI+';color:'+(d.id==='dom'?P.warn:P.text)+';flex:1 1 auto;min-width:0',d.label));
     row.appendChild(eoOvEl('div','font:700 11px '+EO_OV_MONO+';color:'+P.mut+';white-space:nowrap',d.beatCount+' '+d.unit));
-    if(d.sparkline&&d.sparkline.length){ const sp=eoOvSpark(d.sparkline,P.mut); sp.setAttribute('style',sp.getAttribute('style')+';width:120px;flex:none;height:22px'); row.appendChild(sp); }
+    if(d.sparkline&&d.sparkline.length){ const sp=eoOvSpark(d.sparkline,P.mut); sp.setAttribute('style',sp.getAttribute('style')+';width:100%;max-width:120px;flex:1 1 80px;min-width:0;height:22px'); row.appendChild(sp); }
     dc.appendChild(row); });
   const stripWrap=eoOvEl('div','display:flex;flex-direction:column;gap:4px;margin-top:2px');
   const strip=eoOvEl('div','display:flex;gap:3px'), votes=eoOvEl('div','display:flex;gap:3px');
@@ -2289,7 +2290,7 @@ function eoRenderOverviewDash(root, model, opts){
   dv.smuggled.forEach(b=>{ dc.appendChild(eoOvEl('div','font:500 11px '+EO_OV_UI+';color:'+P.warn+';background:'+P.bar+';border-radius:8px;padding:6px 8px','beat '+b.index+': '+b.note)); });
   shell.appendChild(dc);
   // grid of the smaller cards
-  const grid=eoOvEl('div','display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;align-items:start');
+  const grid=eoOvEl('div','display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;align-items:start;min-width:0');
   // UNITS
   const u=model.units; const uc=eoOvShell(P,'UNITS',u.count+' passages ›',open.units); uc.appendChild(eoOvSpark(u.surprise,P.accent));
   const leg=eoOvEl('div','display:flex;justify-content:space-between'); leg.appendChild(eoOvEl('div','font:500 10px '+EO_OV_MONO+';color:'+P.faint,'boilerplate')); leg.appendChild(eoOvEl('div','font:500 10px '+EO_OV_MONO+';color:'+P.faint,'substance')); uc.appendChild(leg);
