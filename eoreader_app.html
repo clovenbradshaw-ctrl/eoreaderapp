@@ -796,15 +796,21 @@
       <div style="height:1px;background:{{ t.border }};margin:11px 6px 5px"></div>
       <div style="font:800 9px 'IBM Plex Mono',monospace;letter-spacing:.09em;color:{{ t.mut }};padding:0 6px 2px">VIEW</div>
     </div>
-    <button onClick="{{ setReader }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;min-height:44px;display:flex;align-items:center;justify-content:center;background:{{ tabRB }};color:{{ tabRC }};font:800 12px system-ui;cursor:pointer">Reader</button>
-    <button onClick="{{ setOverview }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;min-height:44px;display:flex;align-items:center;justify-content:center;background:{{ tabOB }};color:{{ tabOC }};font:800 12px system-ui;cursor:pointer">Overview</button>
-    <button onClick="{{ setStruct }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;min-height:44px;display:flex;align-items:center;justify-content:center;background:{{ tabSB }};color:{{ tabSC }};font:800 12px system-ui;cursor:pointer">Workspace</button>
-    <button onClick="{{ setBeta }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;min-height:44px;display:flex;align-items:center;justify-content:center;background:{{ tabBetaB }};color:{{ tabBetaC }};font:800 12px system-ui;cursor:pointer">Beta</button>
-    <button onClick="{{ setPriors }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;min-height:44px;display:flex;align-items:center;justify-content:center;background:{{ tabPrB }};color:{{ tabPrC }};font:800 12px system-ui;cursor:pointer">Priors</button>
-    <button onClick="{{ setInspector }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;min-height:44px;display:flex;align-items:center;justify-content:center;background:{{ tabInB }};color:{{ tabInC }};font:800 12px system-ui;cursor:pointer">Inspector</button>
-    <button onClick="{{ setTransparency }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;min-height:44px;display:flex;align-items:center;justify-content:center;background:{{ tabTrB }};color:{{ tabTrC }};font:800 12px system-ui;cursor:pointer">Process</button>
-    <button onClick="{{ setCross }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;min-height:44px;display:flex;align-items:center;justify-content:center;background:{{ tabCB }};color:{{ tabCC }};font:800 12px system-ui;cursor:pointer">Search</button>
-    <button onClick="{{ setEot }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;min-height:44px;display:flex;align-items:center;justify-content:center;background:{{ tabEB }};color:{{ tabEC }};font:800 12px system-ui;cursor:pointer">Under the hood</button>
+    <sc-if value="{{ navMoreOpen }}">
+      <button onClick="{{ closeNavMore }}" title="Back to main navigation" style="flex:.65;border:0;border-radius:17px;padding:10px 4px;min-height:44px;display:flex;align-items:center;justify-content:center;background:transparent;color:{{ t.mut }};font:900 18px system-ui;cursor:pointer">‹</button>
+      <button onClick="{{ setOverview }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;min-height:44px;display:flex;align-items:center;justify-content:center;background:{{ tabOB }};color:{{ tabOC }};font:800 12px system-ui;cursor:pointer">Overview</button>
+      <button onClick="{{ setBeta }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;min-height:44px;display:flex;align-items:center;justify-content:center;background:{{ tabBetaB }};color:{{ tabBetaC }};font:800 12px system-ui;cursor:pointer">Beta</button>
+      <button onClick="{{ setPriors }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;min-height:44px;display:flex;align-items:center;justify-content:center;background:{{ tabPrB }};color:{{ tabPrC }};font:800 12px system-ui;cursor:pointer">Priors</button>
+      <button onClick="{{ setInspector }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;min-height:44px;display:flex;align-items:center;justify-content:center;background:{{ tabInB }};color:{{ tabInC }};font:800 12px system-ui;cursor:pointer">Inspector</button>
+      <button onClick="{{ setTransparency }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;min-height:44px;display:flex;align-items:center;justify-content:center;background:{{ tabTrB }};color:{{ tabTrC }};font:800 12px system-ui;cursor:pointer">Process</button>
+      <button onClick="{{ setEot }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;min-height:44px;display:flex;align-items:center;justify-content:center;background:{{ tabEB }};color:{{ tabEC }};font:800 12px system-ui;cursor:pointer">Hood</button>
+    </sc-if>
+    <sc-if value="{{ navMainOpen }}">
+      <button onClick="{{ setReader }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;min-height:44px;display:flex;align-items:center;justify-content:center;background:{{ tabRB }};color:{{ tabRC }};font:800 12px system-ui;cursor:pointer">Reader</button>
+      <button onClick="{{ setStruct }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;min-height:44px;display:flex;align-items:center;justify-content:center;background:{{ tabSB }};color:{{ tabSC }};font:800 12px system-ui;cursor:pointer">Workspace</button>
+      <button onClick="{{ setCross }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;min-height:44px;display:flex;align-items:center;justify-content:center;background:{{ tabCB }};color:{{ tabCC }};font:800 12px system-ui;cursor:pointer">Search</button>
+      <button onClick="{{ openNavMore }}" style="flex:.8;border:0;border-radius:17px;padding:10px 4px;min-height:44px;display:flex;align-items:center;justify-content:center;background:{{ navMoreBg }};color:{{ navMoreC }};font:800 12px system-ui;cursor:pointer">More ›</button>
+    </sc-if>
   </div>
 
   <sc-if value="{{ backdrop }}">
@@ -2482,7 +2488,7 @@ class Component extends DCLogic {
       sourcesOpen:false, srcQuery:'', srcExpand:null, recPulse:0,
       priorActive:this.load('eo5.priorActive',{}), priorExpand:null,
       userPriors:this.load('eo5.userPriors',[]), priorSaveOpen:false, priorSaveText:'', priorSaveTitle:'', priorSaveMsg:'',
-      chromeHidden:false, webFrameActiveIds:[], readPct:0
+      chromeHidden:false, navMoreOpen:false, webFrameActiveIds:[], readPct:0
     };
     this.scrollRef=(el)=>{
       if(!el) return;
@@ -5329,7 +5335,7 @@ class Component extends DCLogic {
 
     return {
       isStructure:S.tab==='structure', notStructure:S.tab!=='structure',
-      setStruct:()=>this.setState({tab:'structure'}),
+      setStruct:()=>this.setState({tab:'structure',navMoreOpen:false}),
       tabSB:S.tab==='structure'?activeBg:'transparent', tabSC:S.tab==='structure'?activeC:t.mut,
       sheetDisp:(S.tab==='structure'||S.tab==='search'||S.tab==='beta'||S.tab==='priors'||S.tab==='inspector'||S.tab==='overview'||S.tab==='profile'||S.tab==='eot'||(!sel&&!linkSel&&!explore))?'none':'flex',
       panelOpenClass:(S.tab==='structure'||S.tab==='search'||S.tab==='beta'||S.tab==='priors'||S.tab==='inspector'||S.tab==='overview'||S.tab==='profile'||S.tab==='eot'||(!sel&&!linkSel&&!explore))?'':'eo-panel-docked',
@@ -5366,7 +5372,7 @@ class Component extends DCLogic {
       memIconClass:memIn?'ph-fill ph-bookmark-simple':'ph ph-bookmark-simple', memTitle:memIn?'Recorded in memory — tap to exclude':'Excluded from memory — tap to record',
       toggleMemBtn:()=>{ if(d) this.toggleMemory(d); },
       isReader:S.tab==='reader', isSearch:S.tab==='search', isBeta:S.tab==='beta', betaEl:this.buildBetaPanel(), isPriors:S.tab==='priors',
-      isOverview:S.tab==='overview', setOverview:()=>this.setState({tab:'overview'}),
+      isOverview:S.tab==='overview', setOverview:()=>this.setState({tab:'overview',navMoreOpen:false}),
       tabOB:S.tab==='overview'?activeBg:'transparent', tabOC:S.tab==='overview'?activeC:t.mut,
       ovBackShown:cdBackShown, ovBackLabel:cdBackLabel, ovBack:()=>this.cardBack(),
       ovIsFrame:cardScreen==='frame', ovFrameKicker:cdFrameKicker, ovTitle:cdTitle, ovMeta:cdMeta, ovFrameRungs:cdFrameRows, ovFrameAbsences:cdFrameAbsences,
@@ -5394,7 +5400,8 @@ class Component extends DCLogic {
       chromeBottomT:chromeCollapsed?'translateY(96px)':'translateY(0)',
       chromeBottomOp:chromeCollapsed?0:1, chromeBottomPE:chromeCollapsed?'none':'auto',
       sheetScrollPadB:chromeCollapsed?'22px':'calc(80px + env(safe-area-inset-bottom,0px))',
-      setReader:()=>this.setState({tab:'reader'}), setBeta:()=>this.setState({tab:'beta'}), setPriors:()=>this.setState({tab:'priors'}), setCross:()=>this.setState({tab:'search'}),
+      setReader:()=>this.setState({tab:'reader',navMoreOpen:false}), setBeta:()=>this.setState({tab:'beta',navMoreOpen:false}), setPriors:()=>this.setState({tab:'priors',navMoreOpen:false}), setCross:()=>this.setState({tab:'search',navMoreOpen:false}),
+      navMoreOpen:!!S.navMoreOpen, navMainOpen:!S.navMoreOpen, openNavMore:()=>this.setState({navMoreOpen:true}), closeNavMore:()=>this.setState({navMoreOpen:false}), navMoreBg:['overview','beta','priors','inspector','transparency','eot'].includes(S.tab)?activeBg:'transparent', navMoreC:['overview','beta','priors','inspector','transparency','eot'].includes(S.tab)?activeC:t.mut,
       tabRB:S.tab==='reader'?activeBg:'transparent', tabRC:S.tab==='reader'?activeC:t.mut,
       tabPrB:S.tab==='priors'?activeBg:'transparent', tabPrC:S.tab==='priors'?activeC:t.mut,
       tabBetaB:S.tab==='beta'?activeBg:'transparent', tabBetaC:S.tab==='beta'?activeC:t.mut,
@@ -5482,13 +5489,13 @@ class Component extends DCLogic {
       hasMeaningMap:!!(a.list&&a.list.length), mapScopeLabel:'This source: '+((d&&d.title)||'Untitled'),
       solarKey:(d&&(d.url||d.title||d.name))||'doc',
       isProfile:S.tab==='profile', setProfile:()=>this.setState({tab:'profile'}),
-      isEot:S.tab==='eot', setEot:()=>this.setState({tab:'eot'}),
+      isEot:S.tab==='eot', setEot:()=>this.setState({tab:'eot',navMoreOpen:false}),
       tabPB:S.tab==='profile'?activeBg:'transparent', tabPC:S.tab==='profile'?activeC:t.mut,
       tabEB:S.tab==='eot'?activeBg:'transparent', tabEC:S.tab==='eot'?activeC:t.mut,
-      isInspector:S.tab==='inspector', setInspector:()=>this.setState({tab:'inspector'}),
+      isInspector:S.tab==='inspector', setInspector:()=>this.setState({tab:'inspector',navMoreOpen:false}),
       tabInB:S.tab==='inspector'?activeBg:'transparent', tabInC:S.tab==='inspector'?activeC:t.mut,
       inspectorEl:this.buildPriorInspector(),
-      isTransparency:S.tab==='transparency', setTransparency:()=>this.setState({tab:'transparency'}),
+      isTransparency:S.tab==='transparency', setTransparency:()=>this.setState({tab:'transparency',navMoreOpen:false}),
       tabTrB:S.tab==='transparency'?activeBg:'transparent', tabTrC:S.tab==='transparency'?activeC:t.mut,
       transparencyEl:this.buildContentTransparency(),
       profileNoMap:!(a.list&&a.list.length),
