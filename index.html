@@ -315,6 +315,11 @@
       </sc-for>
     </div>
     </sc-if>
+    <sc-if value="{{ isInspector }}">
+    <div style="padding:14px 14px 40px;font-family:system-ui;max-width:1040px;margin:0 auto">
+      {{ inspectorEl }}
+    </div>
+    </sc-if>
     <sc-if value="{{ isStructure }}">
     <div style="padding:14px 14px 40px;font-family:system-ui">
 
@@ -684,6 +689,7 @@
     <button onClick="{{ setOverview }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;min-height:44px;display:flex;align-items:center;justify-content:center;background:{{ tabOB }};color:{{ tabOC }};font:800 12px system-ui;cursor:pointer">Overview</button>
     <button onClick="{{ setStruct }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;min-height:44px;display:flex;align-items:center;justify-content:center;background:{{ tabSB }};color:{{ tabSC }};font:800 12px system-ui;cursor:pointer">Workspace</button>
     <button onClick="{{ setPriors }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;min-height:44px;display:flex;align-items:center;justify-content:center;background:{{ tabPrB }};color:{{ tabPrC }};font:800 12px system-ui;cursor:pointer">Priors</button>
+    <button onClick="{{ setInspector }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;min-height:44px;display:flex;align-items:center;justify-content:center;background:{{ tabInB }};color:{{ tabInC }};font:800 12px system-ui;cursor:pointer">Inspector</button>
     <button onClick="{{ setCross }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;min-height:44px;display:flex;align-items:center;justify-content:center;background:{{ tabCB }};color:{{ tabCC }};font:800 12px system-ui;cursor:pointer">Search</button>
     <button onClick="{{ setEot }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;min-height:44px;display:flex;align-items:center;justify-content:center;background:{{ tabEB }};color:{{ tabEC }};font:800 12px system-ui;cursor:pointer">Under the hood</button>
   </div>
@@ -3533,6 +3539,318 @@ class Component extends DCLogic {
     return {stream, fold, derivation:deriv, grammar};
   }
 
+  // ---- Prior Inspector: pockets + induction --------------------------------
+  _seedRand(seed){
+    let hh=0; for(let i=0;i<seed.length;i++) hh=(hh*31+seed.charCodeAt(i))|0;
+    return ()=>{ hh=(hh*1664525+1013904223)|0; return ((hh>>>0)/4294967296); };
+  }
+  _distFrom(rnd,labels){
+    const w=labels.map(()=>0.25+rnd());
+    const sum=w.reduce((a,b)=>a+b,0);
+    const pct=w.map(x=>Math.round(x/sum*100));
+    pct[0]+=100-pct.reduce((a,b)=>a+b,0);
+    return labels.map((l,i)=>[l,Math.max(0,pct[i])]);
+  }
+  pocketRegistry(){
+    // Fixture registry shaped after eoPriors Pocket@1 / PriorSnapshot@1 (channels: priorMass, priorBond, priorProp).
+    // Wiring point: swap for resolvePinnedPriorSnapshot()/fetchPriorCatalog() from ../priors.js once a snapshot host exists.
+    return [
+      {id:'us-news-web@3', mass:0.86, active:true, installed:true},
+      {id:'gothic-novel@2', mass:0.58, active:false, installed:true},
+      {id:'court-filing@1', mass:0.40, active:false, installed:true},
+      {id:'symphony@1', mass:0.20, active:false, installed:true},
+      {id:'spreadsheet@1', mass:0.18, active:false, installed:true},
+      {id:'folk-oral@0', mass:0.04, active:false, installed:false},
+      {id:'field-notes@2', mass:0.34, active:false, installed:true},
+      {id:'epic-sanskrit@0', mass:0.03, active:false, installed:false},
+      {id:'legislative@1', mass:0.30, active:false, installed:true},
+      {id:'podcast-tx@1', mass:0.22, active:false, installed:true},
+      {id:'satellite-img@0', mass:0.02, active:false, installed:false},
+      {id:'recipe@1', mass:0.16, active:false, installed:true}
+    ];
+  }
+  pocketDetail(id){
+    const rnd=this._seedRand(id), primary=id==='us-news-web@3';
+    const mkChan=(base)=>{ const conv=+Math.max(0.15,Math.min(0.97,base+(rnd()-0.5)*0.14)).toFixed(2); return {conv,ready:conv>=0.6}; };
+    const priorMass= primary?{conv:0.94,ready:true}:mkChan(0.55+rnd()*0.35);
+    const priorBond= primary?{conv:0.81,ready:true}:mkChan(0.45+rnd()*0.35);
+    const priorProp= primary?{conv:0.37,ready:false}:mkChan(0.30+rnd()*0.45);
+    const gtSingleton= primary?0.29:+((0.14+rnd()*0.30).toFixed(2));
+    const gtNull= primary?0.12:+((0.07+rnd()*0.10).toFixed(2));
+    const thin=!priorProp.ready;
+
+    const total=100;
+    const basis=Array.from({length:total},(_,i)=>{
+      const cov= primary ? (rnd()<0.71?0.15+rnd()*0.8:rnd()*0.10) : rnd();
+      return {id:'e'+String(i+1).padStart(3,'0'), coverage:+cov.toFixed(2), loadBearing:cov>0.12};
+    });
+    const loadBearing=basis.filter(b=>b.loadBearing).length;
+
+    const OPS=['NUL','SIG','INS','SEG','CON','SYN','DEF','EVA','REC'];
+    const TERR=['Void','Field','Atmos','Entity','Kind','Relation','Frame','Division','Paradigm'];
+    const STANCE=['pointed','cultivate','argument','compose'];
+    const operators= primary? [['NUL',3],['SIG',17],['INS',13],['SEG',11],['CON',16],['SYN',9],['DEF',14],['EVA',10],['REC',7]] : this._distFrom(rnd,OPS);
+    const terrain= primary? [['Void',7],['Field',18],['Atmos',6],['Entity',24],['Kind',12],['Relation',15],['Frame',9],['Division',5],['Paradigm',4]] : this._distFrom(rnd,TERR);
+    const stance= primary? [['pointed',22],['cultivate',34],['argument',31],['compose',13]] : this._distFrom(rnd,STANCE);
+
+    const n=27, GLYPHS='▁▂▃▄▅▆▇█';
+    const mkTrace=(peaks)=>Array.from({length:n},(_,i)=>{ let v=0.6; for(const [c,hh,w] of peaks) v+=hh*Math.exp(-((i-c)*(i-c))/(2*w*w)); return Math.max(0,Math.min(7,Math.round(v))); });
+    const documentTr=mkTrace([[7,6.4,1.15],[15,3.6,1.05],[22,6.4,1.15]]);
+    const genreTr=mkTrace([[7,5.6,1.35],[15,-0.3,1],[22,5.6,1.35]]);
+    const lifetimeTr=mkTrace([[7,4.6,1.25],[14,6.4,1.05],[22,5.4,1.25]]);
+    const markers=[13,14,15,16];
+
+    const ledger= primary?[
+      {v:'@3',date:'2026-07-18',kind:'dream',detail:'replay 8,204 · ballast 1,400 · drift .04'},
+      {v:'@2',date:'2026-07-14',kind:'install',detail:'+11,902 folds · gutenberg-news-1900-1940'},
+      {v:'@1',date:'2026-07-11',kind:'install',detail:'+29,980 folds · seed'},
+      {v:'@0',date:'2026-07-11',kind:'basis',detail:'100 exemplars pinned · eo-lexical-2.0'}
+    ]:[
+      {v:'@1',date:'—',kind:'install',detail:'+'+this.nf(Math.round(2000+rnd()*20000))+' folds · seed'},
+      {v:'@0',date:'—',kind:'basis',detail:'100 exemplars pinned · eo-lexical-2.0'}
+    ];
+
+    const fetched= primary?41:Math.round(8+rnd()*30), kept= primary?12:Math.round(rnd()*fetched*0.4);
+
+    return {id,priorMass,priorBond,priorProp,gtSingleton,gtNull,thin,
+      basis,loadBearing,cold:total-loadBearing,
+      operators,terrain,stance,document:documentTr,genre:genreTr,lifetime:lifetimeTr,markers,GLYPHS,
+      ledger,fetched,kept,
+      meta: primary?{installed:'2026-07-11',folds:41882,sizeMB:92,sha:'4c1f…a08d',basis:'eo-lexical-2.0',sources:3104,langs:'en·es',dreamt:'6d ago'}:null};
+  }
+  inductionCandidates(){
+    // Net-new concept — eoPriors has no induceKind/induceCalculus contract yet. Gate field names
+    // (relative-effect floor, support gate, held-out transfer) follow src/kind-vocabulary/ready.js,
+    // the one real gate implementation, extended here with permutation-null and negative-control checks.
+    const promotedFeatured={
+      id:'kind:regime-switch', kind:'kind', status:'promoted', promotedTo:'@3',
+      source:'SEG boundary on windowed-trend selector · EVA across regimes',
+      gates:[
+        {name:'data-derived threshold', pass:true, detail:'τ=0.41 (deriveNull, not constant)'},
+        {name:'permutation null', pass:true, detail:'p=0.003   n=2000'},
+        {name:'held-out transfer', pass:true, detail:'Δcompetency +0.22 on 4 unseen'},
+        {name:'relative effect floor', pass:true, detail:'0.31  (floor 0.15)'}
+      ],
+      aggregation:'mean-over-members', aggregationForbidden:'max',
+      negativeControls:'5/5 correctly rejected'
+    };
+    const heldFeatured={
+      id:'calculus:seasonal-trend', kind:'calculus', status:'held',
+      source:'SYN over 7 sources · vocabulary size 4',
+      gates:[
+        {name:'permutation null', pass:true, detail:'p=0.000'},
+        {name:'support gate', pass:true, detail:'5/7 sources'},
+        {name:'min vocabulary', pass:true, detail:'4 ≥ 3'},
+        {name:'relative effect floor', pass:false, detail:'0.09  (floor 0.15)'}
+      ],
+      warning:'p≈0 with effect below floor — the shape that produced three prior false positives. Not chance ≠ not worthless.',
+      actions:['inspect held-out spread','re-run with fresh seeds']
+    };
+    const extraPromoted=['kind:speaker-shift','kind:list-to-narrative'].map(id=>({id,kind:'kind',status:'promoted',promotedTo:'@2'}));
+    const extraHeld=['calculus:comparative-frame','calculus:causal-chain','kind:role-swap','calculus:counterfactual','kind:aside-marker','calculus:concession','kind:redaction-boundary','calculus:escalation','kind:retraction','calculus:hedge-stack'].map(id=>({id,kind:id.startsWith('kind')?'kind':'calculus',status:'held'}));
+    return {
+      promoted:[promotedFeatured,...extraPromoted],
+      held:[heldFeatured,...extraHeld],
+      featured:[promotedFeatured,heldFeatured]
+    };
+  }
+  gateHistory(){
+    const rows=[
+      {gate:'permutation null', caught:34},
+      {gate:'effect-size floor', caught:11, note:'added late'},
+      {gate:'held-out transfer', caught:7},
+      {gate:'aggregation check', caught:3, note:'added later'},
+      {gate:'support gate', caught:2}
+    ];
+    const total=rows.reduce((a,r)=>a+r.caught,0);
+    const lateAdds=rows.filter(r=>r.note).reduce((a,r)=>a+r.caught,0);
+    return {rows,total,lateAdds,max:Math.max(...rows.map(r=>r.caught))};
+  }
+  buildPriorInspector(){
+    const S=this.state, t=this.theme(), h=React.createElement;
+    const view=S.priorInspectorView||'pockets';
+    const pockets=this.pocketRegistry();
+    const selId=S.priorInspectorPocket || (pockets.find(p=>p.active)||pockets[0]).id;
+    const warn='#c98a2e';
+
+    const banner=h('div',{style:{display:'flex',gap:'8px',alignItems:'flex-start',background:t.bar,border:'1px dashed '+t.border,borderRadius:'12px',padding:'10px 12px',marginBottom:'12px'}},[
+      h('span',{key:'i',style:{flex:'none',color:warn,font:'700 13px system-ui'}},'⚠'),
+      h('div',{key:'t',style:{font:'600 11.5px/1.5 system-ui',color:t.mut}},[
+        h('b',{key:'b',style:{color:t.text}},'Prior Inspector — distributions only. '),
+        "No corpus text is reachable from this surface. role:'corpus' spans cannot be quoted, cited, or exported."
+      ])
+    ]);
+
+    const subtabs=h('div',{style:{display:'flex',gap:'7px',marginBottom:'13px'}},[
+      h('span',{key:'p',onClick:()=>this.setState({priorInspectorView:'pockets'}),style:{background:view==='pockets'?t.accent:t.bar,color:view==='pockets'?'#fff':t.t2,border:'1px solid '+(view==='pockets'?t.accent:t.border),borderRadius:'16px',padding:'7px 12px',font:'800 11px system-ui',cursor:'pointer'}},'Pockets'),
+      h('span',{key:'i',onClick:()=>this.setState({priorInspectorView:'induction'}),style:{background:view==='induction'?t.accent:t.bar,color:view==='induction'?'#fff':t.t2,border:'1px solid '+(view==='induction'?t.accent:t.border),borderRadius:'16px',padding:'7px 12px',font:'800 11px system-ui',cursor:'pointer'}},'Induction')
+    ]);
+
+    const body= view==='induction' ? this.buildInductionView() : this.buildPocketsView(pockets, selId);
+    return h('div',{},[banner,subtabs,body]);
+  }
+  buildPocketsView(pockets, selId){
+    const t=this.theme(), h=React.createElement;
+    const detail=this.pocketDetail(selId);
+    const ready='#2f7a55', warn='#c98a2e';
+    const convStr=(c)=>'.'+String(Math.round(c*100)).padStart(2,'0');
+
+    const count=h('div',{style:{font:"800 9px 'IBM Plex Mono',monospace",letterSpacing:'.08em',color:t.mut,marginBottom:'7px'}},'POCKETS · '+pockets.length+'/40');
+    const chips=h('div',{style:{display:'flex',gap:'7px',overflowX:'auto',marginBottom:'14px',paddingBottom:'2px'}},[
+      ...pockets.map(p=>h('span',{key:p.id,onClick:()=>this.setState({priorInspectorPocket:p.id}),title:p.installed?'installed':'not installed',
+        style:{flex:'none',display:'flex',alignItems:'center',gap:'6px',background:p.id===selId?t.accent:t.bar,color:p.id===selId?'#fff':t.t2,border:'1px solid '+(p.id===selId?t.accent:t.border),borderRadius:'16px',padding:'6px 11px',font:'700 11px system-ui',cursor:'pointer'}},[
+        h('span',{key:'d',style:{width:'7px',height:'7px',borderRadius:'50%',flex:'none',background:p.active?(p.id===selId?'#fff':ready):(p.installed?(p.id===selId?'rgba(255,255,255,.5)':t.faint):t.border)}}),
+        p.id
+      ])),
+      h('span',{key:'add',onClick:()=>alert('Install from library: not wired to a live registry in this preview.'),style:{flex:'none',display:'flex',alignItems:'center',gap:'6px',background:'transparent',color:t.accent,border:'1px dashed '+t.border,borderRadius:'16px',padding:'6px 11px',font:'800 11px system-ui',cursor:'pointer'}},'+ install from library')
+    ]);
+
+    const sel=pockets.find(p=>p.id===selId);
+    const header=h('div',{style:{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:'8px',marginBottom:'9px'}},[
+      h('div',{key:'l',style:{minWidth:0}},[
+        h('div',{key:'a',style:{font:'800 16px system-ui',color:t.text}},selId),
+        h('div',{key:'b',style:{font:'600 11px system-ui',color:t.mut,marginTop:'2px'}}, detail.meta? ('installed '+detail.meta.installed+' · '+this.nf(detail.meta.folds)+' folds · '+detail.meta.sizeMB+' MB OPFS') : 'no snapshot detail cached for this pocket yet'),
+        detail.meta? h('div',{key:'c',style:{font:"600 10.5px 'IBM Plex Mono',monospace",color:t.faint,marginTop:'2px'}}, 'sha256 '+detail.meta.sha+' · basis '+detail.meta.basis+' · sources '+this.nf(detail.meta.sources)+' · langs '+detail.meta.langs+' · dreamt '+detail.meta.dreamt) : null
+      ]),
+      sel&&sel.active ? h('span',{key:'s',style:{flex:'none',font:"800 10px 'IBM Plex Mono',monospace",color:ready}},'● ACTIVE') : null
+    ]);
+
+    const actions=h('div',{style:{display:'flex',gap:'7px',flexWrap:'wrap',margin:'2px 0 12px'}},
+      ['harvest ▸','dream ▸','pin','export'].map(label=>h('span',{key:label,onClick:()=>alert(label+': not wired to a live pipeline in this preview.'),style:{background:t.bar,border:'1px solid '+t.border,color:t.t2,borderRadius:'14px',padding:'6px 10px',font:'800 10.5px system-ui',cursor:'pointer'}},label))
+    );
+
+    const chanRow=(label,ch)=>h('div',{key:label,style:{display:'flex',alignItems:'center',gap:'9px',padding:'6px 0'}},[
+      h('span',{key:'l',style:{width:'76px',flex:'none',font:"700 11px 'IBM Plex Mono',monospace",color:t.text}},label),
+      h('span',{key:'s',style:{width:'46px',flex:'none',font:'800 10px system-ui',color:ch.ready?ready:warn,textTransform:'uppercase'}},ch.ready?'ready':'THIN'),
+      h('div',{key:'bar',style:{flex:1,height:'8px',borderRadius:'4px',background:t.border,overflow:'hidden'}},h('div',{style:{width:(ch.conv*100)+'%',height:'100%',background:ch.ready?ready:warn}})),
+      h('span',{key:'c',style:{width:'56px',flex:'none',textAlign:'right',font:"700 10px 'IBM Plex Mono',monospace",color:t.mut}},'conv '+convStr(ch.conv))
+    ]);
+    const readiness=h('div',{style:{background:t.card,border:'1px solid '+t.border,borderRadius:'14px',padding:'13px',marginBottom:'12px'}},[
+      h('div',{key:'h',style:{font:"800 9px 'IBM Plex Mono',monospace",letterSpacing:'.08em',color:t.mut,marginBottom:'8px'}},'READINESS'),
+      chanRow('priorMass',detail.priorMass), chanRow('priorBond',detail.priorBond), chanRow('priorProp',detail.priorProp),
+      h('div',{key:'gt',style:{font:'600 11px system-ui',color:t.mut,margin:'9px 0 0'}}, 'Good-Turing singleton rate  '+detail.gtSingleton+'  (null '+detail.gtNull+')'),
+      detail.thin ? h('div',{key:'w',style:{marginTop:'9px',padding:'9px 10px',background:'rgba(201,138,46,.10)',border:'1px solid rgba(201,138,46,.3)',borderRadius:'10px',font:'600 11.5px/1.5 system-ui',color:t.text}},[
+        '⚠ propositional channel below deriveNull floor',
+        h('div',{key:'1',style:{color:t.mut,marginTop:'3px'}},'→ projections fall back to genre-blind'),
+        h('div',{key:'2',style:{color:t.mut}},'→ '+detail.fetched+' reactive fetches queued, '+detail.kept+' cleared gate')
+      ]) : null
+    ]);
+
+    const basisCells=detail.basis.map(ex=>h('div',{key:ex.id,title:ex.id+' — '+Math.round(ex.coverage*100)+"% of this pocket's mass"+(ex.loadBearing?'':' · cold, unexercised'),
+      style:{aspectRatio:'1',borderRadius:'3px',background:ex.loadBearing?t.accent:t.border,opacity:ex.loadBearing?(0.3+ex.coverage*0.7):0.5,cursor:'default'}}));
+    const basis=h('div',{style:{background:t.card,border:'1px solid '+t.border,borderRadius:'14px',padding:'13px',marginBottom:'12px'}},[
+      h('div',{key:'h',style:{display:'flex',justifyContent:'space-between',alignItems:'baseline',marginBottom:'9px',flexWrap:'wrap',gap:'4px'}},[
+        h('span',{key:'l',style:{font:"800 9px 'IBM Plex Mono',monospace",letterSpacing:'.08em',color:t.mut}},'BASIS · 100 EXEMPLARS · HOVER = COVERAGE, NOT TEXT'),
+        h('span',{key:'r',style:{font:"700 10px 'IBM Plex Mono',monospace",color:t.mut}},'load-bearing '+detail.loadBearing+' · cold '+detail.cold)
+      ]),
+      h('div',{key:'g',style:{display:'grid',gridTemplateColumns:'repeat(10,1fr)',gap:'4px'}},basisCells),
+      detail.cold>0 ? h('div',{key:'w',style:{marginTop:'9px',font:'600 11px system-ui',color:t.mut}},"⚠ "+detail.cold+" exemplars unexercised by this pocket — basis wider than the genre, or the pocket hasn't harvested enough") : null
+    ]);
+
+    const distCol=(title,rows)=>h('div',{key:title,style:{flex:1,minWidth:'150px'}},[
+      h('div',{key:'h',style:{font:"800 9px 'IBM Plex Mono',monospace",letterSpacing:'.06em',color:t.mut,marginBottom:'7px'}},title),
+      ...rows.map(([label,pct])=>h('div',{key:label,style:{display:'flex',alignItems:'center',gap:'6px',padding:'3px 0'}},[
+        h('span',{key:'l',style:{width:'62px',flex:'none',font:'700 10px system-ui',color:t.text,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}},label),
+        h('div',{key:'b',style:{flex:1,height:'6px',borderRadius:'3px',background:t.border,overflow:'hidden'}},h('div',{style:{width:pct+'%',height:'100%',background:t.accent}})),
+        h('span',{key:'p',style:{width:'28px',flex:'none',textAlign:'right',font:"700 10px 'IBM Plex Mono',monospace",color:t.mut}},pct+'%')
+      ]))
+    ]);
+    const folds=h('div',{style:{background:t.card,border:'1px solid '+t.border,borderRadius:'14px',padding:'13px',marginBottom:'12px'}},[
+      h('div',{key:'h',style:{font:"800 9px 'IBM Plex Mono',monospace",letterSpacing:'.08em',color:t.mut,marginBottom:'10px'}},'FOLD DISTRIBUTION'),
+      h('div',{key:'r',style:{display:'flex',gap:'16px',flexWrap:'wrap'}},[distCol('OPERATOR MASS',detail.operators), distCol('TERRAIN',detail.terrain), distCol('STANCE',detail.stance)]),
+      h('div',{key:'f',style:{marginTop:'8px',font:'600 10.5px system-ui',color:t.mut}},'⃠ SYN·Cultivate 0.0% — forbidden cell, expected')
+    ]);
+
+    const traceRow=(label,arr)=>h('div',{key:label,style:{display:'flex',alignItems:'baseline',gap:'8px'}},[
+      h('span',{key:'l',style:{width:'58px',flex:'none',font:'700 10px system-ui',color:t.text}},label),
+      h('span',{key:'s',style:{font:"600 15px/1 'IBM Plex Mono',monospace",letterSpacing:'1px',color:t.t2}}, arr.map(v=>detail.GLYPHS[v]).join(''))
+    ]);
+    const markerRow=h('div',{style:{display:'flex',alignItems:'baseline',gap:'8px',marginTop:'2px'}},[
+      h('span',{key:'l',style:{width:'58px',flex:'none'}}),
+      h('span',{key:'s',style:{font:"600 15px/1 'IBM Plex Mono',monospace",letterSpacing:'1px',color:t.accent}}, Array.from({length:27},(_,i)=>detail.markers.includes(i)?'▲':' ').join(''))
+    ]);
+    const scale=h('div',{style:{background:t.card,border:'1px solid '+t.border,borderRadius:'14px',padding:'13px',marginBottom:'12px'}},[
+      h('div',{key:'h',style:{font:"800 9px 'IBM Plex Mono',monospace",letterSpacing:'.08em',color:t.mut,marginBottom:'9px'}},'SCALE DISAGREEMENT · one traversal, three accumulators'),
+      traceRow('document',detail.document), traceRow('genre',detail.genre), traceRow('lifetime',detail.lifetime), markerRow,
+      h('div',{key:'n',style:{marginTop:'8px',font:'600 11px/1.5 system-ui',color:t.mut}},"¶14–16  low local / high genre — reads smooth, doesn't belong")
+    ]);
+
+    const ledgerRows=detail.ledger.map(r=>h('div',{key:r.v,style:{display:'flex',alignItems:'baseline',gap:'8px',padding:'6px 0',borderTop:'1px solid '+t.border}},[
+      h('span',{key:'v',style:{width:'26px',flex:'none',font:"800 11px 'IBM Plex Mono',monospace",color:t.accent}},r.v),
+      h('span',{key:'d',style:{width:'78px',flex:'none',font:"600 10px 'IBM Plex Mono',monospace",color:t.mut}},r.date),
+      h('span',{key:'k',style:{width:'54px',flex:'none',font:'800 10px system-ui',color:t.text,textTransform:'uppercase'}},r.kind),
+      h('span',{key:'t',style:{flex:1,minWidth:0,font:'500 11px system-ui',color:t.mut,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}},r.detail)
+    ]));
+    const ledger=h('div',{style:{background:t.card,border:'1px solid '+t.border,borderRadius:'14px',padding:'13px',marginBottom:'12px'}},[
+      h('div',{key:'h',style:{font:"800 9px 'IBM Plex Mono',monospace",letterSpacing:'.08em',color:t.mut}},'LEDGER · append-only, every read records the prior version it used'),
+      ...ledgerRows
+    ]);
+
+    const footer=h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',gap:'8px',flexWrap:'wrap',padding:'10px 12px',background:t.bar,border:'1px solid '+t.border,borderRadius:'12px',font:'600 11px system-ui',color:t.mut}},[
+      h('span',{key:'l'},'Competency corpus (never citable) · '+detail.fetched+' fetched · '+detail.kept+' kept'),
+      h('span',{key:'r',style:{font:'700 10px system-ui',color:t.accent}},'held to a stricter gate · excluded from readiness until cleared')
+    ]);
+
+    return h('div',{},[count,chips,header,actions,readiness,basis,folds,scale,ledger,footer]);
+  }
+  buildInductionView(){
+    const t=this.theme(), h=React.createElement;
+    const {promoted,held,featured}=this.inductionCandidates();
+    const gh=this.gateHistory();
+    const ready='#2f7a55', warn='#c98a2e', danger='#c0341a';
+
+    const header=h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'baseline',marginBottom:'11px'}},[
+      h('span',{key:'l',style:{font:"800 9px 'IBM Plex Mono',monospace",letterSpacing:'.08em',color:t.mut}},'CANDIDATES'),
+      h('span',{key:'r',style:{font:'700 11px system-ui',color:t.mut}},promoted.length+' promoted · '+held.length+' held')
+    ]);
+
+    const gateRow=(g)=>h('div',{key:g.name,style:{display:'flex',alignItems:'baseline',gap:'8px',padding:'3px 0'}},[
+      h('span',{key:'c',style:{width:'14px',flex:'none',color:g.pass?ready:danger,font:'800 12px system-ui'}},g.pass?'✓':'✗'),
+      h('span',{key:'n',style:{width:'150px',flex:'none',font:'700 11px system-ui',color:t.text}},g.name),
+      h('span',{key:'d',style:{flex:1,font:"600 11px 'IBM Plex Mono',monospace",color:t.mut}},g.detail)
+    ]);
+
+    const card=(c)=>h('div',{key:c.id,style:{background:t.card,border:'1px solid '+t.border,borderRadius:'14px',padding:'13px',marginBottom:'11px'}},[
+      h('div',{key:'h',style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'3px',gap:'8px'}},[
+        h('span',{key:'l',style:{display:'flex',alignItems:'center',gap:'7px',font:'800 13px system-ui',color:t.text,minWidth:0}},[
+          h('span',{key:'d',style:{color:c.status==='promoted'?ready:t.faint}},c.status==='promoted'?'●':'○'), c.id
+        ]),
+        h('span',{key:'s',style:{flex:'none',font:"800 10px 'IBM Plex Mono',monospace",color:c.status==='promoted'?ready:warn}}, c.status==='promoted'?('PROMOTED → '+c.promotedTo):'HELD')
+      ]),
+      h('div',{key:'src',style:{font:'600 11px system-ui',color:t.mut,marginBottom:'9px'}},c.source),
+      ...c.gates.map(gateRow),
+      c.aggregation? h('div',{key:'agg',style:{marginTop:'8px',paddingTop:'8px',borderTop:'1px solid '+t.border,display:'flex',flexWrap:'wrap',gap:'14px',font:'600 11px system-ui',color:t.mut}},[
+        h('span',{key:'a'},'aggregation  '+c.aggregation+(c.aggregationForbidden?'  ⃠ '+c.aggregationForbidden+' forbidden':'')),
+        c.negativeControls?h('span',{key:'n'},'negative controls  '+c.negativeControls):null
+      ]) : null,
+      c.warning?h('div',{key:'w',style:{marginTop:'9px',padding:'9px 10px',background:'rgba(201,138,46,.10)',border:'1px solid rgba(201,138,46,.3)',borderRadius:'10px',font:'600 11.5px/1.5 system-ui',color:t.text}},'⚠ '+c.warning):null,
+      c.actions?h('div',{key:'act',style:{marginTop:'9px',display:'flex',gap:'14px',flexWrap:'wrap'}},c.actions.map(a=>h('span',{key:a,onClick:()=>alert(a+': not wired to a live re-run in this preview.'),style:{font:'800 11px system-ui',color:t.accent,cursor:'pointer'}},a+' ▸'))):null
+    ]);
+
+    const compactRow=(c)=>h('div',{key:c.id,style:{display:'flex',alignItems:'center',gap:'8px',padding:'6px 0',borderTop:'1px solid '+t.border,font:'700 11px system-ui',color:t.mut}},[
+      h('span',{key:'d',style:{color:c.status==='promoted'?ready:t.faint}},c.status==='promoted'?'●':'○'),
+      h('span',{key:'i',style:{flex:1,minWidth:0,color:t.text,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}},c.id),
+      c.status==='promoted'?h('span',{key:'s',style:{flex:'none',font:"800 10px 'IBM Plex Mono',monospace",color:ready}},'→ '+c.promotedTo):h('span',{key:'s',style:{flex:'none',font:"800 10px 'IBM Plex Mono',monospace",color:warn}},'HELD')
+    ]);
+    const rest=[...promoted.slice(1),...held.slice(1)];
+
+    const barRow=(r)=>h('div',{key:r.gate,style:{display:'flex',alignItems:'center',gap:'8px',padding:'4px 0'}},[
+      h('span',{key:'l',style:{width:'128px',flex:'none',font:'700 11px system-ui',color:t.text}},r.gate),
+      h('div',{key:'b',style:{flex:1,height:'9px',borderRadius:'4px',background:t.border,overflow:'hidden'}},h('div',{style:{width:(r.caught/gh.max*100)+'%',height:'100%',background:t.accent}})),
+      h('span',{key:'c',style:{width:'110px',flex:'none',font:"700 10px 'IBM Plex Mono',monospace",color:t.mut}},'caught '+r.caught+(r.note?'  ← '+r.note:''))
+    ]);
+    const gateHist=h('div',{style:{background:t.card,border:'1px solid '+t.border,borderRadius:'14px',padding:'13px',marginTop:'6px'}},[
+      h('div',{key:'h',style:{font:"800 9px 'IBM Plex Mono',monospace",letterSpacing:'.08em',color:t.mut,marginBottom:'9px'}},'GATE HISTORY · which gate caught what, across every induction ever run'),
+      ...gh.rows.map(barRow),
+      h('div',{key:'w',style:{marginTop:'10px',padding:'9px 10px',background:'rgba(192,52,26,.08)',border:'1px solid rgba(192,52,26,.28)',borderRadius:'10px',font:'600 11.5px/1.55 system-ui',color:t.text}},
+        gh.lateAdds+' of '+gh.total+' rejections came from gates added AFTER a false positive shipped. Every gate here is a scar. Assume the next one is missing.')
+    ]);
+
+    return h('div',{},[header, ...featured.map(card),
+      rest.length? h('div',{key:'rest',style:{background:t.card,border:'1px solid '+t.border,borderRadius:'14px',padding:'4px 13px',marginBottom:'12px'}}, rest.map(compactRow)) : null,
+      gateHist
+    ]);
+  }
   buildActiveHereBar(){
     const S=this.state; if(S.tab!=='reader'||S.view!=='annotated') return null;
     const d=S.doc, a=d&&d.analysis; if(!a||!(a.list||[]).length) return null;
@@ -3978,8 +4296,8 @@ class Component extends DCLogic {
       isStructure:S.tab==='structure', notStructure:S.tab!=='structure',
       setStruct:()=>this.setState({tab:'structure'}),
       tabSB:S.tab==='structure'?activeBg:'transparent', tabSC:S.tab==='structure'?activeC:t.mut,
-      sheetDisp:(S.tab==='structure'||S.tab==='search'||S.tab==='priors'||S.tab==='overview'||S.tab==='profile'||S.tab==='eot'||(!sel&&!linkSel&&!explore))?'none':'flex',
-      panelOpenClass:(S.tab==='structure'||S.tab==='search'||S.tab==='priors'||S.tab==='overview'||S.tab==='profile'||S.tab==='eot'||(!sel&&!linkSel&&!explore))?'':'eo-panel-docked',
+      sheetDisp:(S.tab==='structure'||S.tab==='search'||S.tab==='priors'||S.tab==='inspector'||S.tab==='overview'||S.tab==='profile'||S.tab==='eot'||(!sel&&!linkSel&&!explore))?'none':'flex',
+      panelOpenClass:(S.tab==='structure'||S.tab==='search'||S.tab==='priors'||S.tab==='inspector'||S.tab==='overview'||S.tab==='profile'||S.tab==='eot'||(!sel&&!linkSel&&!explore))?'':'eo-panel-docked',
       structSources, corpusStats, sharedEnts, hasShared:sharedEnts.length>0, mediumFilters, crossInsights, crossSources,
       hasCross:crossInsights.length>0, noCross:crossInsights.length===0,
       queryText, onQueryInput:(e)=>this.setState({queryText:e.target.value}), onQueryKey:(e)=>{ if(e.key==='Enter') this.runLocalSearch(e.target.value); }, clearQuery:()=>this.runLocalSearch(''),
@@ -4107,6 +4425,9 @@ class Component extends DCLogic {
       isEot:S.tab==='eot', setEot:()=>this.setState({tab:'eot'}),
       tabPB:S.tab==='profile'?activeBg:'transparent', tabPC:S.tab==='profile'?activeC:t.mut,
       tabEB:S.tab==='eot'?activeBg:'transparent', tabEC:S.tab==='eot'?activeC:t.mut,
+      isInspector:S.tab==='inspector', setInspector:()=>this.setState({tab:'inspector'}),
+      tabInB:S.tab==='inspector'?activeBg:'transparent', tabInC:S.tab==='inspector'?activeC:t.mut,
+      inspectorEl:this.buildPriorInspector(),
       profileNoMap:!(a.list&&a.list.length),
       profileNoSel:!sel&&!!(a.list&&a.list.length),
       isEntSel:!!sel, isLinkSel:!!linkSel,
