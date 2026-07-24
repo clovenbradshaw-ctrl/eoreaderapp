@@ -43,9 +43,9 @@ const TYPE_NOTE = Object.freeze({
 // Derivation identities. `authoritative: false` on all of them is the whole
 // point of argument 1 — the strip reconciles, it does not elect a winner.
 export const DIVISION_DERIVATIONS = Object.freeze({
-  novelty: Object.freeze({ id: 'novelty', label: 'novelty curve (SSM checkerboard)', field: true }),
-  dom: Object.freeze({ id: 'dom', label: 'DOM headings (web perceiver)', field: false }),
-  strain: Object.freeze({ id: 'strain', label: 'strain spine (deviation waveform)', field: true }),
+  novelty: Object.freeze({ id: 'novelty', label: "where the topic shifts", field: true }),
+  dom: Object.freeze({ id: 'dom', label: "the page's own headings", field: false }),
+  strain: Object.freeze({ id: 'strain', label: 'where the tone changes', field: true }),
 });
 
 // ── FRAME ───────────────────────────────────────────────────────────────────
