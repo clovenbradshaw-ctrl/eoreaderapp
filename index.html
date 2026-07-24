@@ -340,6 +340,12 @@
     <sc-if value="{{ isOverview }}">
     <div style="padding:14px 14px 40px;font-family:system-ui">
 
+      <div style="display:flex;gap:6px;overflow-x:auto;margin-bottom:12px">
+        <sc-for list="{{ overviewSubtabs }}" as="ot" hint-placeholder-count="4">
+          <span onClick="{{ ot.pick }}" style="flex:none;background:{{ ot.bg }};color:{{ ot.fg }};border:1px solid {{ ot.bd }};border-radius:18px;padding:6px 10px;font:800 11px system-ui;cursor:pointer">{{ ot.label }}</span>
+        </sc-for>
+      </div>
+
       <sc-if value="{{ ovBackShown }}">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">
         <span onClick="{{ ovBack }}" style="font-size:19px;color:{{ t.mut }};cursor:pointer;flex:none;line-height:1">‹</span>
@@ -577,7 +583,6 @@
     <button onClick="{{ setReader }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;min-height:44px;display:flex;align-items:center;justify-content:center;background:{{ tabRB }};color:{{ tabRC }};font:800 12px system-ui;cursor:pointer">Reader</button>
     <button onClick="{{ setOverview }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;min-height:44px;display:flex;align-items:center;justify-content:center;background:{{ tabOB }};color:{{ tabOC }};font:800 12px system-ui;cursor:pointer">Overview</button>
     <button onClick="{{ setStruct }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;min-height:44px;display:flex;align-items:center;justify-content:center;background:{{ tabSB }};color:{{ tabSC }};font:800 12px system-ui;cursor:pointer">Workspace</button>
-    <button onClick="{{ setProfile }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;min-height:44px;display:flex;align-items:center;justify-content:center;background:{{ tabPB }};color:{{ tabPC }};font:800 12px system-ui;cursor:pointer">Map</button>
     <button onClick="{{ setCross }}" style="flex:1;border:0;border-radius:17px;padding:10px 4px;min-height:44px;display:flex;align-items:center;justify-content:center;background:{{ tabCB }};color:{{ tabCC }};font:800 12px system-ui;cursor:pointer">Search</button>
   </div>
 
@@ -3570,11 +3575,11 @@ class Component extends DCLogic {
     const reading=S.queryReading || this.buildLocalQueryReading(queryText || (d&&d.title) || '');
     const projection=S.searchProjection || 'evidence';
     const coverageColor={sufficient:'#2f7a55',partial:'#b0842f',ambiguous:'#b0842f',absent:'#c0392b',guidance:t.mut}[reading.coverage]||t.mut;
-    const coverageText={sufficient:'Evidence found',partial:'Related evidence only',absent:'No evidence found in this scope',guidance:'Search a committed fold'}[reading.coverage]||'Search index unavailable';
+    const coverageText={sufficient:'Answered from selected evidence',partial:'Thin answer — evidence is limited',absent:'Cannot answer from this scope',guidance:'Search a committed fold'}[reading.coverage]||'Search index unavailable';
     const searchScopeLabel=(S.searchScope&&S.searchScope!=='all')?'This source':'Workspace';
     const sourceKeys=(memList.length?memList:[d].filter(Boolean)).map((m,i)=>({id:m.id||m.title||m.name||('source'+i),label:(m.title||m.name||'Source').slice(0,18),dot:this.medColor(m.medium)}));
     const scopeChips=[{id:'all',label:'All',dot:t.accent},...sourceKeys].map(x=>{const on=(S.searchScope||'all')===x.id;return{label:x.label,dot:x.dot,bg:on?t.accent:t.bar,fg:on?'#fff':t.t2,bd:on?t.accent:t.border,pick:()=>this.setState({searchScope:x.id,queryReading:this.buildLocalQueryReading(queryText,x.id)})};});
-    const projectionTabs=['Evidence','Structure','All'].map(x=>{ const id=x.toLowerCase(); const on=projection===id; return {label:x,bg:on?t.accent:t.bar,fg:on?'#fff':t.t2,bd:on?t.accent:t.border,pick:()=>this.setState({searchProjection:id})}; });
+    const projectionTabs=['At a glance','Pieces','Sources','JSON'].map(x=>{ const id=({ 'At a glance':'evidence', Pieces:'structure', Sources:'all', JSON:'json' })[x]||x.toLowerCase(); const on=projection===id; return {label:x,bg:on?t.accent:t.bar,fg:on?'#fff':t.t2,bd:on?t.accent:t.border,pick:()=>this.setState({searchProjection:id})}; });
     const toCard=ev=>({text:ev.text&&ev.text.length>220?ev.text.slice(0,220)+'…':ev.text,source:ev.source_title,anchor:ev.anchor&&ev.anchor.label,color:ev.channel==='exact'?t.accent:(ev.channel==='structural'?'#2a78d6':'#8e6fb3'),open:()=>this.openEvidence(ev),why:()=>this.whyEvidence(ev)});
     const coreEvidence=(reading.core_evidence||[]).map(toCard);
     const contextEvidence=(reading.context_evidence||[]).map(ev=>({label:ev.text,anchor:(ev.source_title||'Source')+' · '+(ev.anchor&&ev.anchor.label||'structure')}));
@@ -3749,6 +3754,7 @@ class Component extends DCLogic {
       ovUnitHasAnchor:cdUnitHasAnchor, ovUnitNoAnchor:cdUnitNoAnchor, ovUnitAnchorLabel:cdUnitAnchorLabel, ovUnitJump:cdUnitJump,
       ovUnitHasEnts:cdUnitHasEnts, ovUnitNoEnts:cdUnitNoEnts, ovUnitEnts:cdUnitEnts,
       cdUnitHasLinks, cdUnitLinks,
+      overviewSubtabs:['Brief','Outline','Map','Technical'].map(label=>{ const on=(label==='Brief'&&S.tab==='overview')||(label==='Map'&&S.tab==='profile'); return {label,bg:on?t.accent:t.bar,fg:on?'#fff':t.t2,bd:on?t.accent:t.border,pick:()=> label==='Map'?this.setState({tab:'profile'}):this.setState({tab:'overview'})}; }),
       ovIsReferent:cardScreen==='referent',
       ovRefName:cdRefEnt?cdRefEnt.name:'', ovRefColor:cdRefEnt?cdRefEnt.color:t.mut,
       ovRefSub:cdRefEnt?('Detected entity · '+cdRefEnt.count+' mention'+(cdRefEnt.count===1?'':'s')):'',
