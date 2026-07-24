@@ -63,6 +63,9 @@
     .eo-screen.eo-panel-docked .eo-chrome{margin-right:min(440px,40vw)!important}
     /* Sources are integrated inline in the left rail on desktop — the overlay drawer and its trigger are mobile-only. */
     .eo-sources-sheet, .eo-src-toolbtn{display:none!important}
+    /* The bottom-fade scrim exists to soften the floating mobile nav over scrolling text; the
+       desktop nav is a fixed left sidebar with no such overlap, so the scrim is unneeded there. */
+    .eo-bottom-scrim{display:none!important}
   }
   @keyframes eoRecPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.3;transform:scale(.62)}}
   .eo-rec-pulse{animation:eoRecPulse 1.4s ease-in-out infinite}
@@ -785,6 +788,7 @@
     </sc-if>
   </div>
 
+  <div class="eo-bottom-scrim" style="position:absolute;left:0;right:0;bottom:0;height:132px;z-index:24;pointer-events:none;background:linear-gradient(to bottom, transparent, {{ t.screen }} 60%);opacity:{{ chromeBottomOp }};transition:opacity .22s ease"></div>
 
   <div class="eo-nav" style="position:absolute;left:14px;right:14px;bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:25;background:{{ t.sheet }};--eo-nav-bg:{{ t.bg }};border:1px solid {{ t.border }};box-shadow:0 10px 30px rgba(0,0,0,.16);border-radius:22px;padding:6px;display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;font-family:system-ui;transform:{{ chromeBottomT }};opacity:{{ chromeBottomOp }};pointer-events:{{ chromeBottomPE }};transition:transform .3s cubic-bezier(.4,0,.2,1),opacity .22s ease">
     <div class="eo-spaces-rail" style="display:none;flex-direction:column;gap:2px;margin-bottom:10px">
@@ -1306,7 +1310,7 @@
 </div>
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:440,&quot;height&quot;:940},&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Light&quot;,&quot;Dark&quot;],&quot;default&quot;:&quot;Light&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Appearance&quot;},&quot;view&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Native&quot;,&quot;Native +&quot;,&quot;Reader&quot;],&quot;default&quot;:&quot;Reader&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Reader&quot;},&quot;candidates&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Reader&quot;}}">
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:440,&quot;height&quot;:940},&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Light&quot;,&quot;Dark&quot;],&quot;default&quot;:&quot;Light&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Appearance&quot;},&quot;view&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Native&quot;,&quot;Native +&quot;,&quot;Reader&quot;],&quot;default&quot;:&quot;Native +&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Reader&quot;},&quot;candidates&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Reader&quot;}}">
 // ── book chapter detection (ported from eoreader4.2 reader-render.js) ──────────────────────────
 // A chapter is discovered by the FORM of a short line that RECURS and tiles the text — roman
 // numerals, "Chapter N", ALL-CAPS, a markdown # — never by a keyword list. This is what gives a
@@ -2280,10 +2284,10 @@ const EO_OV_MONO="'IBM Plex Mono','SFMono-Regular',ui-monospace,monospace";
 const EO_OV_UI='system-ui,-apple-system,sans-serif';
 function eoOvEl(tag,style,text){ const n=document.createElement(tag); if(style) n.setAttribute('style',style); if(text!=null) n.textContent=text; return n; }
 function eoOvSpark(values,color){ const w=eoOvEl('div','display:flex;align-items:flex-end;gap:2px;height:34px'); const max=Math.max(1,...values);
-  values.forEach(v=>{ const h=Math.max(2,Math.round((v/max)*32)); w.appendChild(eoOvEl('div','flex:1;min-width:3px;height:'+h+'px;background:'+color+';border-radius:1px;opacity:'+(0.35+0.65*(v/max)))); }); return w; }
+  values.forEach(v=>{ const h=Math.max(2,Math.round((v/max)*32)); w.appendChild(eoOvEl('div','flex:1;min-width:1px;height:'+h+'px;background:'+color+';border-radius:1px;opacity:'+(0.35+0.65*(v/max)))); }); return w; }
 function eoOvMeter(frac,P,color){ const t=eoOvEl('div','flex:1;height:7px;background:'+P.track+';border-radius:4px;overflow:hidden');
   t.appendChild(eoOvEl('div','width:'+Math.round(Math.max(0,Math.min(1,frac))*100)+'%;height:100%;background:'+(color||P.accent))); return t; }
-function eoOvShell(P,title,right,onClick){ const c=eoOvEl('section','background:'+P.card+';border:1px solid '+P.border+';border-radius:14px;padding:13px 14px;display:flex;flex-direction:column;gap:10px;min-width:0');
+function eoOvShell(P,title,right,onClick){ const c=eoOvEl('section','background:'+P.card+';border:1px solid '+P.border+';border-radius:14px;padding:13px 14px;display:flex;flex-direction:column;gap:10px;min-width:0;max-width:100%;overflow-x:hidden;box-sizing:border-box');
   const head=eoOvEl('div','display:flex;align-items:center;gap:8px'); head.appendChild(eoOvEl('div','font:800 10px '+EO_OV_UI+';letter-spacing:.1em;color:'+P.mut,title));
   if(right){ const r=eoOvEl('div','margin-left:auto;font:600 10.5px '+EO_OV_MONO+';color:'+P.faint+(onClick?';cursor:pointer':''),right); if(onClick){ r.onclick=onClick; } head.appendChild(r); }
   c.appendChild(head); return c; }
@@ -2294,7 +2298,8 @@ function eoRenderOverviewDash(root, model, opts){
     warn:opts.dark?'#e0b24c':'#b8791f',track:th.bStrong||th.bar||'#e7e2d5',good:opts.dark?'#5fae7f':'#3f7a55'};
   const open=opts.onOpen||{};
   root.innerHTML='';
-  const shell=eoOvEl('div','display:flex;flex-direction:column;gap:12px');
+  root.setAttribute('style',(root.getAttribute('style')||'')+';max-width:100%;overflow-x:hidden;box-sizing:border-box');
+  const shell=eoOvEl('div','display:flex;flex-direction:column;gap:12px;min-width:0;max-width:100%');
   // Header: what this is, and how ready we are to read it against background knowledge
   const s=model.story;
   const hdr=eoOvEl('header','display:flex;flex-wrap:wrap;align-items:flex-end;gap:6px 18px;padding:0 2px 2px');
@@ -2315,10 +2320,10 @@ function eoRenderOverviewDash(root, model, opts){
   shell.appendChild(fc);
   // Sections: three independent ways of splitting the piece into parts, shown side by side
   const dv=model.divisions; const dc=eoOvShell(P,'SECTIONS',dv.candidateSets+' ways of splitting this ›',open.divisions);
-  dv.derivations.forEach(d=>{ const row=eoOvEl('div','display:flex;align-items:center;gap:10px');
-    row.appendChild(eoOvEl('div','font:700 12px '+EO_OV_UI+';color:'+(d.id==='dom'?P.warn:P.text)+';flex:1;min-width:0',d.label));
+  dv.derivations.forEach(d=>{ const row=eoOvEl('div','display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;min-width:0');
+    row.appendChild(eoOvEl('div','font:700 12px '+EO_OV_UI+';color:'+(d.id==='dom'?P.warn:P.text)+';flex:1 1 auto;min-width:0',d.label));
     row.appendChild(eoOvEl('div','font:700 11px '+EO_OV_MONO+';color:'+P.mut+';white-space:nowrap',d.beatCount+' '+d.unit));
-    if(d.sparkline&&d.sparkline.length){ const sp=eoOvSpark(d.sparkline,P.mut); sp.setAttribute('style',sp.getAttribute('style')+';width:120px;flex:none;height:22px'); row.appendChild(sp); }
+    if(d.sparkline&&d.sparkline.length){ const sp=eoOvSpark(d.sparkline,P.mut); sp.setAttribute('style',sp.getAttribute('style')+';width:100%;max-width:120px;flex:1 1 80px;min-width:0;height:22px'); row.appendChild(sp); }
     dc.appendChild(row); });
   const stripWrap=eoOvEl('div','display:flex;flex-direction:column;gap:4px;margin-top:2px');
   const strip=eoOvEl('div','display:flex;gap:3px'), votes=eoOvEl('div','display:flex;gap:3px');
@@ -2329,7 +2334,7 @@ function eoRenderOverviewDash(root, model, opts){
   dv.smuggled.forEach(b=>{ dc.appendChild(eoOvEl('div','font:500 11px '+EO_OV_UI+';color:'+P.warn+';background:'+P.bar+';border-radius:8px;padding:6px 8px','part '+b.index+': '+b.note)); });
   shell.appendChild(dc);
   // grid of the smaller cards
-  const grid=eoOvEl('div','display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;align-items:start');
+  const grid=eoOvEl('div','display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;align-items:start;min-width:0');
   // Reading mix: how much of the text is reporting vs. quotes vs. boilerplate
   const u=model.units; const uc=eoOvShell(P,'READING MIX',u.count+' passages ›',open.units); uc.appendChild(eoOvSpark(u.surprise,P.accent));
   const leg=eoOvEl('div','display:flex;justify-content:space-between'); leg.appendChild(eoOvEl('div','font:500 10px '+EO_OV_MONO+';color:'+P.faint,'routine')); leg.appendChild(eoOvEl('div','font:500 10px '+EO_OV_MONO+';color:'+P.faint,'noteworthy')); uc.appendChild(leg);
@@ -2548,7 +2553,7 @@ class Component extends DCLogic {
       tab:'reader',
       betaPrompt:'', betaOrgans:{text:true,image:true,audio:true,video:false,math:false}, betaTurn:null,
       searchProjection:'evidence', searchScope:'all', queryText:'', queryReading:null, queryWhy:null,
-      view: vmap[props.view]||'reader',
+      view: vmap[props.view]||'annotated',
       layersOpen:false, settingsOpen:false, importOpen:false, urlVal:'', engineLive:false,
       layers:{hi:true,en:true,ch:true,ln:true,nw:props.candidates!==false},
       sel:null, linkSel:null, linkPeek:{status:'idle'}, linkFromOpen:true, level:'prompt', chap:0, tocOpen:false, explore:null,
@@ -3335,7 +3340,7 @@ class Component extends DCLogic {
     this.setState(s=>{
       const next={doc:d, importOpen:false, searchResults:[], mediaResults:[], searchMsg:'', sel:null, level:'prompt', chap:0, tab:'reader',
         searchProjection:'evidence', searchScope:'all', queryText:'', queryReading:null, queryWhy:null,
-        view:(opts&&opts.view)||this.load('eo5.readerType','native'), webFrameActiveIds:[], cardPath:[], lensByRung:{}, readPct:0, tocOpen:false,
+        view:(opts&&opts.view)||this.load('eo5.readerType','annotated'), webFrameActiveIds:[], cardPath:[], lensByRung:{}, readPct:0, tocOpen:false,
         src:{label:d.name||d.title, det, dot:this.medColor(d.medium)}};
       if(!autoRecord) return next;
       const key=this.docKey(d);
@@ -5553,7 +5558,7 @@ class Component extends DCLogic {
       ovRefHasWith:cdRefWith.length>0, ovRefNoWith:!!cdRefEnt&&cdRefWith.length===0, ovRefWith:cdRefWith,
       cdRefForms, cdRefHasForms:cdRefForms.length>0,
       scrollRef:this.scrollRef,
-      chromeMaxH:chromeCollapsed?'0px':'150px', chromePadT:chromeCollapsed?'0px':'5px',
+      chromeMaxH:chromeCollapsed?'0px':'260px', chromePadT:chromeCollapsed?'0px':'5px',
       chromeOpacity:chromeCollapsed?0:1, chromePE:chromeCollapsed?'none':'auto',
       chromeBottomT:chromeCollapsed?'translateY(96px)':'translateY(0)',
       chromeBottomOp:chromeCollapsed?0:1, chromeBottomPE:chromeCollapsed?'none':'auto',

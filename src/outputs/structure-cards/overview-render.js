@@ -8,9 +8,9 @@
 
 export const THEMES = Object.freeze({
   light: Object.freeze({
-    bg: '#f4f1ea', panel: '#fbfaf6', card: '#ffffff', border: '#e4dfd2', bar: '#efece2',
-    text: '#15181e', mut: '#6d6a60', faint: '#a09b8d', accent: '#c0662e', warn: '#b8791f',
-    track: '#e7e2d5', good: '#3f7a55',
+    bg: '#f3f3f2', panel: '#fbfbfa', card: '#ffffff', border: '#e4e4e2', bar: '#efefec',
+    text: '#1e1e1c', mut: '#6a6a64', faint: '#a3a39c', accent: '#8a8a83', warn: '#b8791f',
+    track: '#e4e4e2', good: '#3f7a55',
   }),
   dark: Object.freeze({
     bg: '#14161b', panel: '#191c23', card: '#1e222b', border: '#2c313c', bar: '#242833',
