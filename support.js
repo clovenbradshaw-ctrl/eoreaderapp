@@ -508,38 +508,43 @@
       if (!txt.trim() && !txt.includes(" ")) return null;
       return () => txt;
     }
-    const parts = txt.split(/\{\{([\s\S]+?)\}\}/g);
+    const parts = txt.split(/(\{\{\{[\s\S]+?\}\}\}|\{\{[\s\S]+?\}\})/g);
     return (vals, ctx, key) => h(
       getReact().Fragment,
       { key },
       ...parts.map((p, i) => {
         if (!(i & 1)) return p;
-        const v = resolve(vals, p);
+        const isRaw = p.startsWith('{{{') && p.endsWith('}}}');
+        const path = isRaw ? p.slice(3, -3).trim() : p.slice(2, -2).trim();
+        const v = resolve(vals, path);
         if (v === void 0) {
           if (!ctx?.__streamingNow) {
             if (document.body?.hasAttribute("data-dc-editor-on")) {
               return h(
                 "span",
                 { key: i, className: "sc-interp sc-unresolved" },
-                "{{ " + p.trim() + " }}"
+                "{{ " + path + " }}"
               );
             }
             warnUnresolved(
               ctx,
-              "{{ " + p.trim() + " }} never resolved \u2014 rendered as empty"
+              "{{ " + path + " }} never resolved \u2014 rendered as empty"
             );
             return null;
           }
           return h(
             "span",
             { key: i, className: "sc-interp sc-missing" },
-            p.trim()
+            path
           );
         }
         if (getReact().isValidElement(v) || Array.isArray(v)) {
           return h(getReact().Fragment, { key: i }, v);
         }
         if (v === null || typeof v === "boolean") return null;
+        if (isRaw && typeof v === 'string') {
+          return h('span', { key: i, dangerouslySetInnerHTML: { __html: v } });
+        }
         return h("span", { key: i, className: "sc-interp" }, String(v));
       })
     );

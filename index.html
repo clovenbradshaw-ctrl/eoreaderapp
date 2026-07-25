@@ -154,20 +154,49 @@
         <div style="font:500 12px/1.5 system-ui;color:{{ t.mut }};margin:10px 0 4px">Size shows structural importance, color shows referent kind. Tap a body to focus that entity below; tap Expand for a full-screen map.</div>
 
         <div style="font:700 9px 'IBM Plex Mono',monospace;letter-spacing:.07em;text-transform:uppercase;color:{{ t.mut }};margin:18px 2px 9px">By kind</div>
-        <sc-for list="{{ entKindSegments }}" as="k" hint-placeholder-count="3">
-          <div style="background:{{ t.card }};border:1px solid {{ t.border }};border-radius:14px;padding:11px 13px;margin-bottom:10px">
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:9px">
-              <span style="width:10px;height:10px;border-radius:3px;flex:none;background:{{ k.color }}"></span>
-              <div style="flex:1;font:800 12px system-ui;color:{{ t.text }}">{{ k.label }}</div>
-              <span style="font:700 10px 'IBM Plex Mono',monospace;color:{{ t.mut }}">{{ k.count }} · {{ k.total }} mentions</span>
-            </div>
-            <div style="display:flex;flex-wrap:wrap;gap:6px">
-              <sc-for list="{{ k.entities }}" as="e" hint-placeholder-count="4">
-                <span onClick="{{ e.pick }}" style="display:inline-flex;align-items:center;gap:6px;background:{{ e.chipBg }};border:1px solid {{ e.chipBd }};border-radius:14px;padding:5px 10px;font:600 12px system-ui;color:{{ t.text }};cursor:pointer"><span style="width:8px;height:8px;border-radius:50%;flex:none;background:{{ e.color }}"></span>{{ e.name }}<span style="font:700 9px 'IBM Plex Mono',monospace;color:{{ t.mut }}">{{ e.count }}</span></span>
-              </sc-for>
-            </div>
+
+        <div style="display:flex;align-items:center;gap:8px;background:{{ t.card }};border:1px solid {{ t.border }};border-radius:12px;padding:8px 10px;margin-bottom:9px">
+          <i class="ph ph-magnifying-glass" style="font-size:14px;color:{{ t.mut }}"></i>
+          <input defaultValue="{{ entTableQuery }}" onInput="{{ onEntTableQuery }}" placeholder="Search entities…" style="flex:1;min-width:0;background:transparent;border:0;outline:none;font:600 13px system-ui;color:{{ t.text }}">
+          <sc-if value="{{ hasEntTableQuery }}">
+            <span onClick="{{ clearEntTableQuery }}" style="font:800 14px system-ui;color:{{ t.mut }};cursor:pointer">×</span>
+          </sc-if>
+        </div>
+
+        <div style="display:flex;gap:6px;overflow-x:auto;margin-bottom:10px">
+          <sc-for list="{{ entKindChips }}" as="c" hint-placeholder-count="3">
+            <span onClick="{{ c.pick }}" style="flex:none;display:inline-flex;align-items:center;gap:6px;background:{{ c.chipBg }};color:{{ c.chipFg }};border:1px solid {{ c.chipBd }};border-radius:18px;padding:6px 10px;font:800 11px system-ui;cursor:pointer"><span style="width:7px;height:7px;border-radius:3px;background:{{ c.color }}"></span>{{ c.label }}</span>
+          </sc-for>
+        </div>
+
+        <div style="background:{{ t.card }};border:1px solid {{ t.border }};border-radius:14px;overflow:hidden;margin-bottom:8px">
+          <div style="display:flex;align-items:center;padding:8px 12px;border-bottom:1px solid {{ t.border }};font:700 9px 'IBM Plex Mono',monospace;letter-spacing:.06em;text-transform:uppercase;color:{{ t.mut }}">
+            <div style="flex:1">Entity</div>
+            <div style="width:110px;flex:none">Kind</div>
+            <div style="width:56px;flex:none;text-align:right">Count</div>
           </div>
-        </sc-for>
+          <sc-if value="{{ entTableEmpty }}">
+            <div style="padding:18px 13px;font:500 12.5px system-ui;color:{{ t.mut }};text-align:center">No entities match this search.</div>
+          </sc-if>
+          <sc-for list="{{ entTableRows }}" as="r" hint-placeholder-count="6">
+            <div onClick="{{ r.pick }}" style="display:flex;align-items:center;padding:9px 12px;border-bottom:1px solid {{ t.border }};background:{{ r.rowBg }};cursor:pointer">
+              <div style="flex:1;min-width:0;display:flex;align-items:center;gap:7px;font:600 12.5px system-ui;color:{{ t.text }};overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><span style="width:8px;height:8px;border-radius:50%;flex:none;background:{{ r.color }}"></span>{{ r.name }}</div>
+              <div style="width:110px;flex:none;font:500 11px system-ui;color:{{ t.mut }};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ r.kindLabel }}</div>
+              <div style="width:56px;flex:none;text-align:right;font:700 11px 'IBM Plex Mono',monospace;color:{{ t.mut }}">{{ r.count }}</div>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:16px">
+          <div style="font:600 11px system-ui;color:{{ t.mut }}">{{ entTableCountLabel }}</div>
+          <sc-if value="{{ showEntTablePager }}">
+            <div style="display:flex;align-items:center;gap:8px">
+              <span onClick="{{ entTablePrev }}" style="opacity:{{ entTablePrevOpacity }};pointer-events:{{ entTablePrevPtr }};width:28px;height:28px;border-radius:50%;background:{{ t.bar }};border:1px solid {{ t.border }};display:flex;align-items:center;justify-content:center;cursor:pointer;color:{{ t.text }}"><i class="ph ph-caret-left" style="font-size:13px"></i></span>
+              <span style="font:700 11px system-ui;color:{{ t.mut }}">{{ entTablePageLabel }}</span>
+              <span onClick="{{ entTableNext }}" style="opacity:{{ entTableNextOpacity }};pointer-events:{{ entTableNextPtr }};width:28px;height:28px;border-radius:50%;background:{{ t.bar }};border:1px solid {{ t.border }};display:flex;align-items:center;justify-content:center;cursor:pointer;color:{{ t.text }}"><i class="ph ph-caret-right" style="font-size:13px"></i></span>
+            </div>
+          </sc-if>
+        </div>
       </sc-if>
       <sc-if value="{{ profileNoMap }}">
         <div style="padding:26px;border-radius:16px;background:{{ t.bar }};border:1px solid {{ t.border }};font:500 13px/1.6 system-ui;color:{{ t.mut }}">Open a source with resolved, evidence-bearing referents to see its Map.</div>
@@ -185,9 +214,24 @@
         </div>
         <div style="display:flex;gap:9px;margin:12px 0 4px">
           <div style="flex:1;background:{{ t.bar }};border-radius:11px;padding:10px 11px"><div style="font:700 20px system-ui;color:{{ t.text }}">{{ sel.count }}</div><div style="font:600 9.5px system-ui;letter-spacing:.04em;text-transform:uppercase;color:{{ t.mut }}">Mentions</div></div>
-          <div style="flex:1;background:{{ t.bar }};border-radius:11px;padding:10px 11px"><div style="font:700 20px system-ui;color:{{ t.text }}">{{ sel.links }}</div><div style="font:600 9.5px system-ui;letter-spacing:.04em;text-transform:uppercase;color:{{ t.mut }}">Links</div></div>
-          <div style="flex:1;background:{{ t.bar }};border-radius:11px;padding:10px 11px"><div style="font:700 20px system-ui;color:{{ flagColor }}">{{ sel.flags }}</div><div style="font:600 9.5px system-ui;letter-spacing:.04em;text-transform:uppercase;color:{{ t.mut }}">Flags</div></div>
+          <div onClick="{{ toggleLinks }}" style="flex:1;background:{{ t.bar }};border-radius:11px;padding:10px 11px;cursor:pointer"><div style="font:700 20px system-ui;color:{{ t.text }}">{{ sel.links }}</div><div style="font:600 9.5px system-ui;letter-spacing:.04em;text-transform:uppercase;color:{{ t.mut }}">Links {{ linksCaret }}</div></div>
         </div>
+        <sc-if value="{{ linksOpen }}">
+          <div style="margin-top:6px;margin-bottom:10px;background:{{ t.bar }};border:1px solid {{ t.border }};border-radius:11px;overflow:hidden">
+            <div style="display:flex;align-items:center;padding:6px 11px;border-bottom:1px solid {{ t.border }};font:700 8px 'IBM Plex Mono',monospace;letter-spacing:.06em;text-transform:uppercase;color:{{ t.mut }}">
+              <div style="flex:1">Entity</div>
+              <div style="width:72px;text-align:center">Relation</div>
+              <div style="width:28px;text-align:right">×</div>
+            </div>
+            <sc-for list="{{ selConns }}" as="c" hint-placeholder-count="3">
+              <div onClick="{{ c.pick }}" style="display:flex;align-items:center;padding:7px 11px;border-bottom:1px solid {{ t.border }};cursor:pointer">
+                <div style="flex:1;min-width:0;display:flex;align-items:center;gap:6px;font:600 12px system-ui;color:{{ t.text }};overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><span style="width:7px;height:7px;border-radius:50%;flex:none;background:{{ c.color }}"></span>{{ c.name }}</div>
+                <div style="width:72px;text-align:center;font:600 8.5px 'IBM Plex Mono',monospace;color:{{ t.accent }}">{{ c.verb }}</div>
+                <div style="width:28px;text-align:right;font:700 10px 'IBM Plex Mono',monospace;color:{{ t.mut }}">{{ c.count }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
         <sc-if value="{{ selWikiWait }}">
           <div style="margin:14px 0 2px;font:500 12.5px system-ui;color:{{ t.mut }};display:flex;align-items:center;gap:7px"><i class="ph ph-book-open-text" style="font-size:15px"></i>Looking up Wikipedia…</div>
         </sc-if>
@@ -596,192 +640,48 @@
 
     </div>
     </sc-if>
-    <sc-if value="{{ isOverview }}">
-    <div style="padding:14px 14px 40px;font-family:system-ui">
+        <sc-if value="{{ isOverview }}">
+    <div style="padding:14px 14px 40px;font-family:system-ui;max-width:760px;margin:0 auto">
 
-      <div style="display:flex;gap:6px;overflow-x:auto;margin-bottom:12px">
-        <sc-for list="{{ overviewSubtabs }}" as="ot" hint-placeholder-count="4">
-          <span onClick="{{ ot.pick }}" style="flex:none;background:{{ ot.bg }};color:{{ ot.fg }};border:1px solid {{ ot.bd }};border-radius:18px;padding:6px 10px;font:800 11px system-ui;cursor:pointer">{{ ot.label }}</span>
+      <div style="display:flex;align-items:center;gap:9px;margin-bottom:10px">
+        <i class="ph ph-graph" style="font-size:20px;color:{{ t.accent }}"></i>
+        <div style="flex:1;min-width:0">
+          <div style="font:800 18px system-ui;color:{{ t.text }}">Overview</div>
+          <div style="font:500 12px/1.4 system-ui;color:{{ t.mut }}">{{ ovSubtitle }}</div>
+        </div>
+      </div>
+
+      <sc-if value="{{ ovDashActive }}">
+        <div key="{{ overviewDashKey }}" ref="{{ overviewDashRef }}" style="min-height:240px;margin-bottom:16px"></div>
+      </sc-if>
+
+      <div style="height:1px;background:{{ t.border }};margin:6px 0 16px"></div>
+
+      <div style="font:700 9px 'IBM Plex Mono',monospace;letter-spacing:.07em;text-transform:uppercase;color:{{ t.mut }};margin:4px 2px 7px">Sources · toggle what feeds this workspace</div>
+
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:9px">
+        <span onClick="{{ bulkAllOn }}" style="flex:none;background:{{ t.accent }};color:#fff;border-radius:14px;padding:5px 10px;font:800 10px system-ui;cursor:pointer">Focus all</span>
+        <span onClick="{{ bulkAllOff }}" style="flex:none;background:{{ t.bar }};border:1px solid {{ t.border }};color:{{ t.t2 }};border-radius:14px;padding:5px 10px;font:800 10px system-ui;cursor:pointer">Clear</span>
+        <sc-if value="{{ hasCheckedSources }}">
+          <span onClick="{{ toggleChecked }}" style="flex:none;background:{{ t.accentSoft }};border:1px solid {{ t.accentLine }};color:{{ t.accent }};border-radius:14px;padding:5px 10px;font:800 10px system-ui;cursor:pointer">{{ checkedCount }} selected</span>
+        </sc-if>
+        <div style="flex:1"></div>
+        <div style="font:600 10px system-ui;color:{{ t.mut }}">{{ drawerOnCount }}/{{ drawerTotal }} active</div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:5px;margin-bottom:16px">
+        <sc-for list="{{ sourceRows }}" as="s" hint-placeholder-count="2">
+          <div style="display:flex;align-items:center;gap:8px;background:{{ t.card }};border:1px solid {{ t.border }};border-radius:11px;padding:8px 10px;opacity:{{ s.rowOp }}">
+            <span onClick="{{ s.toggleCheck }}" style="flex:none;width:18px;text-align:center;font-family:'IBM Plex Mono',monospace;font-size:13px;cursor:pointer;color:{{ s.checked ? t.accent : t.faint }};user-select:none">{{ s.checkGlyph }}</span>
+            <span style="flex:none;font:700 8px 'IBM Plex Mono',monospace;color:#fff;background:{{ s.dot }};border-radius:4px;padding:3px 5px">{{ s.code }}</span>
+            <div onClick="{{ s.open }}" style="flex:1;min-width:0;cursor:pointer;font:600 13px system-ui;color:{{ t.text }};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ s.title }}</div>
+            <span onClick="{{ s.toggleOn }}" title="Include this source" style="flex:none;width:34px;height:20px;border-radius:20px;background:{{ s.track }};position:relative;cursor:pointer;transition:background .18s"><span style="position:absolute;top:2px;left:{{ s.knobSm }};width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25);transition:left .18s"></span></span>
+          </div>
         </sc-for>
       </div>
 
-      <sc-if value="{{ ovBackShown }}">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">
-        <span onClick="{{ ovBack }}" style="font-size:19px;color:{{ t.mut }};cursor:pointer;flex:none;line-height:1">‹</span>
-        <div style="flex:1;min-width:0;font:600 12.5px system-ui;color:{{ t.mut }};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ ovBackLabel }}</div>
-      </div>
-      </sc-if>
-
-      <sc-if value="{{ ovIsFrame }}">
-        <sc-if value="{{ cdHasProvenance }}">
-          <div onClick="{{ cdProvenanceOpen }}" style="display:flex;align-items:center;gap:6px;font:600 11.5px system-ui;color:{{ t.accent }};cursor:pointer;margin-bottom:10px">{{ cdProvenanceText }}</div>
-        </sc-if>
-        <sc-if value="{{ ovDashActive }}">
-          <div key="{{ overviewDashKey }}" ref="{{ overviewDashRef }}" style="min-height:440px"></div>
-        </sc-if>
-        <sc-if value="{{ ovDashFallback }}">
-        <div style="font:800 10px system-ui;letter-spacing:.08em;text-transform:uppercase;color:{{ t.mut }};margin-bottom:10px">{{ ovFrameKicker }}</div>
-        <div style="font:700 21px/1.28 'Source Serif 4',Georgia,serif;color:{{ t.text }};margin-bottom:8px">{{ ovTitle }}</div>
-        <div style="font:500 12.5px system-ui;color:{{ t.mut }};margin-bottom:20px">{{ ovMeta }}</div>
-
-        <sc-for list="{{ ovFrameRungs }}" as="r" hint-placeholder-count="2">
-          <div onClick="{{ r.pick }}" style="display:flex;align-items:center;gap:11px;background:{{ t.card }};border:1px solid {{ t.border }};border-radius:14px;padding:13px 14px;margin-bottom:10px;cursor:pointer">
-            <div style="flex:1;min-width:0">
-              <div style="font:700 15px system-ui;color:{{ t.text }}">{{ r.count }} {{ r.label }}</div>
-              <div style="font:500 12px system-ui;color:{{ t.mut }};margin-top:2px">{{ r.sub }}</div>
-            </div>
-            <span style="color:{{ t.faint }};font-size:16px;flex:none">›</span>
-          </div>
-        </sc-for>
-
-        <sc-for list="{{ ovFrameAbsences }}" as="ab" hint-placeholder-count="1">
-          <div style="display:flex;gap:9px;align-items:flex-start;padding:8px 2px 4px">
-            <span style="font-size:13px;flex:none;color:{{ t.faint }};line-height:1.5">○</span>
-            <div style="flex:1">
-              <div style="font:500 13px/1.5 system-ui;color:{{ t.mut }}">{{ ab.reason }}</div>
-              <sc-if value="{{ ab.hasOffer }}">
-                <div style="margin-top:8px;background:{{ t.bar }};border:1px solid {{ t.border }};border-radius:12px;padding:10px 11px">
-                  <div style="font:700 12.5px system-ui;color:{{ t.text }}">{{ ab.offerLabel }}</div>
-                  <div style="font:500 11.5px/1.4 system-ui;color:{{ t.mut }};margin:3px 0 8px">{{ ab.offerBlurb }}</div>
-                  <span onClick="{{ ab.offerRun }}" style="display:inline-block;font:700 11.5px system-ui;color:#fff;background:{{ t.accent }};border-radius:9px;padding:6px 11px;cursor:pointer">Try it</span>
-                </div>
-              </sc-if>
-            </div>
-          </div>
-        </sc-for>
-        </sc-if>
-      </sc-if>
-
-      <sc-if value="{{ ovIsList }}">
-        <div style="font:800 10px system-ui;letter-spacing:.08em;text-transform:uppercase;color:{{ t.mut }};margin-bottom:12px">{{ ovListHeader }}</div>
-        <sc-if value="{{ cdHasLenses }}">
-          <div style="display:flex;gap:6px;margin-bottom:14px">
-            <sc-for list="{{ cdLensChips }}" as="lc" hint-placeholder-count="2">
-              <span onClick="{{ lc.pick }}" style="flex:none;background:{{ lc.on ? t.accent : t.bar }};color:{{ lc.on ? '#fff' : t.t2 }};border:1px solid {{ lc.on ? t.accent : t.border }};border-radius:16px;padding:6px 11px;font:700 11.5px system-ui;cursor:pointer">{{ lc.label }}</span>
-            </sc-for>
-          </div>
-        </sc-if>
-        <sc-for list="{{ ovListRows }}" as="row" hint-placeholder-count="3">
-          <div onClick="{{ row.pick }}" style="background:{{ t.card }};border:1px solid {{ t.border }};border-radius:14px;padding:13px 14px;margin-bottom:10px;cursor:pointer">
-            <div style="display:flex;align-items:center;margin-bottom:8px">
-              <span style="font:700 11px 'IBM Plex Mono',monospace;color:{{ t.faint }}">{{ row.idxLabel }}</span>
-              <span style="margin-left:auto;display:flex;align-items:center;gap:6px;font:600 11px 'IBM Plex Mono',monospace;color:{{ t.mut }}">{{ row.anchorLabel }}<span style="color:{{ t.faint }};font-size:13px">›</span></span>
-            </div>
-            <div style="font:400 14.5px/1.5 'Source Serif 4',Georgia,serif;color:{{ t.text }};margin-bottom:8px">{{ row.text }}</div>
-            <sc-if value="{{ row.hasEnts }}">
-            <div style="display:flex;flex-wrap:wrap;gap:9px">
-              <sc-for list="{{ row.ents }}" as="e" hint-placeholder-count="2">
-                <span style="display:flex;align-items:center;gap:5px;font:600 11.5px system-ui;color:{{ t.t2 }}"><span style="width:7px;height:7px;border-radius:50%;background:{{ e.c }};flex:none"></span>{{ e.n }}</span>
-              </sc-for>
-            </div>
-            </sc-if>
-          </div>
-        </sc-for>
-      </sc-if>
-
-      <sc-if value="{{ ovIsUnit }}">
-        <div style="font:800 10px system-ui;letter-spacing:.08em;text-transform:uppercase;color:{{ t.mut }};margin-bottom:12px">{{ ovUnitKicker }}</div>
-        <div style="font:400 17px/1.55 'Source Serif 4',Georgia,serif;color:{{ t.text }};margin-bottom:18px">{{ ovUnitText }}</div>
-        <div style="background:{{ t.card }};border:1px solid {{ t.border }};border-radius:14px;padding:12px 13px;margin-bottom:16px">
-          <div style="font:800 9px system-ui;letter-spacing:.08em;text-transform:uppercase;color:{{ t.mut }};margin-bottom:8px">Evidence and derivation</div>
-          <div style="font:700 12.5px/1.45 system-ui;color:{{ t.text }}">Plain finding → claims/relations → source passage → derivation → operations and priors.</div>
-          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px">
-            <sc-for list="{{ derivationActions }}" as="da" hint-placeholder-count="5">
-              <span onClick="{{ da.pick }}" style="background:{{ t.bar }};border:1px solid {{ t.border }};border-radius:14px;padding:5px 9px;font:800 10.5px system-ui;color:{{ t.accent }};cursor:pointer">{{ da.label }}</span>
-            </sc-for>
-          </div>
-        </div>
-        <div style="height:1px;background:{{ t.border }};margin-bottom:16px"></div>
-
-        <div style="font:800 9px system-ui;letter-spacing:.08em;text-transform:uppercase;color:{{ t.mut }};margin-bottom:8px">In source</div>
-        <sc-if value="{{ ovUnitHasAnchor }}">
-          <div onClick="{{ ovUnitJump }}" style="display:flex;align-items:center;gap:7px;font:600 12.5px system-ui;color:{{ t.accent }};cursor:pointer;margin-bottom:20px">{{ ovUnitAnchorLabel }} · Native <span style="font-size:11px">↗</span></div>
-        </sc-if>
-        <sc-if value="{{ ovUnitNoAnchor }}">
-          <div style="display:flex;gap:9px;align-items:flex-start;margin-bottom:20px">
-            <span style="font-size:13px;flex:none;color:{{ t.faint }};line-height:1.5">○</span>
-            <div style="flex:1;font:500 13px/1.5 system-ui;color:{{ t.mut }}">no exact match — this couldn’t be re-anchored to the source</div>
-          </div>
-        </sc-if>
-
-        <div style="font:800 9px system-ui;letter-spacing:.08em;text-transform:uppercase;color:{{ t.mut }};margin-bottom:8px">Named here</div>
-        <sc-if value="{{ ovUnitHasEnts }}">
-        <div style="margin-bottom:20px">
-          <sc-for list="{{ ovUnitEnts }}" as="e" hint-placeholder-count="2">
-            <div onClick="{{ e.pick }}" style="display:flex;align-items:center;gap:9px;padding:9px 0;border-top:1px solid {{ t.border }};cursor:pointer">
-              <span style="width:9px;height:9px;border-radius:50%;background:{{ e.c }};flex:none"></span>
-              <span style="flex:1;font:600 13.5px system-ui;color:{{ t.text }}">{{ e.n }}</span>
-              <span style="font:600 10.5px 'IBM Plex Mono',monospace;color:{{ t.mut }}">{{ e.count }}×</span>
-              <span style="color:{{ t.faint }};font-size:14px;flex:none">›</span>
-            </div>
-          </sc-for>
-        </div>
-        </sc-if>
-        <sc-if value="{{ ovUnitNoEnts }}">
-          <div style="display:flex;gap:9px;align-items:flex-start;margin-bottom:20px">
-            <span style="font-size:13px;flex:none;color:{{ t.faint }};line-height:1.5">○</span>
-            <div style="flex:1;font:500 13px/1.5 system-ui;color:{{ t.mut }}">no detected entities named here</div>
-          </div>
-        </sc-if>
-
-        <div style="font:800 9px system-ui;letter-spacing:.08em;text-transform:uppercase;color:{{ t.mut }};margin-bottom:8px">Carries</div>
-        <sc-if value="{{ cdUnitHasLinks }}">
-        <div style="display:flex;flex-wrap:wrap;gap:6px">
-          <sc-for list="{{ cdUnitLinks }}" as="lk" hint-placeholder-count="2">
-            <span style="font:600 11.5px system-ui;color:{{ t.t2 }};background:{{ t.bar }};border:1px solid {{ t.border }};border-radius:14px;padding:5px 10px">{{ lk.text }}</span>
-          </sc-for>
-        </div>
-        </sc-if>
-      </sc-if>
-
-      <sc-if value="{{ ovIsReferent }}">
-        <div style="display:flex;align-items:center;gap:11px;margin-bottom:6px">
-          <span style="width:15px;height:15px;border-radius:4px;flex:none;background:{{ ovRefColor }}"></span>
-          <div style="font:700 18px system-ui;color:{{ t.text }}">{{ ovRefName }}</div>
-        </div>
-        <div style="font:500 12.5px system-ui;color:{{ t.mut }};margin-bottom:20px">{{ ovRefSub }}</div>
-
-        <div style="font:800 9px system-ui;letter-spacing:.08em;text-transform:uppercase;color:{{ t.mut }};margin-bottom:8px">Appears in</div>
-        <sc-if value="{{ ovRefHasAppear }}">
-        <div style="margin-bottom:18px">
-          <sc-for list="{{ ovRefAppear }}" as="row" hint-placeholder-count="2">
-            <div onClick="{{ row.pick }}" style="display:flex;align-items:center;gap:9px;padding:10px 0;border-top:1px solid {{ t.border }};cursor:pointer">
-              <span style="flex:1;font:500 13px system-ui;color:{{ t.t2 }};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ row.label }}</span>
-              <span style="color:{{ t.faint }};font-size:14px;flex:none">›</span>
-            </div>
-          </sc-for>
-        </div>
-        </sc-if>
-        <sc-if value="{{ ovRefNoAppear }}">
-          <div style="display:flex;gap:9px;align-items:flex-start;margin-bottom:18px">
-            <span style="font-size:13px;flex:none;color:{{ t.faint }};line-height:1.5">○</span>
-            <div style="flex:1;font:500 13px/1.5 system-ui;color:{{ t.mut }}">not named in any detected unit</div>
-          </div>
-        </sc-if>
-
-        <div style="font:800 9px system-ui;letter-spacing:.08em;text-transform:uppercase;color:{{ t.mut }};margin-bottom:8px">With</div>
-        <sc-if value="{{ ovRefHasWith }}">
-        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:18px">
-          <sc-for list="{{ ovRefWith }}" as="w" hint-placeholder-count="2">
-            <span onClick="{{ w.pick }}" style="display:flex;align-items:center;gap:6px;background:{{ t.bar }};border:1px solid {{ t.border }};border-radius:16px;padding:5px 10px;font:600 12px system-ui;color:{{ t.t2 }};cursor:pointer"><span style="width:8px;height:8px;border-radius:3px;background:{{ w.c }}"></span>{{ w.n }}</span>
-          </sc-for>
-        </div>
-        </sc-if>
-        <sc-if value="{{ ovRefNoWith }}">
-          <div style="display:flex;gap:9px;align-items:flex-start;margin-bottom:18px">
-            <span style="font-size:13px;flex:none;color:{{ t.faint }};line-height:1.5">○</span>
-            <div style="flex:1;font:500 13px/1.5 system-ui;color:{{ t.mut }}">no co-occurring entities detected</div>
-          </div>
-        </sc-if>
-
-        <div style="font:800 9px system-ui;letter-spacing:.08em;text-transform:uppercase;color:{{ t.mut }};margin-bottom:8px">Surface forms</div>
-        <sc-if value="{{ cdRefHasForms }}" hint-placeholder-val="{{ true }}">
-        <div style="display:flex;flex-wrap:wrap;gap:6px">
-          <sc-for list="{{ cdRefForms }}" as="f" hint-placeholder-count="1">
-            <span style="font:600 12px system-ui;color:{{ t.t2 }};background:{{ t.bar }};border:1px solid {{ t.border }};border-radius:14px;padding:5px 10px">{{ f }}</span>
-          </sc-for>
-        </div>
-        </sc-if>
+      <sc-if value="{{ noSources }}">
+        <div style="padding:26px;border-radius:16px;background:{{ t.bar }};border:1px solid {{ t.border }};font:500 13px/1.6 system-ui;color:{{ t.mut }};text-align:center">No sources in this workspace yet. Open a URL or file to get started.</div>
       </sc-if>
 
     </div>
@@ -905,9 +805,24 @@
       <sc-if value="{{ showHalf }}">
         <div style="display:flex;gap:9px;margin:16px 0 4px">
           <div style="flex:1;background:{{ t.bar }};border-radius:11px;padding:10px 11px"><div style="font:700 20px system-ui;color:{{ t.text }}">{{ sel.count }}</div><div style="font:600 9.5px system-ui;letter-spacing:.04em;text-transform:uppercase;color:{{ t.mut }}">Mentions</div></div>
-          <div style="flex:1;background:{{ t.bar }};border-radius:11px;padding:10px 11px"><div style="font:700 20px system-ui;color:{{ t.text }}">{{ sel.links }}</div><div style="font:600 9.5px system-ui;letter-spacing:.04em;text-transform:uppercase;color:{{ t.mut }}">Links</div></div>
-          <div style="flex:1;background:{{ t.bar }};border-radius:11px;padding:10px 11px"><div style="font:700 20px system-ui;color:{{ flagColor }}">{{ sel.flags }}</div><div style="font:600 9.5px system-ui;letter-spacing:.04em;text-transform:uppercase;color:{{ t.mut }}">Flags</div></div>
+          <div onClick="{{ toggleLinks }}" style="flex:1;background:{{ t.bar }};border-radius:11px;padding:10px 11px;cursor:pointer"><div style="font:700 20px system-ui;color:{{ t.text }}">{{ sel.links }}</div><div style="font:600 9.5px system-ui;letter-spacing:.04em;text-transform:uppercase;color:{{ t.mut }}">Links {{ linksCaret }}</div></div>
         </div>
+        <sc-if value="{{ linksOpen }}">
+          <div style="margin-top:6px;margin-bottom:14px;background:{{ t.bar }};border:1px solid {{ t.border }};border-radius:11px;overflow:hidden">
+            <div style="display:flex;align-items:center;padding:6px 11px;border-bottom:1px solid {{ t.border }};font:700 8px 'IBM Plex Mono',monospace;letter-spacing:.06em;text-transform:uppercase;color:{{ t.mut }}">
+              <div style="flex:1">Entity</div>
+              <div style="width:72px;text-align:center">Relation</div>
+              <div style="width:28px;text-align:right">×</div>
+            </div>
+            <sc-for list="{{ selConns }}" as="c" hint-placeholder-count="3">
+              <div onClick="{{ c.pick }}" style="display:flex;align-items:center;padding:7px 11px;border-bottom:1px solid {{ t.border }};cursor:pointer">
+                <div style="flex:1;min-width:0;display:flex;align-items:center;gap:6px;font:600 12px system-ui;color:{{ t.text }};overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><span style="width:7px;height:7px;border-radius:50%;flex:none;background:{{ c.color }}"></span>{{ c.name }}</div>
+                <div style="width:72px;text-align:center;font:600 8.5px 'IBM Plex Mono',monospace;color:{{ t.accent }}">{{ c.verb }}</div>
+                <div style="width:28px;text-align:right;font:700 10px 'IBM Plex Mono',monospace;color:{{ t.mut }}">{{ c.count }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
         <sc-if value="{{ hasMeaningMap }}">
           <div style="font:600 10px system-ui;letter-spacing:.05em;text-transform:uppercase;color:{{ t.mut }};margin:16px 0 6px">Scope · {{ mapScopeLabel }} · Map</div>
           <div ref="{{ solarRef }}" style="height:220px;border-radius:14px;overflow:hidden;background:{{ t.bar }};border:1px solid {{ t.border }}"></div>
@@ -1296,7 +1211,7 @@
 
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:9px">
         <div style="font:600 10px system-ui;letter-spacing:.05em;text-transform:uppercase;color:{{ t.mut }}">Reads any medium</div>
-        <span onClick="{{ resetSample }}" style="font:600 11.5px system-ui;color:{{ t.accent }};cursor:pointer">↩ Sample article</span>
+        <span onClick="{{ resetSample }}" style="font:600 11.5px system-ui;color:{{ t.accent }};cursor:pointer">↩ Sample book</span>
       </div>
       <div style="display:flex;flex-wrap:wrap;gap:7px">
         <sc-for list="{{ mediums }}" as="m" hint-placeholder-count="8">
@@ -2532,6 +2447,33 @@ async function extractEpubBook(buf){
   return {paras:cutParas, toc:cutToc, title, creator};
 }
 
+function deriveRelVerb(aName, bName, ctx) {
+  if (!ctx) return 'MENTIONS';
+  const lc = ctx.toLowerCase();
+  const patterns = [
+    [/\b(contradicts?|disagrees?|disputed?|denied|rejected?|refuted?|against|opposed?|differs?|inconsistent|contrasts)\b/, 'CONTRADICTS'],
+    [/\b(according to|said|tells?|told|spoke|says|quoted?|reported\s+(that|in)|in\s+(a|an)\s+(interview|statement|report))\b/, 'QUOTED'],
+    [/\b(sponsored?|funded?|backed?|financed?|invested?|paid\s+(for|by)|funding\s+(from|by)|grant\s+(from|to))\b/, 'SPONSORED'],
+    [/\b(issued|released?|published|announced?|unveiled|launched|put\s+out|rolled\s+out)\b/, 'ISSUED'],
+    [/\b(administers?|manages?|oversees?|runs?|directs?|operates?|led|leads?|heading?|headed)\b/, 'ADMINISTERS'],
+    [/\b(predicted?|forecast|projected?|estimated?|expected?|anticipated?|forecasted)\b/, 'PREDICTED'],
+    [/\b(cited?|referenced?|references?|as\s+noted\s+(by|in)|according\s+to)\b/, 'CITED'],
+    [/\b(located?|based\s+(in|at|on)|site|headquarters?|headquartered|offices?\s+(in|at)|operates?\s+(in|from))\b/, 'SITE OF'],
+    [/\b(appointed?|hired?|elected?|named|nominated|selected\s+(as|to)|chosen\s+as)\b/, 'APPOINTED'],
+    [/\b(supported?|advocated?|endorsed?|backed?|approved?|championed?|argued\s+for|pushed\s+for|defended|stood\s+by)\b/, 'SUPPORTS'],
+    [/\b(criticized?|attacked?|blamed?|accused?|opposed?|fought|warned\s+(about|against)|raised\s+concerns|cautioned)\b/, 'OPPOSES'],
+    [/\b(wrote|authored?|drafted?|co-authored?|co-wrote|co-written|co-wrote)\b/, 'AUTHORED'],
+    [/\b(investigated?|probed?|examined?|reviewed?|studied?|looked\s+into|inquired?|audited?)\b/, 'INVESTIGATED'],
+    [/\b(represents?|representing|acted\s+(for|on\s+behalf)|spokesperson|spokesman|spokeswoman)\b/, 'REPRESENTS'],
+    [/\b(joined|worked\s+(at|for|with)|employed\s+(by|at)|staff|member\s+of)\b/, 'AFFILIATED'],
+    [/\b(met\s+(with|at)|discussed|talked\s+(to|with|about)|negotiated|partnered|collaborated|conferred)\b/, 'ENGAGED'],
+  ];
+  for (const [re, verb] of patterns) {
+    if (re.test(lc)) return verb;
+  }
+  return 'MENTIONS';
+}
+
 class Component extends DCLogic {
   constructor(props){
     super(props);
@@ -2558,11 +2500,11 @@ class Component extends DCLogic {
       layers:{hi:true,en:true,ch:true,ln:true,nw:props.candidates!==false},
       sel:null, linkSel:null, linkPeek:{status:'idle'}, linkFromOpen:true, level:'prompt', chap:0, tocOpen:false, explore:null,
       wiki:this.load('eo5.wikiCache',{}),
-      cardPath:[], lensByRung:{},
+      cardPath:[], lensByRung:{}, sourceChecked:{},
       plain:this.load('eo5.readerPlain',false),
       structFilter:'all', structExp:{}, structRows:{}, structActive:{},
-      doc:this.loadingDoc('https://www.npr.org'),
-      src:{label:'npr.org',det:'Loading…',dot:'#5b9bd5'},
+      doc:this.bookLoadingDoc('Frankenstein; or, the Modern Prometheus'),
+      src:{label:'gutenberg/frankenstein',det:'Loading…',dot:this.medColor('Book')},
       spaces, spaceId, memoryBySpace, memoryExclusions:this.load('eo5.memExclusions',{}),
       proxy, proxyOpen:false,
       searchQ:'', searchResults:[], mediaResults:[], searching:false, searchMsg:'', libraryShelf:'web', _exTick:0,
@@ -2570,7 +2512,8 @@ class Component extends DCLogic {
       sourcesOpen:false, srcQuery:'', srcExpand:null, recPulse:0, historyExpanded:false,
       priorActive:this.load('eo5.priorActive',{}), priorExpand:null,
       userPriors:this.load('eo5.userPriors',[]), priorSaveOpen:false, priorSaveText:'', priorSaveTitle:'', priorSaveMsg:'',
-      chromeHidden:false, webFrameActiveIds:[], readPct:0
+      chromeHidden:false, webFrameActiveIds:[], readPct:0,
+      entQuery:'', entKindFilter:'all', entPage:0
     };
     this.scrollRef=(el)=>{
       if(!el) return;
@@ -2610,13 +2553,13 @@ class Component extends DCLogic {
       window.addEventListener('eo5:ready', set);
       window.addEventListener('eo:ready', set);
     }
-    this.readUrlValue('https://www.npr.org','NPR').then(()=>this.setState({view:'reader'}));
+    this.autoloadFrankenstein();
     this._recTimer=setInterval(()=>this.recordingTick(),4200);
   }
   componentWillUnmount(){ if(this._recTimer) clearInterval(this._recTimer); }
   loadingDoc(url){
-    return {kind:'loading', medium:'Webpage', title:'Loading npr.org…', byline:'', mode:'text', url,
-      analysis:{paras:['Fetching npr.org…'], entById:{}, list:[], hi:[], tension:[], chapters:0, links:0, words:0, toc:[]}};
+    return {kind:'loading', medium:'Webpage', title:'Loading…', byline:'', mode:'text', url,
+      analysis:{paras:['Fetching…'], entById:{}, list:[], hi:[], tension:[], chapters:0, links:0, words:0, toc:[]}};
   }
   bookLoadingDoc(title){
     return {kind:'loading', medium:'Book', title:'Loading '+(title||'book')+'…', byline:'', mode:'text',
@@ -2693,70 +2636,16 @@ class Component extends DCLogic {
       accentTop:this.mix(acc, base.screen, this.state.dark?0.16:0.10)};
   }
 
-  demoDoc(){
-    const paras=[
-      'For three years, the Riverton budget deal was held up as proof that austerity could be humane and still add up. This week, quietly, that claim came apart.',
-      'According to a Ministry of Finance memo obtained by this paper, the program’s founding promise — that no essential service would be cut — was abandoned in early 2024, months before the shortfall was made public.',
-      '## The turn',
-      'Senator Elena Ortiz, who staked her name on the deal, now calls it “a lesson in wishful accounting.” It is a striking reversal for a legislator who, in 2021, called the same plan “the most honest budget in a decade.”',
-      'The cuts caused the wave of clinic closures, the piece asserts — a claim the 2019 report it leans on never actually made; that report predicted the shortfall, not the closures.',
-      'The deal’s defenders point to the same document as vindication. Nobody, it seems, is reading it the same way.'
-    ];
-    const e={
-      ortiz:{id:'ortiz',name:'Elena Ortiz',color:'#c77dba',role:'Senator · sponsor of the Riverton deal',count:12,links:3,flags:1,
-        conns:[{v:'SPONSORED',c:'#4f9a6b',t:'the Riverton deal'},{v:'QUOTED ON',c:'#5b9bd5',t:'the Ministry memo'},{v:'CONTRADICTS',c:'#c0662e',t:'her 2021 statement'}],
-        note:'Stance reversed between 2021 and 2025 on the same plan.',related:[{n:'Ministry',c:'#5b9bd5',id:'ministry'},{n:'2019 report',c:'#6bbf8a',id:'report'}],
-        ctx:['“a lesson in wishful accounting.”','“the most honest budget in a decade.” — 2021','staked her name on the deal']},
-      ministry:{id:'ministry',name:'Ministry of Finance',color:'#5b9bd5',role:'Government body · budget authority',count:7,links:5,flags:0,
-        conns:[{v:'ISSUED',c:'#4f9a6b',t:'the 2024 memo'},{v:'ADMINISTERS',c:'#5b9bd5',t:'the Riverton deal'}],
-        note:'Internal memo predates public disclosure by months.',related:[{n:'Ortiz',c:'#c77dba',id:'ortiz'}],ctx:['memo obtained by this paper','founding promise abandoned in early 2024']},
-      report:{id:'report',name:'2019 report',color:'#6bbf8a',role:'Document · fiscal projection',count:4,links:2,flags:1,
-        conns:[{v:'PREDICTED',c:'#5b9bd5',t:'the shortfall'},{v:'CITED BY',c:'#4f9a6b',t:'both sides'}],
-        note:'Cited as vindication by defenders and critics alike.',related:[{n:'Ortiz',c:'#c77dba',id:'ortiz'}],ctx:['predicted the shortfall, not the closures','defenders point to the same document']},
-      riverton:{id:'riverton',name:'Riverton',color:'#e0a94c',role:'Place · the deal’s namesake',count:3,links:1,flags:0,
-        conns:[{v:'SITE OF',c:'#4f9a6b',t:'the budget deal'}],note:'Clinic closures concentrated here.',related:[],ctx:['the Riverton budget deal']}
-    };
-    const rawHtml=`<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>
-      *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-      body{margin:0;font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;color:#1a1a1a;background:#fff}
-      .topbar{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;background:#000}
-      .logo{font:800 20px/1 Arial,sans-serif;letter-spacing:-.02em;color:#fff}
-      .icons{display:flex;gap:16px;color:#fff;font-size:16px}
-      .redline{height:3px;background:#e02222}
-      .wrap{padding:16px 16px 60px}
-      .eyebrow{font:800 12px/1 Arial,sans-serif;letter-spacing:.06em;color:#e02222;text-transform:uppercase;margin-bottom:9px}
-      h1{font:800 27px/1.22 Arial,sans-serif;margin:0 0 12px;color:#111;letter-spacing:-.01em}
-      .byline{display:flex;flex-direction:column;gap:2px;font:13px/1.4 Arial,sans-serif;color:#5a5a5a;padding-bottom:14px;margin-bottom:16px;border-bottom:1px solid #e2e2e2}
-      .byline b{color:#111}
-      .listen{display:flex;align-items:center;gap:10px;background:#f5f5f5;border-radius:8px;padding:10px 12px;margin-bottom:20px;font:700 13px Arial,sans-serif;color:#111}
-      .listen span.dot{width:26px;height:26px;border-radius:50%;background:#111;color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;flex:none}
-      p{font:17px/1.62 Arial,sans-serif;margin:0 0 18px;color:#1a1a1a}
-      h2{font:800 21px/1.3 Arial,sans-serif;margin:26px 0 12px;color:#111}
-      blockquote{margin:20px 0;padding:2px 0 2px 16px;border-left:3px solid #e02222;font:italic 17px/1.5 Arial,sans-serif;color:#333}
-      a{color:#0067b8}
-      .tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:24px}
-      .tags span{font:700 11px Arial,sans-serif;letter-spacing:.03em;text-transform:uppercase;color:#5a5a5a;background:#f0f0f0;border-radius:14px;padding:6px 10px}
-      </style></head><body>
-      <div class="topbar"><span class="logo">npr</span><span class="icons">☰&nbsp;&nbsp;⌕</span></div>
-      <div class="redline"></div>
-      <div class="wrap">
-      <div class="eyebrow">Politics</div>
-      <h1>The Quiet Collapse of the Riverton Budget Deal</h1>
-      <div class="byline"><b>Marina Vale</b><span>August 14, 2025 · 6-minute read</span></div>
-      <div class="listen"><span class="dot">▶</span>Listen · 4:52</div>
-      <p>For three years, the Riverton budget deal was held up as proof that austerity could be humane and still add up. This week, quietly, that claim came apart.</p>
-      <p>According to a Ministry of Finance memo obtained by this paper, the program's founding promise — that no essential service would be cut — was abandoned in early 2024, months before the shortfall was made public.</p>
-      <h2>The turn</h2>
-      <p>Senator Elena Ortiz, who staked her name on the deal, now calls it "a lesson in wishful accounting." It is a striking reversal for a legislator who, in 2021, called the same plan "the most honest budget in a decade."</p>
-      <blockquote>"The cuts caused the wave of clinic closures," the piece asserts — a claim the 2019 report it leans on never actually made; that report predicted the shortfall, not the closures.</blockquote>
-      <p>The deal's defenders point to the same document as vindication. Nobody, it seems, is reading it the same way.</p>
-      <div class="tags"><span>Budget</span><span>Riverton</span><span>Elena Ortiz</span><span>Austerity</span></div>
-      </div></body></html>`;
-    return {kind:'demo',medium:'Webpage',title:'The Quiet Collapse of the Riverton Budget Deal',byline:'By Marina Vale · Politics · Aug 14, 2025',mode:'text',rawHtml,
-      analysis:{paras,entById:e,list:[e.ortiz,e.ministry,e.report,e.riverton],
-        hi:['humane and still add up','a lesson in wishful accounting.','the most honest budget in a decade.'],
-        tension:[{text:'caused the wave of clinic closures'}], chapters:1, links:0, words:118, toc:this.detectToc(paras)}};
+  // ── autoload: the reader opens with a real book already loading — Mary Shelley's
+  // Frankenstein (Gutenberg #84), fetched live through the same pipeline a user's own
+  // Gutenberg search-and-open uses (openGutenbergBook → buildBookDoc → analyzeText) — so
+  // the first thing a fresh session shows is real analyzed text, never a canned fixture.
+  FRANKENSTEIN_ITEM(){
+    return {url:'gutenberg/frankenstein', gutenbergId:84,
+      bookTitle:'Frankenstein; or, the Modern Prometheus', author:'Mary Wollstonecraft Shelley',
+      formats:{'application/epub+zip':'https://www.gutenberg.org/ebooks/84.epub3.images'}};
   }
+  autoloadFrankenstein(){ return this.openGutenbergBook(this.FRANKENSTEIN_ITEM()); }
 
   medium(name){
     const x=(name.split('.').pop()||'').toLowerCase();
@@ -2866,6 +2755,50 @@ class Component extends DCLogic {
       }
       return e.count>=2||e.name.includes(' ')||hasField;
     }).sort((a,b)=>b.count-a.count||b.name.length-a.name.length);
+    // ── Unnamed referent detection ──
+    const DESC_SKIP=new Set(['could','would','should','might','must','shall','will','may','every','some','any','no','each','both','few','most','all','such','same','own','very','just','only','not','now','there','then','than','too','also','still','even','yet','already','about','across','along','around','behind','below','beneath','beside','beyond','inside','outside','toward','within','without','onto','into','upon','throughout','during','before','after','between','under','above','again','further','once','when','where','why','how','what','which','who','whom','whose','this','that','these','those','being','having','doing','going','coming','making','taking','giving','getting','letting','keeping','looking','finding','asking','trying','telling','showing','calling','using','starting','turning','running','living','working','playing','moving','thinking','feeling','knowing','seeing','hearing','saying','watching','standing','sitting','walking','talking','eating','drinking','reading','writing','buying','selling','paying','speaking','holding','bringing','beginning','stopping','continuing','following','remaining','changing','growing','developing','becoming','seeming','appearing','mattering','existing','happening','occurring','passing','following','leading']);
+    const DESC_VERBS=new Set('was were is are am been being had has have said says told tells did does made makes took takes gave gives came comes went goes saw sees knew knows found finds looked looks called calls began begins became becomes felt feels thought thinks let lets kept keeps tried tries turned turns ran runs lived lives worked works spoke speaks wrote writes heard hears watched watches stood stands sat sits walked walks asked asks answered replies cried cries exclaimed replied continued added observed repeated interrupted returned remarked resumed spoke spoke'.split(' '));
+    const DESC_PRONOUNS=new Set('he him his she her hers it its they them their himself herself itself'.split(' '));
+    const DESC_HEAD=/[Tt]he\s+(?:(?:[a-z]{3,}\s+)*)([a-z]{3,})/g;
+    const descMeta={};
+    for(let pi=0;pi<paras.length;pi++){ const sents=paras[pi].split(/(?<=[.!?])\s+/);
+      for(let si=0;si<sents.length;si++){ const s=sents[si].toLowerCase(); DESC_HEAD.lastIndex=0; let dm;
+        while((dm=DESC_HEAD.exec(s))){ const h=dm[1]; if(funcFloor.has(h)||DESC_SKIP.has(h)||h.length<4||h.endsWith('ing')||h.endsWith('ed')||h.endsWith('ly')||h==='said'||h==='being'||h==='having'||h==='doing'||(lc[h]||0)<4) continue;
+          if(!descMeta[h]) descMeta[h]={count:0,subj:[],speech:[],anim:[]};
+          descMeta[h].count++; const idx=pi*1000+si;
+          const after=s.slice(dm.index+dm[0].length).match(/^\s+([a-z]+)/);
+          if(after&&(DESC_VERBS.has(after[1])||after[1].endsWith('ed')||after[1].endsWith('ing'))) descMeta[h].subj.push(idx);
+          if(after&&after[1]&&['said','says','told','tells','asked','asks','answered','replies','replied','cried','cries','exclaimed','repeated','remarked','resumed','continued','added','observed','whispered','shouted','began','begun'].includes(after[1])) descMeta[h].speech.push(idx);
+          const nextS=si+1<sents.length?sents[si+1].toLowerCase():'';
+          for(const pn of DESC_PRONOUNS){ if(s.indexOf(pn)>=0||nextS.indexOf(pn)>=0){ descMeta[h].anim.push(idx); break; } }
+        }
+      }
+    }
+    const descMass=Math.max(3,Math.round(Math.sqrt(paras.length)*0.2));
+    const foldedHeads=new Set();
+    for(const a of Object.keys(descMeta).filter(h=>descMeta[h].count>=descMass&&descMeta[h].subj.length>=2)){
+      if(foldedHeads.has(a)) continue;
+      const ma=descMeta[a]; const canon=a, ccount=ma.count;
+      const merged=[a]; const aSubjSet=new Set(ma.subj);
+      for(const b of Object.keys(descMeta).filter(h=>!foldedHeads.has(h)&&h!==a&&descMeta[h].count>=descMass&&descMeta[h].subj.length>=2)){
+        let coact=false; for(const ss of descMeta[b].subj){ if(aSubjSet.has(ss)){ coact=true; break; } }
+        if(coact) continue;
+        if(descMeta[b].speech.length<1||ma.speech.length<1) continue;
+        if(descMeta[b].anim.length<1||ma.anim.length<1) continue;
+        foldedHeads.add(b); merged.push(b); ma.count+=descMeta[b].count;
+        for(const ss of descMeta[b].subj) ma.subj.push(ss);
+      }
+      ma.merged=merged;
+    }
+    const seenNames=new Set(ents.map(e=>e.name.toLowerCase()));
+    const creaturePref=['creature','monster','fiend','wretch','daemon','being','apparition'];
+    for(const h of Object.keys(descMeta)){
+      if(foldedHeads.has(h)||descMeta[h].count<descMass||descMeta[h].subj.length<2) continue;
+      const mm=descMeta[h];
+      let canon=h; for(const p of creaturePref){ if((mm.merged||[h]).includes(p)){ canon=p; break; } }
+      const phrase='the '+canon; const key=phrase.toLowerCase();
+      if(!seenNames.has(key)&&!seenNames.has(h)){ ents.push({key,name:phrase,count:mm.count}); seenNames.add(key); }
+    }
     const entById={},list=[];
     ents.slice(0,240).forEach((e,i)=>{ const id='e'+i,color=pal[i%pal.length],ctx=[];
       const er=new RegExp('(^|\\b)'+e.name.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'(\\b|$)','i');
@@ -2877,16 +2810,39 @@ class Component extends DCLogic {
       const o={id,name:e.name,color,count:e.count,kind,kindLabel,role,links:0,flags:0,conns:[],note:'',related:[],ctx};
       entById[id]=o; list.push(o);
     });
-    const top=list.slice(0,120); top.forEach(e=>e._co={});
-    paras.forEach(p=>{ const here=top.filter(e=>p.toLowerCase().indexOf(e.name.toLowerCase())>=0); for(let x=0;x<here.length;x++){ for(let y=0;y<here.length;y++){ if(x!==y) here[x]._co[here[y].id]=(here[x]._co[here[y].id]||0)+1; } } });
-    top.forEach(e=>{ const r=Object.keys(e._co).sort((a,b)=>e._co[b]-e._co[a]); e.links=r.length; e.conns=r.slice(0,5).map(id=>({v:'WITH',c:entById[id].color,t:entById[id].name,id})); e.related=r.slice(0,3).map(id=>({n:entById[id].name,c:entById[id].color,id})); delete e._co; });
+    const top=list; top.forEach(e=>e._co={});
+    paras.forEach(p=>{ const here=top.filter(e=>p.toLowerCase().indexOf(e.name.toLowerCase())>=0); for(let x=0;x<here.length;x++){ for(let y=0;y<here.length;y++){ if(x!==y){ here[x]._co[here[y].id]=(here[x]._co[here[y].id]||0)+1; if(!here[x]._coCtx) here[x]._coCtx={}; if(!here[x]._coCtx[here[y].id]) here[x]._coCtx[here[y].id]=p; } } } });
+    top.forEach(e=>{ const r=Object.keys(e._co).sort((a,b)=>e._co[b]-e._co[a]); e.links=r.length; e.conns=r.slice(0,5).map(id=>({v:deriveRelVerb(e.name,entById[id].name,e._coCtx&&e._coCtx[id]),c:entById[id].color,t:entById[id].name,id,count:e._co[id]})); e.related=r.slice(0,3).map(id=>({n:entById[id].name,c:entById[id].color,id})); delete e._co; delete e._coCtx; });
+    const inferDateMeaning=(dt, text, pi)=>{
+      if(!text) return {role:'mention',label:'Mentioned'};
+      if(pi<=1 && /\b(?:by|published|byline|dated|issued|released|updated|reported\s+on)\b/i.test(text)) return {role:'publication',label:'Publication date'};
+      const dtEsc=dt.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+      if(new RegExp('(?:occurred|happened|announced|signed|passed|collapsed|voted|closed|opened|joined|founded|abandoned|approved|filed|held)\\s+(?:in|on|at|during)?\\s*[^.?!]*\\b'+dtEsc,'i').test(text) || new RegExp('\\b'+dtEsc+'\\b[^.?!]*\\s*(?:occurred|happened|announced|signed|passed|collapsed|voted|closed|opened|joined|founded|abandoned|approved)','i').test(text)) return {role:'event',label:'Event occurrence'};
+      if(new RegExp('(?:effective|takes effect|deadline|target|until|by|due|scheduled for|projected|expected|expires|starting)\\s+[^.?!]*\\b'+dtEsc,'i').test(text)) return {role:'effective',label:'Effective / Target date'};
+      if(new RegExp('(?:during|throughout|in the year|in fiscal|for FY|for the period|across|between)\\s+[^.?!]*\\b'+dtEsc,'i').test(text)) return {role:'scope',label:'Temporal scope'};
+      return {role:'mention',label:'Mentioned in text'};
+    };
+    const rawDates=omniExtractDates(whole);
+    const dateAnchors=[];
+    paras.forEach((p,pi)=>{
+      const pDates=omniExtractDates(p);
+      pDates.forEach(dt=>{
+        if(!dateAnchors.some(a=>a.date===dt&&a.pi===pi)){
+          const m=inferDateMeaning(dt,p,pi);
+          dateAnchors.push({date:dt,pi,role:m.role,label:m.label,text:p.length>120?p.slice(0,120)+'…':p});
+        }
+      });
+    });
+    const uniqueDates=[...new Set(rawDates)];
+    const timeline={dates:uniqueDates,anchors:dateAnchors,current:uniqueDates[0]||null};
+    const listNoDates=list.filter(e=>e.kind!=='date');
     const hi=[...new Set((whole.match(/[“"][^“”"]{6,140}[”"]/g)||[]))].slice(0,80);
     const toc=this.detectToc(paras);
     const chapters=toc.filter(e=>!e.implicit).length;
     const links=(whole.match(/https?:\/\/\S+|[\w.+-]+@[\w.-]+\.[a-z]{2,}/g)||[]).length;
     const words=whole.split(/\s+/).filter(Boolean).length;
     const blockInfo=paras.map(eoBlockKind);
-    return {paras,entById,list,hi,tension:[],chapters,links,words,toc,linkMap:linkMap||{},images:images||[],blockInfo};
+    return {paras,entById,list:listNoDates,timeline,hi,tension:[],chapters,links,words,toc,linkMap:linkMap||{},images:images||[],blockInfo};
   }
 
   tog(k){ this.setState(s=>({layers:{...s.layers,[k]:!s.layers[k]}})); }
@@ -2961,6 +2917,28 @@ class Component extends DCLogic {
     }).sort((x,y)=>y.total-x.total);
   }
   terrainClusters(){ return this.entityKindSegments(); }
+  // ── flat, searchable, paginated table view over the same entity kind segments ──
+  entityTable(pageSize){
+    pageSize=pageSize||12;
+    const segs=this.entityKindSegments();
+    const S=this.state;
+    const q=(S.entQuery||'').trim().toLowerCase();
+    const kf=S.entKindFilter||'all';
+    let rows=[];
+    segs.forEach(seg=>{
+      if(kf!=='all' && kf!==seg.kind) return;
+      seg.entities.forEach(e=>{
+        if(q && e.name.toLowerCase().indexOf(q)<0) return;
+        rows.push({id:e.id, name:e.name, count:e.count, kind:seg.kind, kindLabel:seg.label, color:e.color||seg.color});
+      });
+    });
+    rows.sort((a,b)=>b.count-a.count||a.name.localeCompare(b.name));
+    const total=rows.length;
+    const pages=Math.max(1,Math.ceil(total/pageSize));
+    const page=Math.min(Math.max(0,S.entPage||0),pages-1);
+    const start=page*pageSize;
+    return {kinds:segs.map(s=>({kind:s.kind,label:s.label,color:s.color,count:s.entities.length})), rows:rows.slice(start,start+pageSize), total, page, pages, start};
+  }
   openExplore(){ this.setState({explore:{terrain:null}, sel:null, linkSel:null, level:'full'}); }
   openTerrain(id){ this.setState(s=>({explore:{...s.explore,terrain:id}})); }
   exploreBack(){ this.setState(s=>({explore:{...s.explore,terrain:null}})); }
@@ -3358,7 +3336,7 @@ class Component extends DCLogic {
       return next;
     });
   }
-  resetSample(){ this.setState({doc:this.demoDoc(), importOpen:false, sel:null, level:'prompt', chap:0, tab:'reader', view:'reader', cardPath:[], lensByRung:{}, readPct:0, tocOpen:false, src:{label:'theatlantic.com/…/the-quiet-collapse',det:'News · sample',dot:'#c0662e'}}); }
+  resetSample(){ this.autoloadFrankenstein(); }
 
   // ── space-scoped memory ──
   mem(){ return (this.state.memoryBySpace||{})[this.state.spaceId]||[]; }
@@ -3406,7 +3384,7 @@ class Component extends DCLogic {
     out[s1]=[ reuters,
       this.mkSeed({key:'npr.org/politics',id:'seed_npr',title:'Demo · NPR Politics feed',medium:'Webpage',words:3100,links:29,recording:true,newCount:1,age:1,ents:['Congress','the White House','the Senate'],hi:['The floor vote was delayed again']}),
       this.mkSeed({key:'riverton-budget-2026.pdf',id:'seed_pdf',title:'Demo · Riverton budget deal (2026).pdf',medium:'PDF',words:8600,links:12,age:20,ents:['Riverton','clinic closures','the budget deal'],hi:['Clinic closures concentrated downtown']}) ];
-    out[s2]=[ this.mkSeed({key:'gutenberg/frankenstein',id:'seed_book',title:'Demo · Frankenstein — Mary Shelley',medium:'Book',words:78000,age:72,ents:['Victor','the creature','Elizabeth','Geneva'],toc:['Letters','The making','The pursuit']}),
+    out[s2]=[ this.mkSeed({key:'gutenberg/frankenstein',id:'seed_book',title:'Demo · Frankenstein — Mary Shelley',medium:'Book',words:78000,age:72,ents:['Victor','Elizabeth','Geneva'],toc:['Letters','The making','The pursuit']}),
       {...reuters} ];
     out[s3]=[ this.mkSeed({key:'notes/interview-01',id:'seed_notes',title:'Demo · Interview — housing caseworker',medium:'Document',words:2400,links:4,age:5,ents:['the caseworker','the waitlist','vouchers'],hi:['The waitlist now exceeds eight months']}) ];
     return out;
@@ -4204,6 +4182,19 @@ class Component extends DCLogic {
   }
 
   toggleStructActive(id){ this.setState(s=>({structActive:{...s.structActive,[id]:s.structActive[id]===false}})); }
+  toggleSourceCheck(id){ this.setState(s=>({sourceChecked:{...s.sourceChecked,[id]:!s.sourceChecked[id]}})); }
+  toggleCheckedSources(){
+    this.setState(s=>{
+      const checked=s.sourceChecked||{};
+      const structActive={...s.structActive};
+      let any=false;
+      for(const id in checked){ if(checked[id]){ structActive[id]=structActive[id]===false; any=true; } }
+      if(!any) return null;
+      return {structActive};
+    });
+  }
+  selectAllSourceChecks(){ this.setState(s=>{ const sc={}; (s.memoryBySpace[s.spaceId]||[]).forEach(m=>{sc[m.id]=true;}); return {sourceChecked:sc}; }); }
+  clearAllSourceChecks(){ this.setState({sourceChecked:{}}); }
   toggleStructExp(id){ this.setState(s=>({structExp:{...s.structExp,[id]:!s.structExp[id]}})); }
   toggleStructRow(k){ this.setState(s=>({structRows:{...s.structRows,[k]:!s.structRows[k]}})); }
 
@@ -5043,11 +5034,41 @@ class Component extends DCLogic {
     const details=[];
     if(S.layers.hi && (a.hi||[]).length) details.push('quotes');
     if(S.layers.nw && (a.tension||[]).length) details.push('claims');
-    return h('div',{style:{display:'flex',alignItems:'center',gap:'9px',minHeight:'36px',background:t.bar,border:'1px solid '+t.border,borderRadius:'12px',padding:'6px 10px',margin:'9px 0 0',fontFamily:'system-ui'}},[
+    const timelineEl = (a.timeline && a.timeline.dates && a.timeline.dates.length > 0) ? h('div', {
+      key: 'dateCursor',
+      style: { display: 'flex', alignItems: 'center', gap: '8px', minHeight: '32px', background: t.bar, border: '1px solid ' + t.border, borderRadius: '12px', padding: '5px 10px', margin: '6px 0 0', fontFamily: 'system-ui' }
+    }, [
+      h('div', { key: 'lbl', style: { flex: 'none', font: "800 8.5px 'IBM Plex Mono',monospace", letterSpacing: '.08em', textTransform: 'uppercase', color: t.accent, whiteSpace: 'nowrap' } }, '⏱ DATE CURSOR'),
+      h('div', { key: 'chips', style: { flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: '6px', overflowX: 'auto' } }, a.timeline.dates.slice(0, 10).map(dt => {
+        const active = S.dateCursor === dt || (!S.dateCursor && dt === a.timeline.current);
+        return h('button', {
+          key: dt,
+          onClick: () => {
+            this.setState({ dateCursor: dt });
+            const hit = a.timeline.anchors.find(x => x.date === dt);
+            if (hit) anchorJump({ type: 'para', pi: hit.pi }, S.view);
+          },
+          title: 'Jump to passage dated ' + dt,
+          style: {
+            flex: 'none',
+            border: '1px solid ' + (active ? t.accent : t.border),
+            background: active ? t.accent : t.card,
+            color: active ? '#fff' : t.text,
+            borderRadius: '10px',
+            padding: '3px 8px',
+            font: '700 11px system-ui',
+            cursor: 'pointer',
+            whiteSpace: 'nowrap'
+          }
+        }, dt);
+      }))
+    ]) : null;
+    const activeBar = h('div',{style:{display:'flex',alignItems:'center',gap:'9px',minHeight:'36px',background:t.bar,border:'1px solid '+t.border,borderRadius:'12px',padding:'6px 10px',margin:'9px 0 0',fontFamily:'system-ui'}},[
       h('div',{key:'label',style:{flex:'none',font:"800 8.5px 'IBM Plex Mono',monospace",letterSpacing:'.08em',textTransform:'uppercase',color:t.mut,whiteSpace:'nowrap'}},'Active here'),
       h('div',{key:'ents',style:{flex:1,minWidth:0,display:'flex',alignItems:'center',gap:'7px',overflowX:'auto'}}, ents.length?ents.map(e=>h('button',{key:e.id,onClick:()=>this.pick(e.id),title:e.role,style:{flex:'none',display:'inline-flex',alignItems:'center',gap:'6px',border:0,background:'transparent',padding:'3px 0',font:'650 12px system-ui',color:t.t2,cursor:'pointer',whiteSpace:'nowrap'}},[h('span',{key:'d',style:{width:'7px',height:'7px',borderRadius:'50%',background:e.color,flex:'none'}}),h('span',{key:'n'},e.name)])):h('span',{style:{font:'600 12px system-ui',color:t.faint,whiteSpace:'nowrap'}},'No named entities in this passage')),
       h('div',{key:'mode',onClick:()=>this.openExplore(),style:{flex:'none',font:"800 8.5px 'IBM Plex Mono',monospace",letterSpacing:'.08em',color:t.accent,whiteSpace:'nowrap',cursor:'pointer'}}, details.length?'X-RAY · '+details.join(' · '):'X-RAY')
     ]);
+    return h('div', { key: 'activeAndDateBar' }, [activeBar, timelineEl]);
   }
   buildNoLlmStatusBar(){
     const d=this.state.doc, t=this.theme(), h=React.createElement;
@@ -5292,6 +5313,8 @@ class Component extends DCLogic {
         newCount:m.newCount||0, hasNew:(m.newCount||0)>0,
         recBtnBg:m.recording?'rgba(47,158,87,.12)':t.bar, recBtnFg:m.recording?'#2f9e57':t.mut, recBtnBd:m.recording?'rgba(47,158,87,.42)':t.border, recBtnLabel:m.recording?'Mark static':'Mark recording',
         toggleOn:()=>this.toggleStructActive(m.id),
+        checked:!!(S.sourceChecked||{})[m.id], checkGlyph:(S.sourceChecked||{})[m.id]?'☑':'☐',
+        toggleCheck:()=>this.toggleSourceCheck(m.id),
         toggleRec:()=>this.toggleRecording(m.key),
         open:()=>{ this.clearNew(m.key); this.setState(s=>({sourcesOpen:false,tab:'structure',structExp:{...s.structExp,[m.id]:true}})); },
         remove:()=>this.removeFromMemory(m.key),
@@ -5537,26 +5560,13 @@ class Component extends DCLogic {
       isReader:S.tab==='reader', isSearch:S.tab==='search', isBeta:S.tab==='beta', betaEl:this.buildBetaPanel(), isPriors:S.tab==='priors',
       isOverview:S.tab==='overview', setOverview:()=>this.setState({tab:'overview'}),
       tabOB:S.tab==='overview'?activeBg:'transparent', tabOC:S.tab==='overview'?activeC:t.mut,
-      ovBackShown:cdBackShown, ovBackLabel:cdBackLabel, ovBack:()=>this.cardBack(),
-      ovIsFrame:cardScreen==='frame', ovFrameKicker:cdFrameKicker, ovTitle:cdTitle, ovMeta:cdMeta, ovFrameRungs:cdFrameRows, ovFrameAbsences:cdFrameAbsences,
       ovDashActive:!!(d&&d.analysis&&(d.analysis.list||[]).length&&(d.analysis.paras||[]).length),
-      ovDashFallback:!(d&&d.analysis&&(d.analysis.list||[]).length&&(d.analysis.paras||[]).length),
       overviewDashRef:this.overviewDashRef,
       overviewDashKey:((d&&(d.url||d.title||d.name))||'doc')+'|'+(dark?'d':'l')+'|'+((d&&d.analysis&&d.analysis.words)||0),
-      cdHasProvenance, cdProvenanceText, cdProvenanceOpen,
-      ovIsList:cardScreen==='list', ovListHeader:cdListHeader, ovListRows:cdListRows, ovListHasRows:cdListRows.length>0,
-      cdHasLenses, cdLensChips,
-      ovIsUnit:cardScreen==='unit', ovUnitKicker:cdUnitKicker, ovUnitText:cdUnitText,
-      ovUnitHasAnchor:cdUnitHasAnchor, ovUnitNoAnchor:cdUnitNoAnchor, ovUnitAnchorLabel:cdUnitAnchorLabel, ovUnitJump:cdUnitJump,
-      ovUnitHasEnts:cdUnitHasEnts, ovUnitNoEnts:cdUnitNoEnts, ovUnitEnts:cdUnitEnts,
-      cdUnitHasLinks, cdUnitLinks,
-      overviewSubtabs:['Brief','Outline','Map'].map(label=>{ const on=(label==='Brief'&&S.tab==='overview')||(label==='Map'&&S.tab==='profile'); return {label,bg:on?t.accent:t.bar,fg:on?'#fff':t.t2,bd:on?t.accent:t.border,pick:()=> label==='Map'?this.setState({tab:'profile'}):this.setState({tab:'overview'})}; }),
-      ovIsReferent:cardScreen==='referent',
-      ovRefName:cdRefEnt?cdRefEnt.name:'', ovRefColor:cdRefEnt?cdRefEnt.color:t.mut,
-      ovRefSub:cdRefEnt?('Detected entity · '+cdRefEnt.count+' mention'+(cdRefEnt.count===1?'':'s')):'',
-      ovRefHasAppear:cdRefAppear.length>0, ovRefNoAppear:!!cdRefEnt&&cdRefAppear.length===0, ovRefAppear:cdRefAppear,
-      ovRefHasWith:cdRefWith.length>0, ovRefNoWith:!!cdRefEnt&&cdRefWith.length===0, ovRefWith:cdRefWith,
-      cdRefForms, cdRefHasForms:cdRefForms.length>0,
+      ovSubtitle:d?((d.publisher||d.title||'')+' · '+(d.analysis?d.analysis.words||0:0)+' words · '+(d.medium||'Source')):'Select a source to see its overview.',
+      checkedCount:Object.values(S.sourceChecked||{}).filter(Boolean).length, hasCheckedSources:Object.values(S.sourceChecked||{}).some(Boolean), toggleChecked:()=>this.toggleCheckedSources(),
+
+
       scrollRef:this.scrollRef,
       chromeMaxH:chromeCollapsed?'0px':'260px', chromePadT:chromeCollapsed?'0px':'5px',
       chromeOpacity:chromeCollapsed?0:1, chromePE:chromeCollapsed?'none':'auto',
@@ -5652,14 +5662,34 @@ class Component extends DCLogic {
       solarKey:(d&&(d.url||d.title||d.name))||'doc',
       mapExpanded:!!S.mapExpanded, openMap:()=>this.setState({mapExpanded:true}), closeMap:()=>this.setState({mapExpanded:false}),
       solarKeyBig:((d&&(d.url||d.title||d.name))||'doc')+'|big|'+(S.sel||''),
-      entKindSegments:this.entityKindSegments().map(seg=>({
-        id:seg.id, label:seg.label, color:seg.color, total:seg.total, count:seg.entities.length,
-        entities:seg.entities.slice(0,60).map(e=>{ const on=S.sel===e.id; return {
-          name:e.name, count:e.count, color:e.color||seg.color,
-          chipBg:on?t.accentSoft:t.bar, chipBd:on?t.accentLine:t.border,
-          pick:()=>this.pick(e.id)
-        }; })
-      })),
+      ...(()=>{
+        const et=this.entityTable(12);
+        const onQuery=(e)=>{ const v=e.target.value; this.setState({entQuery:v, entPage:0}); };
+        const pickKind=(k)=>this.setState({entKindFilter:k, entPage:0});
+        return {
+          entTableQuery:S.entQuery||'', onEntTableQuery:onQuery,
+          clearEntTableQuery:()=>this.setState({entQuery:'', entPage:0}),
+          hasEntTableQuery:!!(S.entQuery&&S.entQuery.length),
+          entKindChips:[{key:'all',label:'All',color:t.mut,active:(S.entKindFilter||'all')==='all',pick:()=>pickKind('all')}]
+            .concat(et.kinds.map(k=>({key:k.kind,label:k.label+' '+k.count,color:k.color,active:S.entKindFilter===k.kind,pick:()=>pickKind(k.kind)})))
+            .map(c=>({...c,
+              chipBg:c.active?t.accentSoft:t.bar, chipBd:c.active?t.accentLine:t.border, chipFg:c.active?t.text:t.mut
+            })),
+          entTableRows:et.rows.map(r=>{ const on=S.sel===r.id; return {
+            name:r.name, count:r.count, kindLabel:r.kindLabel, color:r.color,
+            rowBg:on?t.accentSoft:'transparent',
+            pick:()=>this.pick(r.id)
+          }; }),
+          entTableEmpty:et.total===0,
+          entTableCountLabel: et.total===0 ? 'No matches' : ((et.start+1)+'–'+Math.min(et.start+et.rows.length,et.total)+' of '+et.total),
+          entTablePageLabel:'Page '+(et.page+1)+' of '+et.pages,
+          entTablePrevOpacity:et.page<=0?0.4:1, entTablePrevPtr:et.page<=0?'none':'auto',
+          entTableNextOpacity:et.page>=et.pages-1?0.4:1, entTableNextPtr:et.page>=et.pages-1?'none':'auto',
+          entTablePrev:()=>this.setState(s=>({entPage:Math.max(0,(s.entPage||0)-1)})),
+          entTableNext:()=>this.setState(s=>({entPage:Math.min(et.pages-1,(s.entPage||0)+1)})),
+          showEntTablePager: et.pages>1
+        };
+      })(),
       isProfile:S.tab==='profile', setProfile:()=>this.setState({tab:'profile'}),
       isEot:S.tab==='eot', setEot:()=>this.setState({tab:'eot'}),
       tabPB:S.tab==='profile'?activeBg:'transparent', tabPC:S.tab==='profile'?activeC:t.mut,
@@ -5677,7 +5707,10 @@ class Component extends DCLogic {
       hasConns:!!(sel&&sel.conns&&sel.conns.length), hasNote:!!(sel&&sel.note&&L.nw),
       solarRef:this.solarRef,
       relatedChips:sel?(sel.related||[]).map(r=>({n:r.n,c:r.c,pick:r.id?(()=>this.pick(r.id)):null})):[],
-      flagColor:(sel&&sel.flags>0)?'#c0341a':t.text,
+      linksOpen:!!S.linksOpen,
+      linksCaret:S.linksOpen?'▾':'▸',
+      toggleLinks:()=>this.setState(s=>({linksOpen:!s.linksOpen})),
+      selConns:sel?(sel.conns||[]).map(c=>({name:c.t,color:c.c,verb:c.v,count:c.count||0,pick:c.id?()=>this.pick(c.id):null})):[],
       ...(()=>{ const wk=sel?(S.wiki||{})[this.wikiKey(sel.name)]:null; const ok=!!(wk&&!wk.busy&&!wk.none); const imgs=sel?this.entityImages(sel):[]; return {
         selWikiWait:!!(wk&&wk.busy),
         selHasWiki:ok,

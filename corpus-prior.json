@@ -1,0 +1,2696 @@
+{
+  "corpus_prior_version": "corpus-prior@1.0.0",
+  "generated_from": {
+    "corpus_dir_basename": "corpus_consolidated_full",
+    "books": 495,
+    "spans": 22078,
+    "max_sentences_per_book": 200,
+    "per_book": [
+      {
+        "file": "diverse_corpus__book_de_kafka.txt",
+        "spans": 200,
+        "url": "https://www.gutenberg.org/ebooks/22367"
+      },
+      {
+        "file": "diverse_corpus__book_es_quijote.txt",
+        "spans": 200,
+        "url": "https://www.gutenberg.org/ebooks/2000"
+      },
+      {
+        "file": "diverse_corpus__book_fi_kalevala.txt",
+        "spans": 200,
+        "url": "https://www.gutenberg.org/ebooks/7000"
+      },
+      {
+        "file": "diverse_corpus__book_fr_verne.txt",
+        "spans": 200,
+        "url": "https://www.gutenberg.org/ebooks/800"
+      },
+      {
+        "file": "gutenberg_corpus__pg13434.txt",
+        "spans": 200,
+        "url": "https://www.gutenberg.org/ebooks/13434"
+      },
+      {
+        "file": "gutenberg_corpus__pg1396.txt",
+        "spans": 200,
+        "url": "https://www.gutenberg.org/ebooks/1396"
+      },
+      {
+        "file": "gutenberg_corpus__pg18578.txt",
+        "spans": 200,
+        "url": "https://www.gutenberg.org/ebooks/18578"
+      },
+      {
+        "file": "gutenberg_corpus__pg18986.txt",
+        "spans": 200,
+        "url": "https://www.gutenberg.org/ebooks/18986"
+      },
+      {
+        "file": "gutenberg_corpus__pg19273.txt",
+        "spans": 200,
+        "url": "https://www.gutenberg.org/ebooks/19273"
+      },
+      {
+        "file": "gutenberg_corpus__pg21575.txt",
+        "spans": 200,
+        "url": "https://www.gutenberg.org/ebooks/21575"
+      },
+      {
+        "file": "gutenberg_corpus__pg22153.txt",
+        "spans": 200,
+        "url": "https://www.gutenberg.org/ebooks/22153"
+      },
+      {
+        "file": "gutenberg_corpus__pg25982.txt",
+        "spans": 200,
+        "url": "https://www.gutenberg.org/ebooks/25982"
+      },
+      {
+        "file": "gutenberg_corpus__pg32322.txt",
+        "spans": 200,
+        "url": "https://www.gutenberg.org/ebooks/32322"
+      },
+      {
+        "file": "gutenberg_corpus__pg41286.txt",
+        "spans": 200,
+        "url": "https://www.gutenberg.org/ebooks/41286"
+      },
+      {
+        "file": "gutenberg_corpus__pg50903.txt",
+        "spans": 200,
+        "url": "https://www.gutenberg.org/ebooks/50903"
+      },
+      {
+        "file": "gutenberg_corpus__pg59402.txt",
+        "spans": 200,
+        "url": "https://www.gutenberg.org/ebooks/59402"
+      },
+      {
+        "file": "gutenberg_corpus__pg70623.txt",
+        "spans": 200,
+        "url": "https://www.gutenberg.org/ebooks/70623"
+      },
+      {
+        "file": "gutenberg_corpus__pg70656.txt",
+        "spans": 200,
+        "url": "https://www.gutenberg.org/ebooks/70656"
+      },
+      {
+        "file": "gutenberg_corpus__pg74409.txt",
+        "spans": 200,
+        "url": "https://www.gutenberg.org/ebooks/74409"
+      },
+      {
+        "file": "gutenberg_corpus__pg857.txt",
+        "spans": 200,
+        "url": "https://www.gutenberg.org/ebooks/857"
+      },
+      {
+        "file": "holy_texts_corpus__greek_nt__nestle1904__morph__parsing.txt",
+        "spans": 119,
+        "url": "https://github.com/biblicalhumanities/Nestle1904",
+        "license": "Public domain"
+      },
+      {
+        "file": "holy_texts_corpus__greek_nt__sblgnt__data__sblgnt__text__1Cor.txt",
+        "spans": 200,
+        "url": "https://github.com/LogosBible/SBLGNT",
+        "license": "CC BY 4.0"
+      },
+      {
+        "file": "holy_texts_corpus__greek_nt__sblgnt__data__sblgnt__text__1John.txt",
+        "spans": 78,
+        "url": "https://github.com/LogosBible/SBLGNT",
+        "license": "CC BY 4.0"
+      },
+      {
+        "file": "holy_texts_corpus__greek_nt__sblgnt__data__sblgnt__text__1Pet.txt",
+        "spans": 39,
+        "url": "https://github.com/LogosBible/SBLGNT",
+        "license": "CC BY 4.0"
+      },
+      {
+        "file": "holy_texts_corpus__greek_nt__sblgnt__data__sblgnt__text__1Thess.txt",
+        "spans": 36,
+        "url": "https://github.com/LogosBible/SBLGNT",
+        "license": "CC BY 4.0"
+      },
+      {
+        "file": "holy_texts_corpus__greek_nt__sblgnt__data__sblgnt__text__1Tim.txt",
+        "spans": 46,
+        "url": "https://github.com/LogosBible/SBLGNT",
+        "license": "CC BY 4.0"
+      },
+      {
+        "file": "holy_texts_corpus__greek_nt__sblgnt__data__sblgnt__text__2Cor.txt",
+        "spans": 134,
+        "url": "https://github.com/LogosBible/SBLGNT",
+        "license": "CC BY 4.0"
+      },
+      {
+        "file": "holy_texts_corpus__greek_nt__sblgnt__data__sblgnt__text__2John.txt",
+        "spans": 0,
+        "url": "https://github.com/LogosBible/SBLGNT",
+        "license": "CC BY 4.0"
+      },
+      {
+        "file": "holy_texts_corpus__greek_nt__sblgnt__data__sblgnt__text__2Pet.txt",
+        "spans": 13,
+        "url": "https://github.com/LogosBible/SBLGNT",
+        "license": "CC BY 4.0"
+      },
+      {
+        "file": "holy_texts_corpus__greek_nt__sblgnt__data__sblgnt__text__2Thess.txt",
+        "spans": 10,
+        "url": "https://github.com/LogosBible/SBLGNT",
+        "license": "CC BY 4.0"
+      },
+      {
+        "file": "holy_texts_corpus__greek_nt__sblgnt__data__sblgnt__text__2Tim.txt",
+        "spans": 32,
+        "url": "https://github.com/LogosBible/SBLGNT",
+        "license": "CC BY 4.0"
+      },
+      {
+        "file": "holy_texts_corpus__greek_nt__sblgnt__data__sblgnt__text__3John.txt",
+        "spans": 1,
+        "url": "https://github.com/LogosBible/SBLGNT",
+        "license": "CC BY 4.0"
+      },
+      {
+        "file": "holy_texts_corpus__greek_nt__sblgnt__data__sblgnt__text__Acts.txt",
+        "spans": 200,
+        "url": "https://github.com/LogosBible/SBLGNT",
+        "license": "CC BY 4.0"
+      },
+      {
+        "file": "holy_texts_corpus__greek_nt__sblgnt__data__sblgnt__text__Col.txt",
+        "spans": 24,
+        "url": "https://github.com/LogosBible/SBLGNT",
+        "license": "CC BY 4.0"
+      },
+      {
+        "file": "holy_texts_corpus__greek_nt__sblgnt__data__sblgnt__text__Eph.txt",
+        "spans": 40,
+        "url": "https://github.com/LogosBible/SBLGNT",
+        "license": "CC BY 4.0"
+      },
+      {
+        "file": "holy_texts_corpus__greek_nt__sblgnt__data__sblgnt__text__Gal.txt",
+        "spans": 78,
+        "url": "https://github.com/LogosBible/SBLGNT",
+        "license": "CC BY 4.0"
+      },
+      {
+        "file": "holy_texts_corpus__greek_nt__sblgnt__data__sblgnt__text__Heb.txt",
+        "spans": 134,
+        "url": "https://github.com/LogosBible/SBLGNT",
+        "license": "CC BY 4.0"
+      },
+      {
+        "file": "holy_texts_corpus__greek_nt__sblgnt__data__sblgnt__text__Jas.txt",
+        "spans": 60,
+        "url": "https://github.com/LogosBible/SBLGNT",
+        "license": "CC BY 4.0"
+      },
+      {
+        "file": "holy_texts_corpus__greek_nt__sblgnt__data__sblgnt__text__John.txt",
+        "spans": 200,
+        "url": "https://github.com/LogosBible/SBLGNT",
+        "license": "CC BY 4.0"
+      },
+      {
+        "file": "holy_texts_corpus__greek_nt__sblgnt__data__sblgnt__text__Jude.txt",
+        "spans": 2,
+        "url": "https://github.com/LogosBible/SBLGNT",
+        "license": "CC BY 4.0"
+      },
+      {
+        "file": "holy_texts_corpus__greek_nt__sblgnt__data__sblgnt__text__Luke.txt",
+        "spans": 200,
+        "url": "https://github.com/LogosBible/SBLGNT",
+        "license": "CC BY 4.0"
+      },
+      {
+        "file": "holy_texts_corpus__greek_nt__sblgnt__data__sblgnt__text__Mark.txt",
+        "spans": 200,
+        "url": "https://github.com/LogosBible/SBLGNT",
+        "license": "CC BY 4.0"
+      },
+      {
+        "file": "holy_texts_corpus__greek_nt__sblgnt__data__sblgnt__text__Matt.txt",
+        "spans": 200,
+        "url": "https://github.com/LogosBible/SBLGNT",
+        "license": "CC BY 4.0"
+      },
+      {
+        "file": "holy_texts_corpus__greek_nt__sblgnt__data__sblgnt__text__Phil.txt",
+        "spans": 40,
+        "url": "https://github.com/LogosBible/SBLGNT",
+        "license": "CC BY 4.0"
+      },
+      {
+        "file": "holy_texts_corpus__greek_nt__sblgnt__data__sblgnt__text__Phlm.txt",
+        "spans": 0,
+        "url": "https://github.com/LogosBible/SBLGNT",
+        "license": "CC BY 4.0"
+      },
+      {
+        "file": "holy_texts_corpus__greek_nt__sblgnt__data__sblgnt__text__Rev.txt",
+        "spans": 200,
+        "url": "https://github.com/LogosBible/SBLGNT",
+        "license": "CC BY 4.0"
+      },
+      {
+        "file": "holy_texts_corpus__greek_nt__sblgnt__data__sblgnt__text__Rom.txt",
+        "spans": 200,
+        "url": "https://github.com/LogosBible/SBLGNT",
+        "license": "CC BY 4.0"
+      },
+      {
+        "file": "holy_texts_corpus__greek_nt__sblgnt__data__sblgnt__text__Titus.txt",
+        "spans": 13,
+        "url": "https://github.com/LogosBible/SBLGNT",
+        "license": "CC BY 4.0"
+      },
+      {
+        "file": "holy_texts_corpus__greek_nt__sblgnt__data__sblgntapp__text__1Cor.txt",
+        "spans": 200,
+        "url": "https://github.com/LogosBible/SBLGNT",
+        "license": "CC BY 4.0"
+      },
+      {
+        "file": "holy_texts_corpus__greek_nt__sblgnt__data__sblgntapp__text__1John.txt",
+        "spans": 86,
+        "url": "https://github.com/LogosBible/SBLGNT",
+        "license": "CC BY 4.0"
+      },
+      {
+        "file": "holy_texts_corpus__greek_nt__sblgnt__data__sblgntapp__text__1Pet.txt",
+        "spans": 106,
+        "url": "https://github.com/LogosBible/SBLGNT",
+        "license": "CC BY 4.0"
+      },
+      {
+        "file": "holy_texts_corpus__greek_nt__sblgnt__data__sblgntapp__text__1Thess.txt",
+        "spans": 62,
+        "url": "https://github.com/LogosBible/SBLGNT",
+        "license": "CC BY 4.0"
+      },
+      {
+        "file": "holy_texts_corpus__greek_nt__sblgnt__data__sblgntapp__text__1Tim.txt",
+        "spans": 58,
+        "url": "https://github.com/LogosBible/SBLGNT",
+        "license": "CC BY 4.0"
+      },
+      {
+        "file": "holy_texts_corpus__greek_nt__sblgnt__data__sblgntapp__text__2Cor.txt",
+        "spans": 200,
+        "url": "https://github.com/LogosBible/SBLGNT",
+        "license": "CC BY 4.0"
+      },
+      {
+        "file": "holy_texts_corpus__greek_nt__sblgnt__data__sblgntapp__text__2John.txt",
+        "spans": 4,
+        "url": "https://github.com/LogosBible/SBLGNT",
+        "license": "CC BY 4.0"
+      },
+      {
+        "file": "holy_texts_corpus__greek_nt__sblgnt__data__sblgntapp__text__2Pet.txt",
+        "spans": 50,
+        "url": "https://github.com/LogosBible/SBLGNT",
+        "license": "CC BY 4.0"
+      },
+      {
+        "file": "holy_texts_corpus__greek_nt__sblgnt__data__sblgntapp__text__2Thess.txt",
+        "spans": 30,
+        "url": "https://github.com/LogosBible/SBLGNT",
+        "license": "CC BY 4.0"
+      },
+      {
+        "file": "holy_texts_corpus__greek_nt__sblgnt__data__sblgntapp__text__2Tim.txt",
+        "spans": 50,
+        "url": "https://github.com/LogosBible/SBLGNT",
+        "license": "CC BY 4.0"
+      },
+      {
+        "file": "holy_texts_corpus__greek_nt__sblgnt__data__sblgntapp__text__3John.txt",
+        "spans": 2,
+        "url": "https://github.com/LogosBible/SBLGNT",
+        "license": "CC BY 4.0"
+      },
+      {
+        "file": "holy_texts_corpus__greek_nt__sblgnt__data__sblgntapp__text__Acts.txt",
+        "spans": 200,
+        "url": "https://github.com/LogosBible/SBLGNT",
+        "license": "CC BY 4.0"
+      },
+      {
+        "file": "holy_texts_corpus__greek_nt__sblgnt__data__sblgntapp__text__Col.txt",
+        "spans": 86,
+        "url": "https://github.com/LogosBible/SBLGNT",
+        "license": "CC BY 4.0"
+      },
+      {
+        "file": "holy_texts_corpus__greek_nt__sblgnt__data__sblgntapp__text__Eph.txt",
+        "spans": 126,
+        "url": "https://github.com/LogosBible/SBLGNT",
+        "license": "CC BY 4.0"
+      },
+      {
+        "file": "holy_texts_corpus__greek_nt__sblgnt__data__sblgntapp__text__Gal.txt",
+        "spans": 116,
+        "url": "https://github.com/LogosBible/SBLGNT",
+        "license": "CC BY 4.0"
+      },
+      {
+        "file": "holy_texts_corpus__greek_nt__sblgnt__data__sblgntapp__text__Heb.txt",
+        "spans": 200,
+        "url": "https://github.com/LogosBible/SBLGNT",
+        "license": "CC BY 4.0"
+      },
+      {
+        "file": "holy_texts_corpus__greek_nt__sblgnt__data__sblgntapp__text__Jas.txt",
+        "spans": 98,
+        "url": "https://github.com/LogosBible/SBLGNT",
+        "license": "CC BY 4.0"
+      },
+      {
+        "file": "holy_texts_corpus__greek_nt__sblgnt__data__sblgntapp__text__John.txt",
+        "spans": 200,
+        "url": "https://github.com/LogosBible/SBLGNT",
+        "license": "CC BY 4.0"
+      },
+      {
+        "file": "holy_texts_corpus__greek_nt__sblgnt__data__sblgntapp__text__Jude.txt",
+        "spans": 12,
+        "url": "https://github.com/LogosBible/SBLGNT",
+        "license": "CC BY 4.0"
+      },
+      {
+        "file": "holy_texts_corpus__greek_nt__sblgnt__data__sblgntapp__text__Luke.txt",
+        "spans": 200,
+        "url": "https://github.com/LogosBible/SBLGNT",
+        "license": "CC BY 4.0"
+      },
+      {
+        "file": "holy_texts_corpus__greek_nt__sblgnt__data__sblgntapp__text__Mark.txt",
+        "spans": 200,
+        "url": "https://github.com/LogosBible/SBLGNT",
+        "license": "CC BY 4.0"
+      },
+      {
+        "file": "holy_texts_corpus__greek_nt__sblgnt__data__sblgntapp__text__Matt.txt",
+        "spans": 200,
+        "url": "https://github.com/LogosBible/SBLGNT",
+        "license": "CC BY 4.0"
+      },
+      {
+        "file": "holy_texts_corpus__greek_nt__sblgnt__data__sblgntapp__text__Phil.txt",
+        "spans": 58,
+        "url": "https://github.com/LogosBible/SBLGNT",
+        "license": "CC BY 4.0"
+      },
+      {
+        "file": "holy_texts_corpus__greek_nt__sblgnt__data__sblgntapp__text__Phlm.txt",
+        "spans": 14,
+        "url": "https://github.com/LogosBible/SBLGNT",
+        "license": "CC BY 4.0"
+      },
+      {
+        "file": "holy_texts_corpus__greek_nt__sblgnt__data__sblgntapp__text__Rev.txt",
+        "spans": 200,
+        "url": "https://github.com/LogosBible/SBLGNT",
+        "license": "CC BY 4.0"
+      },
+      {
+        "file": "holy_texts_corpus__greek_nt__sblgnt__data__sblgntapp__text__Rom.txt",
+        "spans": 200,
+        "url": "https://github.com/LogosBible/SBLGNT",
+        "license": "CC BY 4.0"
+      },
+      {
+        "file": "holy_texts_corpus__greek_nt__sblgnt__data__sblgntapp__text__Titus.txt",
+        "spans": 24,
+        "url": "https://github.com/LogosBible/SBLGNT",
+        "license": "CC BY 4.0"
+      },
+      {
+        "file": "holy_texts_corpus__quran__001-Al-Faatiha.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__002-Al-Baqara.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__003-Aal-i-Imraan.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__004-An-Nisaa.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__005-Al-Maaida.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__006-Al-An'aam.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__007-Al-A'raaf.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__008-Al-Anfaal.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__009-At-Tawba.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__010-Yunus.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__011-Hud.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__012-Yusuf.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__013-Ar-Ra'd.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__014-Ibrahim.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__015-Al-Hijr.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__016-An-Nahl.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__017-Al-Israa.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__018-Al-Kahf.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__019-Maryam.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__020-Taa-Haa.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__021-Al-Anbiyaa.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__022-Al-Hajj.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__023-Al-Muminoon.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__024-An-Noor.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__025-Al-Furqaan.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__026-Ash-Shu'araa.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__027-An-Naml.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__028-Al-Qasas.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__029-Al-Ankaboot.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__030-Ar-Room.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__031-Luqman.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__032-As-Sajda.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__033-Al-Ahzaab.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__034-Saba.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__035-Faatir.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__036-Yaseen.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__037-As-Saaffaat.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__038-Saad.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__039-Az-Zumar.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__040-Ghafir.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__041-Fussilat.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__042-Ash-Shura.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__043-Az-Zukhruf.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__044-Ad-Dukhaan.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__045-Al-Jaathiya.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__046-Al-Ahqaf.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__047-Muhammad.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__048-Al-Fath.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__049-Al-Hujuraat.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__050-Qaaf.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__051-Adh-Dhaariyat.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__052-At-Tur.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__053-An-Najm.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__054-Al-Qamar.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__055-Ar-Rahmaan.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__056-Al-Waaqia.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__057-Al-Hadid.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__058-Al-Mujaadila.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__059-Al-Hashr.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__060-Al-Mumtahana.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__061-As-Saff.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__062-Al-Jumu'a.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__063-Al-Munaafiqoon.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__064-At-Taghaabun.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__065-At-Talaaq.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__066-At-Tahrim.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__067-Al-Mulk.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__068-Al-Qalam.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__069-Al-Haaqqa.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__070-Al-Ma'aarij.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__071-Nooh.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__072-Al-Jinn.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__073-Al-Muzzammil.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__074-Al-Muddaththir.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__075-Al-Qiyaama.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__076-Al-Insaan.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__077-Al-Mursalaat.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__078-An-Naba.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__079-An-Naazi'aat.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__080-Abasa.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__081-At-Takwir.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__082-Al-Infitaar.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__083-Al-Mutaffifin.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__084-Al-Inshiqaaq.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__085-Al-Burooj.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__086-At-Taariq.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__087-Al-A'laa.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__088-Al-Ghaashiya.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__089-Al-Fajr.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__090-Al-Balad.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__091-Ash-Shams.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__092-Al-Lail.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__093-Ad-Dhuhaa.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__094-Ash-Sharh.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__095-At-Tin.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__096-Al-Alaq.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__097-Al-Qadr.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__098-Al-Bayyina.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__099-Az-Zalzala.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__100-Al-Aadiyaat.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__101-Al-Qaari'a.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__102-At-Takaathur.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__104-Al-Humaza.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__105-Al-Fil.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__106-Quraish.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__107-Al-Maa'un.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__109-Al-Kaafiroon.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__110-An-Nasr.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__111-Al-Masad.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "holy_texts_corpus__quran__114-An-Naas.txt",
+        "spans": 0,
+        "url": "https://tanzil.net (via api.alquran.cloud)",
+        "license": "CC BY 3.0 (Tanzil Project)"
+      },
+      {
+        "file": "journalism_corpus__baker_following_color_line.txt",
+        "spans": 200,
+        "url": "https://www.gutenberg.org/ebooks/34847"
+      },
+      {
+        "file": "journalism_corpus__bly_ten_days_madhouse.txt",
+        "spans": 200,
+        "url": "https://www.gutenberg.org/ebooks/59899"
+      },
+      {
+        "file": "journalism_corpus__reed_ten_days_shook_world.txt",
+        "spans": 200,
+        "url": "https://www.gutenberg.org/ebooks/3076"
+      },
+      {
+        "file": "journalism_corpus__riis_how_other_half_lives.txt",
+        "spans": 200,
+        "url": "https://www.gutenberg.org/ebooks/45502"
+      },
+      {
+        "file": "journalism_corpus__sinclair_the_jungle.txt",
+        "spans": 200,
+        "url": "https://www.gutenberg.org/ebooks/140"
+      },
+      {
+        "file": "journalism_corpus__steffens_shame_of_cities.txt",
+        "spans": 200,
+        "url": "https://www.gutenberg.org/ebooks/54710"
+      },
+      {
+        "file": "journalism_corpus__tarbell_standard_oil.txt",
+        "spans": 200,
+        "url": "https://www.gutenberg.org/ebooks/60692"
+      },
+      {
+        "file": "shakespeare_corpus__folger__a-midsummer-nights-dream_TXT_FolgerShakespeare.txt",
+        "spans": 200,
+        "url": "https://shakespeare.folger.edu"
+      },
+      {
+        "file": "shakespeare_corpus__folger__alls-well-that-ends-well_TXT_FolgerShakespeare.txt",
+        "spans": 200,
+        "url": "https://shakespeare.folger.edu"
+      },
+      {
+        "file": "shakespeare_corpus__folger__antony-and-cleopatra_TXT_FolgerShakespeare.txt",
+        "spans": 200,
+        "url": "https://shakespeare.folger.edu"
+      },
+      {
+        "file": "shakespeare_corpus__folger__as-you-like-it_TXT_FolgerShakespeare.txt",
+        "spans": 200,
+        "url": "https://shakespeare.folger.edu"
+      },
+      {
+        "file": "shakespeare_corpus__folger__coriolanus_TXT_FolgerShakespeare.txt",
+        "spans": 200,
+        "url": "https://shakespeare.folger.edu"
+      },
+      {
+        "file": "shakespeare_corpus__folger__cymbeline_TXT_FolgerShakespeare.txt",
+        "spans": 200,
+        "url": "https://shakespeare.folger.edu"
+      },
+      {
+        "file": "shakespeare_corpus__folger__hamlet_TXT_FolgerShakespeare.txt",
+        "spans": 200,
+        "url": "https://shakespeare.folger.edu"
+      },
+      {
+        "file": "shakespeare_corpus__folger__henry-iv-part-1_TXT_FolgerShakespeare.txt",
+        "spans": 200,
+        "url": "https://shakespeare.folger.edu"
+      },
+      {
+        "file": "shakespeare_corpus__folger__henry-iv-part-2_TXT_FolgerShakespeare.txt",
+        "spans": 200,
+        "url": "https://shakespeare.folger.edu"
+      },
+      {
+        "file": "shakespeare_corpus__folger__henry-v_TXT_FolgerShakespeare.txt",
+        "spans": 200,
+        "url": "https://shakespeare.folger.edu"
+      },
+      {
+        "file": "shakespeare_corpus__folger__henry-vi-part-1_TXT_FolgerShakespeare.txt",
+        "spans": 200,
+        "url": "https://shakespeare.folger.edu"
+      },
+      {
+        "file": "shakespeare_corpus__folger__henry-vi-part-2_TXT_FolgerShakespeare.txt",
+        "spans": 200,
+        "url": "https://shakespeare.folger.edu"
+      },
+      {
+        "file": "shakespeare_corpus__folger__henry-vi-part-3_TXT_FolgerShakespeare.txt",
+        "spans": 200,
+        "url": "https://shakespeare.folger.edu"
+      },
+      {
+        "file": "shakespeare_corpus__folger__henry-viii_TXT_FolgerShakespeare.txt",
+        "spans": 200,
+        "url": "https://shakespeare.folger.edu"
+      },
+      {
+        "file": "shakespeare_corpus__folger__julius-caesar_TXT_FolgerShakespeare.txt",
+        "spans": 200,
+        "url": "https://shakespeare.folger.edu"
+      },
+      {
+        "file": "shakespeare_corpus__folger__king-john_TXT_FolgerShakespeare.txt",
+        "spans": 200,
+        "url": "https://shakespeare.folger.edu"
+      },
+      {
+        "file": "shakespeare_corpus__folger__king-lear_TXT_FolgerShakespeare.txt",
+        "spans": 200,
+        "url": "https://shakespeare.folger.edu"
+      },
+      {
+        "file": "shakespeare_corpus__folger__loves-labors-lost_TXT_FolgerShakespeare.txt",
+        "spans": 200,
+        "url": "https://shakespeare.folger.edu"
+      },
+      {
+        "file": "shakespeare_corpus__folger__lucrece_TXT_FolgerShakespeare.txt",
+        "spans": 200,
+        "url": "https://shakespeare.folger.edu"
+      },
+      {
+        "file": "shakespeare_corpus__folger__macbeth_TXT_FolgerShakespeare.txt",
+        "spans": 200,
+        "url": "https://shakespeare.folger.edu"
+      },
+      {
+        "file": "shakespeare_corpus__folger__measure-for-measure_TXT_FolgerShakespeare.txt",
+        "spans": 200,
+        "url": "https://shakespeare.folger.edu"
+      },
+      {
+        "file": "shakespeare_corpus__folger__much-ado-about-nothing_TXT_FolgerShakespeare.txt",
+        "spans": 200,
+        "url": "https://shakespeare.folger.edu"
+      },
+      {
+        "file": "shakespeare_corpus__folger__othello_TXT_FolgerShakespeare.txt",
+        "spans": 200,
+        "url": "https://shakespeare.folger.edu"
+      },
+      {
+        "file": "shakespeare_corpus__folger__pericles_TXT_FolgerShakespeare.txt",
+        "spans": 200,
+        "url": "https://shakespeare.folger.edu"
+      },
+      {
+        "file": "shakespeare_corpus__folger__richard-ii_TXT_FolgerShakespeare.txt",
+        "spans": 200,
+        "url": "https://shakespeare.folger.edu"
+      },
+      {
+        "file": "shakespeare_corpus__folger__richard-iii_TXT_FolgerShakespeare.txt",
+        "spans": 200,
+        "url": "https://shakespeare.folger.edu"
+      },
+      {
+        "file": "shakespeare_corpus__folger__romeo-and-juliet_TXT_FolgerShakespeare.txt",
+        "spans": 200,
+        "url": "https://shakespeare.folger.edu"
+      },
+      {
+        "file": "shakespeare_corpus__folger__shakespeares-sonnets_TXT_FolgerShakespeare.txt",
+        "spans": 200,
+        "url": "https://shakespeare.folger.edu"
+      },
+      {
+        "file": "shakespeare_corpus__folger__the-comedy-of-errors_TXT_FolgerShakespeare.txt",
+        "spans": 200,
+        "url": "https://shakespeare.folger.edu"
+      },
+      {
+        "file": "shakespeare_corpus__folger__the-merchant-of-venice_TXT_FolgerShakespeare.txt",
+        "spans": 200,
+        "url": "https://shakespeare.folger.edu"
+      },
+      {
+        "file": "shakespeare_corpus__folger__the-merry-wives-of-windsor_TXT_FolgerShakespeare.txt",
+        "spans": 200,
+        "url": "https://shakespeare.folger.edu"
+      },
+      {
+        "file": "shakespeare_corpus__folger__the-phoenix-and-turtle_TXT_FolgerShakespeare.txt",
+        "spans": 24,
+        "url": "https://shakespeare.folger.edu"
+      },
+      {
+        "file": "shakespeare_corpus__folger__the-taming-of-the-shrew_TXT_FolgerShakespeare.txt",
+        "spans": 200,
+        "url": "https://shakespeare.folger.edu"
+      },
+      {
+        "file": "shakespeare_corpus__folger__the-tempest_TXT_FolgerShakespeare.txt",
+        "spans": 200,
+        "url": "https://shakespeare.folger.edu"
+      },
+      {
+        "file": "shakespeare_corpus__folger__the-two-gentlemen-of-verona_TXT_FolgerShakespeare.txt",
+        "spans": 200,
+        "url": "https://shakespeare.folger.edu"
+      },
+      {
+        "file": "shakespeare_corpus__folger__the-two-noble-kinsmen_TXT_FolgerShakespeare.txt",
+        "spans": 200,
+        "url": "https://shakespeare.folger.edu"
+      },
+      {
+        "file": "shakespeare_corpus__folger__the-winters-tale_TXT_FolgerShakespeare.txt",
+        "spans": 200,
+        "url": "https://shakespeare.folger.edu"
+      },
+      {
+        "file": "shakespeare_corpus__folger__timon-of-athens_TXT_FolgerShakespeare.txt",
+        "spans": 200,
+        "url": "https://shakespeare.folger.edu"
+      },
+      {
+        "file": "shakespeare_corpus__folger__titus-andronicus_TXT_FolgerShakespeare.txt",
+        "spans": 200,
+        "url": "https://shakespeare.folger.edu"
+      },
+      {
+        "file": "shakespeare_corpus__folger__troilus-and-cressida_TXT_FolgerShakespeare.txt",
+        "spans": 200,
+        "url": "https://shakespeare.folger.edu"
+      },
+      {
+        "file": "shakespeare_corpus__folger__twelfth-night_TXT_FolgerShakespeare.txt",
+        "spans": 200,
+        "url": "https://shakespeare.folger.edu"
+      },
+      {
+        "file": "shakespeare_corpus__folger__venus-and-adonis_TXT_FolgerShakespeare.txt",
+        "spans": 200,
+        "url": "https://shakespeare.folger.edu"
+      },
+      {
+        "file": "western_canon_corpus__ccel__anselm__basic_works.txt",
+        "spans": 97,
+        "url": "https://ccel.org/ccel/anselm/basic_works"
+      },
+      {
+        "file": "western_canon_corpus__ccel__aquinas__summa.txt",
+        "spans": 99,
+        "url": "https://ccel.org/ccel/aquinas/summa"
+      },
+      {
+        "file": "western_canon_corpus__ccel__athanasius__incarnation.txt",
+        "spans": 93,
+        "url": "https://ccel.org/ccel/athanasius/incarnation"
+      },
+      {
+        "file": "western_canon_corpus__ccel__augustine__city.txt",
+        "spans": 87,
+        "url": "https://ccel.org/ccel/augustine/city"
+      },
+      {
+        "file": "western_canon_corpus__ccel__augustine__confess.txt",
+        "spans": 95,
+        "url": "https://ccel.org/ccel/augustine/confess"
+      },
+      {
+        "file": "western_canon_corpus__ccel__bunyan__pilgrim.txt",
+        "spans": 98,
+        "url": "https://ccel.org/ccel/bunyan/pilgrim"
+      },
+      {
+        "file": "western_canon_corpus__ccel__kempis__imitation.txt",
+        "spans": 93,
+        "url": "https://ccel.org/ccel/kempis/imitation"
+      },
+      {
+        "file": "western_canon_corpus__latin_library__about.html__about.html.txt",
+        "spans": 9,
+        "url": "https://www.thelatinlibrary.com/about.html"
+      },
+      {
+        "file": "western_canon_corpus__latin_library__ammianus__ammianus.txt",
+        "spans": 7,
+        "url": "https://www.thelatinlibrary.com/ammianus"
+      },
+      {
+        "file": "western_canon_corpus__latin_library__apuleius__apuleius.txt",
+        "spans": 8,
+        "url": "https://www.thelatinlibrary.com/apuleius"
+      },
+      {
+        "file": "western_canon_corpus__latin_library__caes__caes.txt",
+        "spans": 21,
+        "url": "https://www.thelatinlibrary.com/caes"
+      },
+      {
+        "file": "western_canon_corpus__latin_library__caesar__caesar.txt",
+        "spans": 1,
+        "url": "https://www.thelatinlibrary.com/caesar"
+      },
+      {
+        "file": "western_canon_corpus__latin_library__catullus.shtml__catullus.shtml.txt",
+        "spans": 200,
+        "url": "https://www.thelatinlibrary.com/catullus.shtml"
+      },
+      {
+        "file": "western_canon_corpus__latin_library__catullus__catullus.txt",
+        "spans": 13,
+        "url": "https://www.thelatinlibrary.com/catullus"
+      },
+      {
+        "file": "western_canon_corpus__latin_library__christian.html__christian.html.txt",
+        "spans": 48,
+        "url": "https://www.thelatinlibrary.com/christian.html"
+      },
+      {
+        "file": "western_canon_corpus__latin_library__cicero__cicero.txt",
+        "spans": 32,
+        "url": "https://www.thelatinlibrary.com/cicero"
+      },
+      {
+        "file": "western_canon_corpus__latin_library__claudian.html__claudian.html.txt",
+        "spans": 0,
+        "url": "https://www.thelatinlibrary.com/claudian.html"
+      },
+      {
+        "file": "western_canon_corpus__latin_library__cred.html__cred.html.txt",
+        "spans": 200,
+        "url": "https://www.thelatinlibrary.com/cred.html"
+      },
+      {
+        "file": "western_canon_corpus__latin_library__enn.html__enn.html.txt",
+        "spans": 127,
+        "url": "https://www.thelatinlibrary.com/enn.html"
+      },
+      {
+        "file": "western_canon_corpus__latin_library__epubs.html__epubs.html.txt",
+        "spans": 48,
+        "url": "https://www.thelatinlibrary.com/epubs.html"
+      },
+      {
+        "file": "western_canon_corpus__latin_library__frontinus.html__frontinus.html.txt",
+        "spans": 2,
+        "url": "https://www.thelatinlibrary.com/frontinus.html"
+      },
+      {
+        "file": "western_canon_corpus__latin_library__gellius.html__gellius.html.txt",
+        "spans": 12,
+        "url": "https://www.thelatinlibrary.com/gellius.html"
+      },
+      {
+        "file": "western_canon_corpus__latin_library__historians__historians.txt",
+        "spans": 94,
+        "url": "https://www.thelatinlibrary.com/historians"
+      },
+      {
+        "file": "western_canon_corpus__latin_library__hor.html__hor.html.txt",
+        "spans": 3,
+        "url": "https://www.thelatinlibrary.com/hor.html"
+      },
+      {
+        "file": "western_canon_corpus__latin_library__imperialism_syllabus.html__syllabus.html.txt",
+        "spans": 114,
+        "url": "https://www.thelatinlibrary.com/imperialism_syllabus.html"
+      },
+      {
+        "file": "western_canon_corpus__latin_library__indices.html__indices.html.txt",
+        "spans": 153,
+        "url": "https://www.thelatinlibrary.com/indices.html"
+      },
+      {
+        "file": "western_canon_corpus__latin_library__justin.html__justin.html.txt",
+        "spans": 35,
+        "url": "https://www.thelatinlibrary.com/justin.html"
+      },
+      {
+        "file": "western_canon_corpus__latin_library__juvenal.html__juvenal.html.txt",
+        "spans": 5,
+        "url": "https://www.thelatinlibrary.com/juvenal.html"
+      },
+      {
+        "file": "western_canon_corpus__latin_library__law__law.txt",
+        "spans": 46,
+        "url": "https://www.thelatinlibrary.com/law"
+      },
+      {
+        "file": "western_canon_corpus__latin_library__liv.html__liv.html.txt",
+        "spans": 26,
+        "url": "https://www.thelatinlibrary.com/liv.html"
+      },
+      {
+        "file": "western_canon_corpus__latin_library__livius__livybio.html.txt",
+        "spans": 67,
+        "url": "https://www.thelatinlibrary.com/livius"
+      },
+      {
+        "file": "western_canon_corpus__latin_library__ll1__ll1.txt",
+        "spans": 62,
+        "url": "https://www.thelatinlibrary.com/ll1"
+      },
+      {
+        "file": "western_canon_corpus__latin_library__ll2__ll2.txt",
+        "spans": 71,
+        "url": "https://www.thelatinlibrary.com/ll2"
+      },
+      {
+        "file": "western_canon_corpus__latin_library__martial.html__martial.html.txt",
+        "spans": 4,
+        "url": "https://www.thelatinlibrary.com/martial.html"
+      },
+      {
+        "file": "western_canon_corpus__latin_library__medieval.html__medieval.html.txt",
+        "spans": 68,
+        "url": "https://www.thelatinlibrary.com/medieval.html"
+      },
+      {
+        "file": "western_canon_corpus__latin_library__misc.html__misc.html.txt",
+        "spans": 51,
+        "url": "https://www.thelatinlibrary.com/misc.html"
+      },
+      {
+        "file": "western_canon_corpus__latin_library__neo.html__neo.html.txt",
+        "spans": 57,
+        "url": "https://www.thelatinlibrary.com/neo.html"
+      },
+      {
+        "file": "western_canon_corpus__latin_library__nepos.html__nepos.html.txt",
+        "spans": 16,
+        "url": "https://www.thelatinlibrary.com/nepos.html"
+      },
+      {
+        "file": "western_canon_corpus__latin_library__ovid.html__ovid.html.txt",
+        "spans": 73,
+        "url": "https://www.thelatinlibrary.com/ovid.html"
+      },
+      {
+        "file": "western_canon_corpus__latin_library__persius.html__persius.html.txt",
+        "spans": 200,
+        "url": "https://www.thelatinlibrary.com/persius.html"
+      },
+      {
+        "file": "western_canon_corpus__latin_library__plautus.html__plautus.html.txt",
+        "spans": 11,
+        "url": "https://www.thelatinlibrary.com/plautus.html"
+      },
+      {
+        "file": "western_canon_corpus__latin_library__pliny.html__pliny.html.txt",
+        "spans": 1,
+        "url": "https://www.thelatinlibrary.com/pliny.html"
+      },
+      {
+        "file": "western_canon_corpus__latin_library__pliny1.html__pliny1.html.txt",
+        "spans": 28,
+        "url": "https://www.thelatinlibrary.com/pliny1.html"
+      },
+      {
+        "file": "western_canon_corpus__latin_library__quintilian.html__quintilian.html.txt",
+        "spans": 23,
+        "url": "https://www.thelatinlibrary.com/quintilian.html"
+      },
+      {
+        "file": "western_canon_corpus__latin_library__sall.html__sall.html.txt",
+        "spans": 2,
+        "url": "https://www.thelatinlibrary.com/sall.html"
+      },
+      {
+        "file": "western_canon_corpus__latin_library__sallust__chronology.html.txt",
+        "spans": 120,
+        "url": "https://www.thelatinlibrary.com/sallust"
+      },
+      {
+        "file": "western_canon_corpus__latin_library__sallust__sallustbritannica.html.txt",
+        "spans": 39,
+        "url": "https://www.thelatinlibrary.com/sallust"
+      },
+      {
+        "file": "western_canon_corpus__latin_library__satire__satire.txt",
+        "spans": 25,
+        "url": "https://www.thelatinlibrary.com/satire"
+      },
+      {
+        "file": "western_canon_corpus__latin_library__sen.html__sen.html.txt",
+        "spans": 38,
+        "url": "https://www.thelatinlibrary.com/sen.html"
+      },
+      {
+        "file": "western_canon_corpus__latin_library__seneca.html__seneca.html.txt",
+        "spans": 1,
+        "url": "https://www.thelatinlibrary.com/seneca.html"
+      },
+      {
+        "file": "western_canon_corpus__latin_library__sha.html__sha.html.txt",
+        "spans": 18,
+        "url": "https://www.thelatinlibrary.com/sha.html"
+      },
+      {
+        "file": "western_canon_corpus__latin_library__silius.html__silius.html.txt",
+        "spans": 7,
+        "url": "https://www.thelatinlibrary.com/silius.html"
+      },
+      {
+        "file": "western_canon_corpus__latin_library__statius.html__statius.html.txt",
+        "spans": 11,
+        "url": "https://www.thelatinlibrary.com/statius.html"
+      },
+      {
+        "file": "western_canon_corpus__latin_library__suet.html__suet.html.txt",
+        "spans": 13,
+        "url": "https://www.thelatinlibrary.com/suet.html"
+      },
+      {
+        "file": "western_canon_corpus__latin_library__sulpicia.html__sulpicia.html.txt",
+        "spans": 12,
+        "url": "https://www.thelatinlibrary.com/sulpicia.html"
+      },
+      {
+        "file": "western_canon_corpus__latin_library__tac.html__tac.html.txt",
+        "spans": 12,
+        "url": "https://www.thelatinlibrary.com/tac.html"
+      },
+      {
+        "file": "western_canon_corpus__latin_library__technical.html__technical.html.txt",
+        "spans": 3,
+        "url": "https://www.thelatinlibrary.com/technical.html"
+      },
+      {
+        "file": "western_canon_corpus__latin_library__valeriusflaccus.html__valeriusflaccus.html.txt",
+        "spans": 0,
+        "url": "https://www.thelatinlibrary.com/valeriusflaccus.html"
+      },
+      {
+        "file": "western_canon_corpus__latin_library__valmax.html__valmax.html.txt",
+        "spans": 0,
+        "url": "https://www.thelatinlibrary.com/valmax.html"
+      },
+      {
+        "file": "western_canon_corpus__latin_library__varro.html__varro.html.txt",
+        "spans": 0,
+        "url": "https://www.thelatinlibrary.com/varro.html"
+      },
+      {
+        "file": "western_canon_corpus__latin_library__verg.html__verg.html.txt",
+        "spans": 18,
+        "url": "https://www.thelatinlibrary.com/verg.html"
+      },
+      {
+        "file": "western_canon_corpus__latin_library__virgil__virgil.txt",
+        "spans": 56,
+        "url": "https://www.thelatinlibrary.com/virgil"
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__chinese__ctext__chunqiu.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__chinese__ctext__daodejing.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__chinese__ctext__daxue.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__chinese__ctext__hanfeizi.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__chinese__ctext__huangdineijing.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__chinese__ctext__liezi.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__chinese__ctext__liji.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__chinese__ctext__lunyu.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__chinese__ctext__mengzi.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__chinese__ctext__mozi.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__chinese__ctext__shiji.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__chinese__ctext__shijing.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__chinese__ctext__shujing.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__chinese__ctext__sunjunzi.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__chinese__ctext__xiaojing.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__chinese__ctext__xunzi.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__chinese__ctext__yijing.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__chinese__ctext__zhongyong.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__chinese__ctext__zhuangzi.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__gutenberg__pg12052.txt",
+        "spans": 100,
+        "url": "https://www.gutenberg.org/ebooks/12052"
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__gutenberg__pg16342.txt",
+        "spans": 100,
+        "url": "https://www.gutenberg.org/ebooks/16342"
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__gutenberg__pg2000.txt",
+        "spans": 100,
+        "url": "https://www.gutenberg.org/ebooks/2000"
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__gutenberg__pg22367.txt",
+        "spans": 100,
+        "url": "https://www.gutenberg.org/ebooks/22367"
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__gutenberg__pg4280.txt",
+        "spans": 100,
+        "url": "https://www.gutenberg.org/ebooks/4280"
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__gutenberg__pg45840.txt",
+        "spans": 100,
+        "url": "https://www.gutenberg.org/ebooks/45840"
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__gutenberg__pg5700.txt",
+        "spans": 100,
+        "url": "https://www.gutenberg.org/ebooks/5700"
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__gutenberg__pg58228.txt",
+        "spans": 100,
+        "url": "https://www.gutenberg.org/ebooks/58228"
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__gutenberg__pg58250.txt",
+        "spans": 100,
+        "url": "https://www.gutenberg.org/ebooks/58250"
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__gutenberg__pg58251.txt",
+        "spans": 100,
+        "url": "https://www.gutenberg.org/ebooks/58251"
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__gutenberg__pg58499.txt",
+        "spans": 100,
+        "url": "https://www.gutenberg.org/ebooks/58499"
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__gutenberg__pg59299.txt",
+        "spans": 100,
+        "url": "https://www.gutenberg.org/ebooks/59299"
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__gutenberg__pg59300.txt",
+        "spans": 100,
+        "url": "https://www.gutenberg.org/ebooks/59300"
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__gutenberg__pg59301.txt",
+        "spans": 100,
+        "url": "https://www.gutenberg.org/ebooks/59301"
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__gutenberg__pg60020.txt",
+        "spans": 100,
+        "url": "https://www.gutenberg.org/ebooks/60020"
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__gutenberg__pg7000.txt",
+        "spans": 100,
+        "url": "https://www.gutenberg.org/ebooks/7000"
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__gutenberg__pg800.txt",
+        "spans": 100,
+        "url": "https://www.gutenberg.org/ebooks/800"
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__gutenberg__pg8800.txt",
+        "spans": 100,
+        "url": "https://www.gutenberg.org/ebooks/8800"
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__gutenberg__pg8801.txt",
+        "spans": 100,
+        "url": "https://www.gutenberg.org/ebooks/8801"
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__gutenberg__pg8802.txt",
+        "spans": 100,
+        "url": "https://www.gutenberg.org/ebooks/8802"
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__Lalitavistara.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__Rigveda.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__Samaveda.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_108-buddhist-stotras.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_AGgirasasmRti.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_AdizeSa-paramArthasAra.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_AdyanAtha-anuttaraprakAzapaJcAzikA.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_AlambanaparIkSA-comm.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_AlambanaparIkSA.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_AnandabhaTTa-vallAlacarita.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_Anandakanda.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_Anandavardhana-dhvanyAloka-comm.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_Anandavardhana-dhvanyAloka.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_ApastambadharmasUtra.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_ApastambagRhyasUtra-comm.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_ApastambazulbasUtra.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_AryAnityatAsUtra.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_AryabhaTa-AryabhaTIya-comm.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_AryabhaTa-AryabhaTIya.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_Aryadeva-caryAmelAvaNapradIpa.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_Aryadeva-catuHzatikA.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_Aryadeva-cittavizuddhiprakaraNa.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_AryazUra-jAtakamAlA-1-15.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_AryazUra-jAtakamAlA.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_AryazUra-pAramitAsamAsa.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_AyuHparyantasUtra.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_AzvalAyanagRhyasUtra.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_AzvalAyanazrautasUtra.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_DhuNDhukanAtha-rasendracintAmaNi.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_IzopaniSad-or-IzAvAsyopaniSadkANva-recension-comm.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_IzvarakRSNa-sAMkhyakArikA-alt.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_IzvarakRSNa-sAMkhyakArikA-comm.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_IzvarakRSNa-sAMkhyakArikA-comm2.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_IzvarakRSNa-sAMkhyakArikA-comm3.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_IzvarakRSNa-sAMkhyakArikA.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_Rgveda-edAufrecht.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_RgvedakhilAni.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_RgvedasaMhitApadapATha.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_RgvidhAna.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_SimAnanda-sAMkhyatattvavivecana.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_aSTAdazasAhasrikA-prajJApAramitA55-82.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_aSTAvakragItA.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_aSTasAhasrikA-prajJApAramitA.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_abhayAkaragupta-niSpaNNayogAvali.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_abhidharmasamuccayabhASya.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_abhinanda-kAdambarIkathAsAra.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_abhinanda-rAmacaritamahAkAvye.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_abhinavagupta-IzvarapratyabhijJAvimarzinI.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_abhinavagupta-anuttarASTikA.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_abhinavagupta-bhairavastava.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_abhinavagupta-bodhapaJcadazikA.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_abhinavagupta-kramastotra.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_abhinavagupta-mAlinIzlokavArttika.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_abhinavagupta-paramArthasAra-comm.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_abhinavagupta-paramArthasAra.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_abhinavagupta-paryantapaJcAzikA.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_abhinavagupta-tantrAloka.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_abhinavagupta-tantrasAra.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_abhisamAcArikadharma.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_abhisamayAlaMkAra.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_abhisamayAlaMkAravRttiH-sphuTArthA.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_abhisamayAlaMkAravivaraNa.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_adbhutadharmaparyAya.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_adhikaraNavastu.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_adhyardhazatikA-prajJApAramitA.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_advayazatikA-prajJApAramitA.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_agnipurANa.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_agniveza-carakasaMhitA-parts-comm.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_ahorAtravratacaityasevAnuzaMsAvadAna.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_ahoratravratakathA-prose.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_ahoratravratakathA.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_aitareyopaniSad-comm.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_ajitasenavyAkaraNa-alt.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_ajitasenavyAkaraNa.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_amRtAkara-catuHstavasamAsArtha.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_amarasiMha-nAmaliGgAnuzAsana.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_amaru-amaruzataka.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_amoghapAzahRdayasUtra-alt.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_amoghapAzahRdayasUtra-mz.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_amoghapAzahRdayasUtra.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_anityatAsUtra.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_annaMbhaTTa-tarkasaMgraha-comm.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_annaMbhatta-tarkasaMgraha.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_antarvyAptisamarthana.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_aparimitAyuHsUtra.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_apohasiddhi.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_appayadIkSita-vairAgyazatakam.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_arcaTa-hetubinduTIkA-edsanghavi.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_arcaTa-hetubinduTIkA.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_arthavinizcayasUtra.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_asaGga-abhidharmasamuccaya.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_asaGga-mahAyAnasUtrAlaMkAra-alt.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_asaGga-mahAyAnasUtrAlaMkAra-comm.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_asaGga-mahAyAnasUtrAlaMkAra.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_asaGga-trizatikAyAH-prajJApAramitAyAH-kArikAsaptatiH.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_asaGga-zarIrArthagAthA.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_asaGga-zrAvakabhUmi-edshukla.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_atharvaprAyazcittAni.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_atharvavedapariziSTas.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_atiza-bodhipathapradIpa.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_avadAnazataka.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_avadhUtasiddha-bhagavadbhaktistotra.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_azokAvadAna.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_azvaghoSa-buddhacarita-alt.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_azvaghoSa-buddhacarita.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_azvaghoSa-gurupaJcAzikA.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_azvaghoSa-saundarAnanda-edmatsunami.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_azvaghoSa-saundarAnanda.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_azvaghoSa-vajrasUcI.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_bANa-harSacarita.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_bANa-harSacaritapariziSTa.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__sanskrit__gretil__sa_bAdarAyaNa-brahmasUtra-alt.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__wikisource__arabic__الأغاني.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__wikisource__arabic__البيان_والتبيين.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__wikisource__arabic__الفهرست.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__wikisource__arabic__المعلقات.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__wikisource__arabic__كليلة_ودمنة.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__wikisource__bengali__কপালকুণ্ডলা.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__wikisource__bengali__গীতাঞ্জলি.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__wikisource__bengali__গোরা.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__wikisource__bengali__দেবদাস.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__wikisource__bengali__পথের_দাবী.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__wikisource__bengali__শেষের_কবিতা.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__wikisource__chinese__史記.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__wikisource__chinese__墨子.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__wikisource__chinese__孟子.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__wikisource__chinese__尚書.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__wikisource__chinese__楚辭.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__wikisource__chinese__禮記.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__wikisource__chinese__荀子.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__wikisource__chinese__莊子.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__wikisource__chinese__詩經.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__wikisource__chinese__論語.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__wikisource__chinese__道德經.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__wikisource__chinese__韓非子.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__wikisource__chinese__黃帝內經.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__wikisource__javanese__Serat_Kalatidha.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__wikisource__javanese__Serat_Wedhatama.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__wikisource__malay__Hikayat_Hang_Tuah.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__wikisource__sanskrit__अभिज्ञानशाकुन्तलम्.txt",
+        "spans": 100,
+        "url": "https://gretil.sub.uni-goettingen.de/gretil/corpustei/"
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__wikisource__sanskrit__भगवद्गीता.txt",
+        "spans": 100,
+        "url": "https://gretil.sub.uni-goettingen.de/gretil/corpustei/"
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__wikisource__tagalog__Florante_at_Laura.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__wikisource__tamil__அகநானூறு.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__wikisource__tamil__கம்பராமாயணம்.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__wikisource__tamil__கலித்தொகை.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__wikisource__tamil__குறுந்தொகை.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__wikisource__tamil__சிலப்பதிகாரம்.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__wikisource__tamil__தேவாரம்.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__wikisource__tamil__தொல்காப்பியம்.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__wikisource__tamil__புறநானூறு.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__wikisource__tamil__மணிமேகலை.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__wikisource__thai__นิราศภูเขาทอง.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__wikisource__thai__รามเกียรติ์.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__wikisource__thai__ลิลิตตะเลงพ่าย.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__wikisource__thai__สามก๊ก.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__wikisource__vietnamese__Bình_Ngô_đại_cáo.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__wikisource__vietnamese__Chinh_phụ_ngâm.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__wikisource__vietnamese__Hịch_tướng_sĩ.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__wikisource__vietnamese__Truyện_Kiều.txt",
+        "spans": 100,
+        "url": ""
+      },
+      {
+        "file": "global_south_corpus__global_south_corpus__wikisource__vietnamese__Văn_tế_nghĩa_sĩ_Cần_Giuộc.txt",
+        "spans": 100,
+        "url": ""
+      }
+    ]
+  },
+  "reader_version": "eoreader4.2@1.0.0",
+  "fold_basis_id": "exemplar-basis:sha256:0000000000000000000000000000000000000000000000000000000000000000",
+  "measurement_protocol": "eo-compression@1.0.0",
+  "distribution_ppm": {
+    "NUL_Clearing_Void": 1,
+    "NUL_Dissecting_Entity": 40281,
+    "NUL_Unraveling_Kind": 1,
+    "SEG_Clearing_Field": 1,
+    "SEG_Dissecting_Link": 43663,
+    "SEG_Unraveling_Network": 1,
+    "DEF_Clearing_Atmosphere": 1,
+    "DEF_Dissecting_Lens": 12275,
+    "DEF_Unraveling_Paradigm": 1,
+    "SIG_Tending_Void": 1,
+    "SIG_Binding_Entity": 1932,
+    "SIG_Tracing_Kind": 1,
+    "CON_Tending_Field": 1,
+    "CON_Binding_Link": 88081,
+    "CON_Tracing_Network": 1,
+    "EVA_Tending_Atmosphere": 1,
+    "EVA_Binding_Lens": 375814,
+    "EVA_Tracing_Paradigm": 1,
+    "INS_Cultivating_Void": 1,
+    "INS_Making_Entity": 58396,
+    "INS_Composing_Kind": 1,
+    "SYN_Cultivating_Field": 1,
+    "SYN_Making_Link": 6161,
+    "SYN_Composing_Network": 1,
+    "REC_Cultivating_Atmosphere": 1,
+    "REC_Making_Lens": 373379,
+    "REC_Composing_Paradigm": 1
+  },
+  "prior_scope": {
+    "status": "experimental-history",
+    "source_families": [
+      "text"
+    ],
+    "reader_scope": "eoreader4.2 folds",
+    "operator_epoch": "eo-2026-07",
+    "limitations": [
+      "text-heavy corpus prior; not a universal cross-modal prior",
+      "not a default EOReader5 snapshot for WAV or tabular sources",
+      "release-grade publication blocked until basis lineage is complete"
+    ]
+  }
+}

@@ -271,17 +271,8 @@ export function mountOverviewDashboard(root, model, opts = {}) {
   root.setAttribute('style', `background:${t.bg};color:${t.text};padding:16px;font-family:${UI};box-sizing:border-box;overflow-x:hidden`);
   const shell = el('div', 'max-width:960px;margin:0 auto;display:flex;flex-direction:column;gap:12px;min-width:0');
   shell.appendChild(storyHeader(t, model.story));
-  shell.appendChild(frameCardEl(t, model.frame));
+  shell.appendChild(referentsCardEl(t, model.referents));
   shell.appendChild(divisionsCardEl(t, model.divisions));
-
-  const grid = el('div', 'display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;align-items:start;min-width:0');
-  grid.appendChild(unitsCardEl(t, model.units));
-  grid.appendChild(referentsCardEl(t, model.referents));
-  grid.appendChild(recurrenceCardEl(t, model.recurrence));
-  grid.appendChild(coverageCardEl(t, model.coverage));
-  grid.appendChild(orbitCardEl(t, model.orbit, opts.mountOrbit));
-  grid.appendChild(readinessCardEl(t, model.readiness));
-  shell.appendChild(grid);
 
   root.appendChild(shell);
   return () => { root.innerHTML = ''; };
