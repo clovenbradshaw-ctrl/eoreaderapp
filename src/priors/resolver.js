@@ -1,6 +1,12 @@
 import { PriorSnapshotCache } from './cache.js';
 import { verifyPriorSnapshot } from './verify.js';
-import { deriveCentroids, buildBundleFromVectors } from '../../../eoPriors/src/self-derive-centroids.js';
+// eoPriors is a sibling repo, not a vendored/npm dependency of eoreaderapp,
+// so it's loaded from GitHub via esm.sh — mirroring how engine-loader.mjs
+// loads eoreader5. Pinned to a specific commit for reproducible builds;
+// bump EOPRIORS_COMMIT to pick up new prior channels/fixes.
+const EOPRIORS_COMMIT = '7ee455b83ed7d86abbcd14e67aa275856e6454c3';
+const EOPRIORS_BASE = `https://esm.sh/gh/clovenbradshaw-ctrl/eoPriors@${EOPRIORS_COMMIT}/src`;
+const { deriveCentroids, buildBundleFromVectors } = await import(`${EOPRIORS_BASE}/self-derive-centroids.js`);
 
 export async function resolvePinnedPriorSnapshot(pin, { fetchImpl = fetch, cache = new PriorSnapshotCache(), engineVersion } = {}) {
   if (!pin?.id || !pin?.url) throw new TypeError('Pinned prior requires immutable id and URL');
@@ -22,7 +28,7 @@ export async function resolveCentroidBasis({ classifier, embedder, spans, minPer
   if (classifier && embedder && spans) {
     return deriveCentroids({ classifier, embedder, spans, minPerCell });
   }
-  const { loadCentroids } = await import('../../../eoPriors/src/compress.js');
+  const { loadCentroids } = await import(`${EOPRIORS_BASE}/compress.js`);
   return loadCentroids();
 }
 
