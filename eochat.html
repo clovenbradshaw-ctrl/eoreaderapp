@@ -8,7 +8,6 @@
 <body>
 <x-dc>
 <helmet>
-<title>EOChat</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
@@ -30,245 +29,553 @@
 </style>
 </helmet>
 
-<div style="min-height:100vh;box-sizing:border-box;font-family:'Instrument Sans',system-ui,sans-serif;color:#1B1A17;display:flex;flex-direction:column;">
-<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid #E4DFD5;background:#FAF8F4;">
-  <div style="display:flex;align-items:center;gap:10px;">
-    <span onClick="{{ goToApp }}" style="font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#1F5A4C;cursor:pointer">eochat</span>
-    <button type="button" onClick="{{ toggleSpaces }}" style="display:flex;align-items:center;gap:6px;border:1px solid #E0DACE;background:#FFFDFA;border-radius:8px;padding:5px 10px 5px 12px;cursor:pointer;font-family:inherit;">
-      <span style="font-size:13px;color:#26241F;">{{ activeSpaceName }}</span>
-      <span style="font-size:9px;color:#A39D91;">▾</span>
-    </button>
-    <sc-if value="{{ spacesOpen }}">
-    <div style="position:absolute;top:52px;left:100px;width:240px;background:#FFFDFA;border:1px solid #E4DFD5;border-radius:10px;box-shadow:0 12px 28px -14px rgba(28,26,23,.35);padding:6px;z-index:20;display:flex;flex-direction:column;gap:1px;">
-      <sc-for list="{{ spaces }}" as="sp">
-        <button type="button" onClick="{{ sp.select }}" style="display:flex;align-items:center;gap:8px;text-align:left;border:0;background:{{ sp.bg }};border-radius:7px;padding:8px 9px;cursor:pointer;font-family:inherit;font-size:12.5px;color:#26241F;">
-          <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#1F5A4C;width:10px;">{{ sp.marker }}</span>
-          <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ sp.name }}</span>
-        </button>
-      </sc-for>
-      <div style="height:1px;background:#EBE6DC;margin:5px 3px;"></div>
-      <button type="button" onClick="{{ addSpace }}" style="display:flex;align-items:center;gap:8px;border:0;background:none;border-radius:7px;padding:8px 9px;cursor:pointer;font-family:inherit;font-size:12.5px;color:#1F5A4C;">
-        <span style="font-size:13px;">+</span><span>New space</span>
+<div style="min-height:100vh; box-sizing:border-box; padding:40px 32px; font-family:'Instrument Sans', system-ui, sans-serif; color:#1B1A17; display:flex; justify-content:center; align-items:flex-start;">
+<div style="width:100%; max-width:1180px; display:flex; flex-direction:column; gap:14px; position:relative;">
+
+  <div style="display:flex; align-items:center; justify-content:space-between; padding:0 2px;">
+    <div style="display:flex; align-items:center; gap:10px; position:relative;">
+      <span onClick="{{ goToApp }}" style="font-family:'IBM Plex Mono', monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:#1F5A4C; cursor:pointer;">eochat</span>
+      <button type="button" onClick="{{ toggleSpaces }}" style="display:flex; align-items:center; gap:6px; border:1px solid #E0DACE; background:#FFFDFA; border-radius:8px; padding:5px 10px 5px 12px; cursor:pointer; font-family:inherit;">
+        <span style="font-size:13px; color:#26241F;">{{ activeSpaceName }}</span>
+        <span style="font-size:9px; color:#A39D91;">▾</span>
       </button>
-    </div>
-    </sc-if>
-  </div>
-  <div style="display:flex;align-items:center;gap:12px;">
-    <sc-if value="{{ proxyLive }}">
-      <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#A39D91;letter-spacing:.04em;">{{ proxyStatusText }}</span>
-    </sc-if>
-    <sc-if value="{{ proxyDead }}">
-      <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#c0341a;letter-spacing:.04em;">proxy off</span>
-    </sc-if>
-  </div>
-</div>
-
-<div style="flex:1;min-height:0;display:flex;">
-  <div style="width:232px;flex:none;background:#FAF8F4;border-right:1px solid #EBE6DC;display:flex;flex-direction:column;min-width:0;">
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 13px 10px;">
-      <span style="font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#6E6A60;">Sources</span>
-      <div style="display:flex;gap:6px;">
-        <button type="button" aria-label="Search the web" onClick="{{ searchWeb }}" style="width:24px;height:24px;display:flex;align-items:center;justify-content:center;border:1px solid #E0DACE;border-radius:7px;background:#FFFDFA;color:#4A463E;cursor:pointer;padding:0;"><i class="ph ph-magnifying-glass" style="font-size:13px;"></i></button>
-        <button type="button" aria-label="Add source" onClick="{{ addSource }}" style="width:24px;height:24px;display:flex;align-items:center;justify-content:center;border:1px solid #E0DACE;border-radius:7px;background:#FFFDFA;color:#4A463E;cursor:pointer;padding:0;"><i class="ph ph-plus" style="font-size:13px;"></i></button>
-      </div>
-    </div>
-    <div style="flex:1;overflow-y:auto;padding:0 8px 8px;" class="eo-scrollbar">
-      <div style="display:flex;flex-direction:column;gap:1px;">
-        <sc-for list="{{ activeSources }}" as="src">
-          <div style="border-radius:8px;overflow:hidden;opacity:{{ src.rowOpacity }};">
-            <div style="display:flex;align-items:center;gap:4px;">
-              <button type="button" onClick="{{ src.toggle }}" style="flex:1;min-width:0;display:flex;align-items:center;gap:8px;text-align:left;border:0;background:none;padding:8px 9px;cursor:pointer;font-family:inherit;">
-                <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:{{ src.color }};width:12px;flex:none;">{{ src.glyph }}</span>
-                <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12.5px;color:#26241F;">{{ src.name }}</span>
-                <i class="{{ src.chevronClass }}" style="font-size:11px;color:#A39D91;"></i>
-              </button>
-              <button type="button" aria-label="Toggle source" onClick="{{ src.toggleEnabled }}" style="width:26px;height:15px;flex:none;border:0;border-radius:8px;background:{{ src.switchBg }};position:relative;cursor:pointer;padding:0;margin-right:7px;">
-                <span style="position:absolute;top:2px;left:{{ src.knobLeft }};width:11px;height:11px;border-radius:50%;background:#FFFDFA;transition:left .15s;"></span>
-              </button>
-            </div>
-            <sc-if value="{{ src.expanded }}">
-              <div style="padding:2px 10px 12px 30px;">
-                <span style="font-family:Georgia,'Times New Roman',serif;font-size:12.5px;line-height:1.65;color:#3A372F;text-wrap:pretty;">{{ src.preview }}</span>
-                <button type="button" onClick="{{ src.fetchContent }}" style="display:flex;align-items:center;gap:5px;margin-top:8px;border:0;background:none;font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#1F5A4C;cursor:pointer;padding:0;"><i class="ph ph-eye"></i>Show content</button>
-                <sc-if value="{{ src.showingContent }}">
-                  <div style="font-family:Georgia,'Times New Roman',serif;font-size:12.5px;line-height:1.65;color:#3A372F;text-wrap:pretty;margin-top:6px;padding:8px;background:#F1EEE7;border-radius:6px;">{{ src.content }}</div>
-                </sc-if>
-              </div>
-            </sc-if>
-          </div>
+      <sc-if value="{{ spacesOpen }}">
+      <div style="position:absolute; top:36px; left:76px; width:240px; background:#FFFDFA; border:1px solid #E4DFD5; border-radius:10px; box-shadow:0 12px 28px -14px rgba(28,26,23,.35); padding:6px; z-index:20; display:flex; flex-direction:column; gap:1px;">
+        <sc-for list="{{ spaces }}" as="sp">
+          <button type="button" onClick="{{ sp.select }}" style="display:flex; align-items:center; gap:8px; text-align:left; border:0; background: {{ sp.bg }}; border-radius:7px; padding:8px 9px; cursor:pointer; font-family:inherit; font-size:12.5px; color:#26241F;">
+            <span style="font-family:'IBM Plex Mono', monospace; font-size:11px; color:#1F5A4C; width:10px;">{{ sp.marker }}</span>
+            <span style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ sp.name }}</span>
+          </button>
         </sc-for>
-        <sc-if value="{{ noSources }}">
-          <span style="font-size:12px;color:#A39D91;padding:12px 9px;">No sources yet — paste a URL or search the web.</span>
-        </sc-if>
+        <div style="height:1px; background:#EBE6DC; margin:5px 3px;"></div>
+        <button type="button" onClick="{{ addSpace }}" style="display:flex; align-items:center; gap:8px; border:0; background:none; border-radius:7px; padding:8px 9px; cursor:pointer; font-family:inherit; font-size:12.5px; color:#1F5A4C;">
+          <span style="font-size:13px;">+</span><span>New space</span>
+        </button>
       </div>
+      </sc-if>
     </div>
-    <div style="padding:10px 13px 12px;border-top:1px solid #EBE6DC;">
-      <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#6E6A60;">{{ sourceCount }} sources</span>
-      <span style="display:block;font-size:11px;color:#A39D91;">enabled sources feed every query</span>
+    <div style="display:flex; align-items:center; gap:12px;">
+      <sc-if value="{{ proxyLive }}">
+        <span style="font-family:'IBM Plex Mono', monospace; font-size:11px; color:#A39D91; letter-spacing:.04em;">{{ proxyStatusText }}</span>
+      </sc-if>
+      <sc-if value="{{ proxyDead }}">
+        <span style="font-family:'IBM Plex Mono', monospace; font-size:10px; color:#c0341a; letter-spacing:.04em;">proxy off</span>
+      </sc-if>
+      <span style="font-family:'IBM Plex Mono', monospace; font-size:11px; color:#A39D91; letter-spacing:.04em;">room · append-only · signed</span>
     </div>
   </div>
 
-  <div style="flex:1;min-width:0;display:flex;flex-direction:column;background:#FFFDFA;">
-    <div style="flex:1;padding:22px 24px;display:flex;flex-direction:column;gap:20px;overflow:hidden;">
-      <div ref="{{ chatScrollRef }}" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:20px;" class="eo-scrollbar">
-        <sc-if value="{{ showEmptyChat }}">
-          <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:60px 20px;">
-            <span style="font-family:'IBM Plex Mono',monospace;font-size:28px;color:#E0DACE;">⊨</span>
-            <span style="font-size:15px;color:#A39D91;text-align:center;">No messages yet — add sources to the left, then ask a question.</span>
-          </div>
-        </sc-if>
+  <div style="position:relative; display:grid; grid-template-columns: {{ leftColWidth }} 1fr 248px; background:#FFFDFA; border:1px solid #E4DFD5; border-radius:14px; box-shadow:0 1px 2px rgba(28,26,23,.04), 0 12px 28px -22px rgba(28,26,23,.35); overflow:hidden; min-height:560px;">
 
-        <sc-for list="{{ turns }}" as="turn">
-          <div class="eo-fade-in" style="display:flex;flex-direction:column;gap:8px;">
-            <div style="align-self:flex-end;max-width:74%;display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
-              <sc-if value="{{ turn.hasAttachments }}">
-                <div style="display:flex;flex-wrap:wrap;gap:5px;justify-content:flex-end;">
-                  <sc-for list="{{ turn.attachments }}" as="att">
-                    <span style="font-size:11px;color:#4A463E;border:1px solid #E4DFD5;background:#FAF8F4;border-radius:6px;padding:3px 7px;">{{ att.name }}</span>
-                  </sc-for>
+    <div style="background:#FAF8F4; border-right:1px solid #EBE6DC; padding: {{ leftPadding }}; display:flex; flex-direction:column; gap:14px; min-width:0; align-items: {{ leftAlign }};">
+      <sc-if value="{{ leftCollapsed }}">
+        <button type="button" aria-label="Expand sources" onClick="{{ toggleLeftCollapsed }}" style="width:26px; height:26px; display:flex; align-items:center; justify-content:center; border:1px solid #E0DACE; border-radius:7px; background:#FFFDFA; color:#4A463E; cursor:pointer; padding:0;"><i class="ph ph-sidebar-simple" style="font-size:13px;"></i></button>
+        <span style="writing-mode:vertical-rl; font-family:'IBM Plex Mono', monospace; font-size:10px; color:#A39D91; letter-spacing:.08em; margin-top:6px;">{{ sourceCount }} sources</span>
+      </sc-if>
+      <sc-if value="{{ leftExpanded }}">
+      <div style="display:flex; align-items:center; justify-content:space-between; width:100%;">
+        <span style="font-size:12px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:#6E6A60;">Sources</span>
+        <div style="display:flex; gap:6px;">
+          <button type="button" aria-label="Search the web" onClick="{{ searchWeb }}" style="width:24px; height:24px; display:flex; align-items:center; justify-content:center; border:1px solid #E0DACE; border-radius:7px; background:#FFFDFA; color:#4A463E; cursor:pointer; padding:0;"><i class="ph ph-magnifying-glass" style="font-size:13px;"></i></button>
+          <button type="button" aria-label="Add source" onClick="{{ addSource }}" style="width:24px; height:24px; display:flex; align-items:center; justify-content:center; border:1px solid #E0DACE; border-radius:7px; background:#FFFDFA; color:#4A463E; cursor:pointer; padding:0;"><i class="ph ph-plus" style="font-size:13px;"></i></button>
+          <button type="button" aria-label="Collapse sources" onClick="{{ toggleLeftCollapsed }}" style="width:24px; height:24px; display:flex; align-items:center; justify-content:center; border:1px solid #E0DACE; border-radius:7px; background:#FFFDFA; color:#4A463E; cursor:pointer; padding:0;"><i class="ph ph-sidebar-simple" style="font-size:13px;"></i></button>
+        </div>
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:14px; flex:1; min-height:0; overflow-y:auto; width:100%;" class="eo-scrollbar">
+        <div style="display:flex; flex-direction:column; gap:1px;">
+          <sc-for list="{{ activeSources }}" as="src">
+            <div style="border-radius:8px; overflow:hidden; opacity: {{ src.rowOpacity }};">
+              <div style="display:flex; align-items:center; gap:4px;">
+                <button type="button" onClick="{{ src.toggle }}" style="flex:1; min-width:0; display:flex; align-items:center; gap:8px; text-align:left; border:0; background:none; padding:8px 9px; cursor:pointer; font-family:inherit;">
+                  <span style="font-family:'IBM Plex Mono', monospace; font-size:11px; color: {{ src.color }}; width:12px; flex:none;">{{ src.glyph }}</span>
+                  <span style="flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:12.5px; color:#26241F;">{{ src.name }}</span>
+                  <i class="{{ src.chevronClass }}" style="font-size:11px; color:#A39D91;"></i>
+                </button>
+                <button type="button" aria-label="Read" onClick="{{ src.open }}" style="border:0; background:none; color:#8C877C; cursor:pointer; padding:0 2px; display:flex; flex:none;"><i class="ph ph-book-open" style="font-size:14px;"></i></button>
+                <button type="button" aria-label="Toggle source" onClick="{{ src.toggleEnabled }}" style="width:26px; height:15px; flex:none; border:0; border-radius:8px; background: {{ src.switchBg }}; position:relative; cursor:pointer; padding:0; margin-right:7px;">
+                  <span style="position:absolute; top:2px; left: {{ src.knobLeft }}; width:11px; height:11px; border-radius:50%; background:#FFFDFA; transition:left .15s;"></span>
+                </button>
+              </div>
+              <sc-if value="{{ src.expanded }}">
+                <div style="padding:2px 10px 12px 30px;">
+                  <span style="font-family:Georgia, 'Times New Roman', serif; font-size:12.5px; line-height:1.65; color:#3A372F; text-wrap:pretty;">{{ src.preview }}</span>
+                  <button type="button" onClick="{{ src.open }}" style="display:flex; align-items:center; gap:5px; margin-top:8px; border:0; background:none; font-family:'IBM Plex Mono', monospace; font-size:10.5px; color:#1F5A4C; cursor:pointer; padding:0;"><i class="ph ph-book-open"></i>Open in reader</button>
                 </div>
               </sc-if>
-              <div style="background:#F1EEE7;border:1px solid #E7E2D8;border-radius:12px 12px 4px 12px;padding:9px 13px;">
-                <span style="font-size:13.5px;line-height:1.5;color:#26241F;">{{ turn.q }}</span>
-              </div>
             </div>
-            <sc-if value="{{ turn.streaming }}">
-              <div style="display:flex;align-items:center;gap:8px;">
-                <span class="eo-pulse" style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#1F5A4C;">⊨</span>
-                <span style="font-size:13px;color:#8C877C;">{{ turn.streamingText }}</span>
-              </div>
-            </sc-if>
-            <sc-if value="{{ turn.a }}">
-              <div style="max-width:88%;display:flex;flex-direction:column;gap:8px;">
-                <span style="font-size:14px;color:#1B1A17;line-height:1.72;text-wrap:pretty;">{{ turn.a }}</span>
-                <sc-if value="{{ turn.citations }}">
-                  <div style="display:flex;flex-wrap:wrap;gap:6px;">
-                    <sc-for list="{{ turn.citations }}" as="cit">
-                      <span style="display:flex;align-items:center;gap:7px;font-size:11.5px;color:#4A463E;border:1px solid #E4DFD5;background:#FAF8F4;border-radius:6px;padding:4px 8px;cursor:default;"><span style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#1F5A4C;">{{ cit.num }}</span>{{ cit.source }}</span>
-                    </sc-for>
-                  </div>
-                </sc-if>
-                <div style="display:flex;align-items:center;gap:12px;padding-top:2px;">
-                  <button type="button" aria-label="Copy" onClick="{{ turn.copy }}" style="display:flex;align-items:center;gap:5px;border:0;background:none;font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#8C877C;cursor:pointer;padding:0;"><i class="ph ph-copy"></i>copy</button>
-                  <button type="button" aria-label="Provenance" onClick="{{ turn.toggleProvenance }}" style="display:flex;align-items:center;gap:5px;border:0;background:none;font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#8C877C;cursor:pointer;padding:0;"><i class="ph ph-eye"></i>provenance<i class="{{ turn.provenanceChevronClass }}"></i></button>
-                  <button type="button" aria-label="Fork" onClick="{{ turn.fork }}" style="display:flex;align-items:center;gap:5px;border:0;background:none;font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#8C877C;cursor:pointer;padding:0;"><i class="ph ph-git-fork"></i>fork</button>
-                </div>
-                <sc-if value="{{ turn.provenanceOpen }}">
-                <div style="background:#FAF8F4;border:1px solid #EBE6DC;border-radius:9px;padding:11px 12px;display:flex;flex-direction:column;gap:9px;">
-                  <div style="display:flex;flex-direction:column;gap:3px;">
-                    <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#A39D91;">surfaced by retrieval</span>
-                    <span style="font-size:12px;color:#3A372F;line-height:1.6;font-style:italic;">{{ turn.provenanceSurfaced }}</span>
-                  </div>
-                  <div style="display:flex;flex-direction:column;gap:3px;">
-                    <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#A39D91;">prompted to model</span>
-                    <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#4A463E;line-height:1.6;white-space:pre-wrap;">{{ turn.prompt }}</span>
-                  </div>
-                </div>
-                </sc-if>
-              </div>
+          </sc-for>
+          <sc-if value="{{ noSources }}">
+            <span style="font-size:12px; color:#A39D91; padding:6px 9px;">No sources yet</span>
+          </sc-if>
+        </div>
+
+        <sc-if value="{{ hasRetrievals }}">
+        <div style="display:flex; flex-direction:column; gap:8px; padding-top:10px; border-top:1px solid #EBE6DC;">
+          <span style="font-family:'IBM Plex Mono', monospace; font-size:10.5px; letter-spacing:.1em; text-transform:uppercase; color:#A39D91;">Retrieved</span>
+          <sc-for list="{{ retrievals }}" as="r">
+            <div style="background:#F1EEE7; border:1px solid #E7E2D8; border-radius:9px; padding:10px 11px; display:flex; flex-direction:column; gap:6px;">
+              <span style="font-size:12px; color:#3A372F; line-height:1.6; font-style:italic; text-wrap:pretty;">{{ r.quote }}</span>
+              <span style="font-family:'IBM Plex Mono', monospace; font-size:10.5px; color:#8C877C;">from {{ r.source }}</span>
+            </div>
+          </sc-for>
+        </div>
+        </sc-if>
+      </div>
+
+      <div style="padding-top:12px; border-top:1px solid #EBE6DC; display:flex; flex-direction:column; gap:3px; width:100%;">
+        <span style="font-family:'IBM Plex Mono', monospace; font-size:11px; color:#6E6A60;">{{ sourceCount }} sources</span>
+        <span style="font-size:11px; color:#A39D91;">always canonical</span>
+      </div>
+      </sc-if>
+    </div>
+
+    <div style="display:flex; flex-direction:column; min-width:0;">
+      <sc-if value="{{ readerOpen }}">
+      <div style="flex:1; min-height:0; display:flex; flex-direction:column;">
+        <div style="display:flex; align-items:center; justify-content:space-between; padding:14px 20px; border-bottom:1px solid #EBE6DC;">
+          <div style="display:flex; align-items:center; gap:10px; min-width:0;">
+            <span style="font-family:'IBM Plex Mono', monospace; font-size:12px; color:#1F5A4C; flex:none;">{{ readerGlyph }}</span>
+            <span style="font-size:14.5px; font-weight:500; color:#26241F; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ readerName }}</span>
+            <span style="font-family:'IBM Plex Mono', monospace; font-size:10.5px; color:#A39D91; text-transform:uppercase; letter-spacing:.08em; border:1px solid #E4DFD5; border-radius:5px; padding:2px 6px; flex:none;">{{ readerTypeLabel }}</span>
+            <sc-if value="{{ showReaderPipeline }}">
+              <span style="font-family:'IBM Plex Mono', monospace; font-size:10px; color:#1F5A4C; background:#E5EDE9; border-radius:5px; padding:2px 7px; flex:none; white-space:nowrap;">{{ readerPipelineLabel }}</span>
             </sc-if>
           </div>
-        </sc-for>
-        <sc-if value="{{ streamingAnswer }}">
-          <div class="eo-fade-in" style="max-width:88%;display:flex;flex-direction:column;gap:8px;">
-            <span style="font-size:14px;color:#1B1A17;line-height:1.72;text-wrap:pretty;">{{ streamingAnswer }}</span>
-            <sc-if value="{{ streamingCitations }}">
-              <div style="display:flex;flex-wrap:wrap;gap:6px;">
-                <sc-for list="{{ streamingCitations }}" as="cit">
-                  <span style="display:flex;align-items:center;gap:7px;font-size:11.5px;color:#4A463E;border:1px solid #E4DFD5;background:#FAF8F4;border-radius:6px;padding:4px 8px;"><span style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#1F5A4C;">{{ cit.num }}</span>{{ cit.source }}</span>
+          <div style="display:flex; align-items:center; gap:10px; flex:none;">
+            <sc-if value="{{ readerShowModeToggle }}">
+            <div style="display:flex; gap:2px; background:#F2EFE8; border-radius:7px; padding:2px;">
+              <button type="button" onClick="{{ setReaderScroll }}" style="display:flex; align-items:center; gap:5px; border:0; border-radius:5px; background: {{ readerScrollBg }}; color: {{ readerScrollColor }}; font-size:11px; padding:5px 9px; cursor:pointer;"><i class="ph ph-text-align-left"></i>Scroll</button>
+              <button type="button" onClick="{{ setReaderPaginated }}" style="display:flex; align-items:center; gap:5px; border:0; border-radius:5px; background: {{ readerPaginateBg }}; color: {{ readerPaginateColor }}; font-size:11px; padding:5px 9px; cursor:pointer;"><i class="ph ph-file-text"></i>Paginate</button>
+            </div>
+            </sc-if>
+            <button type="button" onClick="{{ closeReader }}" aria-label="Close reader" style="width:30px; height:30px; display:flex; align-items:center; justify-content:center; border:1px solid #E0DACE; background:#FFFDFA; border-radius:8px; color:#4A463E; cursor:pointer;"><i class="ph ph-x" style="font-size:14px;"></i></button>
+          </div>
+        </div>
+        <sc-if value="{{ showSectionChips }}">
+        <div style="display:flex; gap:6px; flex-wrap:wrap; padding:10px 20px; border-bottom:1px solid #EBE6DC;">
+          <sc-for list="{{ docOutline }}" as="sec">
+            <button type="button" onClick="{{ sec.jump }}" style="border:1px solid #E4DFD5; border-radius:6px; background: {{ sec.bg }}; padding:4px 9px; cursor:pointer; font-family:inherit; font-size:11px; color: {{ sec.color }};">{{ sec.label }}</button>
+          </sc-for>
+        </div>
+        </sc-if>
+        <div style="flex:1; overflow-y:auto; padding:32px 0; display:flex; justify-content:center;" class="eo-scrollbar">
+          <div style="width:100%; max-width:72ch; padding:0 24px; margin:0 auto;">
+
+            <sc-if value="{{ readerIsVideo }}">
+              <video src="{{ readerVideoSrc }}" controls="{{ true }}" style="width:100%; border-radius:10px; background:#000; display:block; margin-bottom:16px;"></video>
+            </sc-if>
+
+            <sc-if value="{{ readerIsAudioType }}">
+              <div style="display:flex; align-items:center; gap:2px; height:56px; margin-bottom:18px;">
+                <sc-for list="{{ waveformBars }}" as="bar">
+                  <span style="width:3px; border-radius:2px; background:#C9D8D1; height: {{ bar.h }}px; flex:none;"></span>
                 </sc-for>
               </div>
             </sc-if>
+
+            <sc-if value="{{ readerModeScroll }}">
+              <sc-for list="{{ readerSections }}" as="sec">
+                <div style="margin-bottom:26px;">
+                  <span style="display:block; font-family:'IBM Plex Mono', monospace; font-size:11.5px; font-weight:500; letter-spacing:.06em; text-transform:uppercase; color:#1F5A4C; margin-bottom:9px;">{{ sec.heading }}</span>
+                  <span style="font-family:Georgia, 'Times New Roman', serif; font-size:15.5px; line-height:1.85; color:#26241F; text-wrap:pretty;">{{ sec.bodyNodes }}</span>
+                </div>
+              </sc-for>
+            </sc-if>
+
+            <sc-if value="{{ readerModePaginated }}">
+              <div style="margin-bottom:22px;">
+                <span style="display:block; font-family:'IBM Plex Mono', monospace; font-size:11.5px; font-weight:500; letter-spacing:.06em; text-transform:uppercase; color:#1F5A4C; margin-bottom:9px;">{{ readerCurrentHeading }}</span>
+                <span style="font-family:Georgia, 'Times New Roman', serif; font-size:15.5px; line-height:1.85; color:#26241F; text-wrap:pretty;">{{ readerCurrentBodyNodes }}</span>
+              </div>
+              <div style="display:flex; align-items:center; justify-content:space-between; padding-top:20px; border-top:1px solid #EBE6DC;">
+                <button type="button" onClick="{{ readerSectionPrev }}" style="border:1px solid #E0DACE; background:#FFFDFA; border-radius:7px; padding:6px 12px; font-family:inherit; font-size:12.5px; color:#4A463E; cursor:pointer;">← Prev</button>
+                <span style="font-family:'IBM Plex Mono', monospace; font-size:11.5px; color:#A39D91;">{{ readerSectionPos }}</span>
+                <button type="button" onClick="{{ readerSectionNext }}" style="border:1px solid #E0DACE; background:#FFFDFA; border-radius:7px; padding:6px 12px; font-family:inherit; font-size:12.5px; color:#4A463E; cursor:pointer;">Next →</button>
+              </div>
+            </sc-if>
+
+            <span style="display:block; margin-top:8px; font-size:11px; color:#A39D91;">click a highlighted name to open its profile →</span>
+
           </div>
-        </sc-if>
-      </div>
-    </div>
-
-    <div style="padding:14px 20px 18px;border-top:1px solid #EBE6DC;background:#FFFDFA;display:flex;flex-direction:column;gap:8px;">
-      <sc-if value="{{ uploadError }}">
-        <div style="font-size:11px;color:#c0341a;">{{ uploadError }}</div>
-      </sc-if>
-      <sc-if value="{{ hasDraftAttachments }}">
-        <div style="display:flex;flex-wrap:wrap;gap:6px;">
-          <sc-for list="{{ draftAttachments }}" as="att">
-            <span style="display:flex;align-items:center;gap:6px;font-size:11.5px;color:#4A463E;border:1px solid #E4DFD5;background:#FAF8F4;border-radius:6px;padding:3px 6px 3px 9px;">{{ att.name }}<button type="button" onClick="{{ att.remove }}" aria-label="Remove attachment" style="border:0;background:none;color:#A39D91;font-size:12px;cursor:pointer;padding:0;line-height:1;">×</button></span>
-          </sc-for>
-        </div>
-      </sc-if>
-      <div style="display:flex;gap:8px;align-items:center;border:1px solid #E0DACE;border-radius:11px;padding:6px 6px 6px 8px;background:#FFFDFA;">
-        <button type="button" aria-label="Attach file" onClick="{{ openFileDialog }}" style="width:28px;height:28px;flex:none;display:flex;align-items:center;justify-content:center;border:0;border-radius:7px;background:none;color:#8C877C;cursor:pointer;"><i class="ph ph-paperclip" style="font-size:15px;"></i></button>
-        <input type="file" multiple="{{ true }}" ref="{{ setFileInput }}" onChange="{{ onFilesSelected }}" style="display:none;" />
-        <input type="text" placeholder="Ask across your sources" value="{{ draft }}" onChange="{{ onDraft }}" onKeyDown="{{ onKey }}" style="flex:1;min-width:0;border:0;outline:none;background:none;font-family:inherit;font-size:13.5px;color:#1B1A17;padding:6px 0;" />
-        <button type="button" aria-label="Send" onClick="{{ send }}" style="width:32px;height:32px;flex:none;display:flex;align-items:center;justify-content:center;border:0;border-radius:8px;background:{{ sendBg }};color:#FFFDFA;font-size:14px;line-height:1;cursor:pointer;"><i class="ph ph-arrow-right" style="font-size:14px;"></i></button>
-      </div>
-      <span style="font-size:11px;color:#A39D91;">Answers cite only what your sources say.</span>
-    </div>
-  </div>
-
-  <div style="width:220px;flex:none;background:#FAF8F4;border-left:1px solid #EBE6DC;display:flex;flex-direction:column;min-width:0;">
-    <sc-if value="{{ hasSelectedEntity }}">
-      <div style="padding:16px;">
-        <button type="button" onClick="{{ clearSelectedEntity }}" style="display:flex;align-items:center;gap:6px;border:0;background:none;padding:0 0 8px;cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#8C877C;"><i class="ph ph-arrow-left"></i>all entities</button>
-        <span style="font-size:15px;font-weight:500;color:#26241F;">{{ selectedEntityName }}</span>
-        <span style="display:block;font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#A39D91;text-transform:uppercase;letter-spacing:.06em;margin-top:4px;">mentioned {{ selectedEntityMentions }}×</span>
-        <div style="display:flex;flex-direction:column;gap:8px;padding-top:10px;border-top:1px solid #EBE6DC;margin-top:10px;">
-          <span style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:#A39D91;">appears in</span>
-          <sc-for list="{{ selectedEntityTurns }}" as="et">
-            <div style="font-size:11.5px;color:#4A463E;line-height:1.55;padding:3px 0;border-bottom:1px solid #F0ECE4;">"{{ et.text }}"</div>
-          </sc-for>
         </div>
       </div>
-    </sc-if>
-    <sc-if value="{{ showEntityIndex }}">
-      <div style="padding:16px;flex:1;display:flex;flex-direction:column;">
-        <span style="font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#6E6A60;margin-bottom:10px;">Entities</span>
-        <div style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:2px;" class="eo-scrollbar">
-          <sc-for list="{{ entityRows }}" as="ent">
-            <button type="button" onClick="{{ ent.select }}" style="display:flex;align-items:center;gap:9px;border:0;background:none;padding:5px 4px;cursor:pointer;font-family:inherit;text-align:left;border-radius:6px;">
-              <span style="font-size:12.5px;color:#26241F;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ ent.name }}</span>
-              <span style="width:{{ ent.barWidth }};height:3px;border-radius:2px;background:{{ ent.color }};flex:none;"></span>
-            </button>
+      </sc-if>
+      <sc-if value="{{ showTabs }}">
+      <div style="display:flex; gap:2px; padding:12px 20px 0; border-bottom:1px solid #EBE6DC;">
+        <button type="button" onClick="{{ tabChat }}" style="border:0; background:none; padding:7px 12px 10px; font-family:inherit; font-size:13px; font-weight:500; color: {{ tabChatColor }}; box-shadow: {{ tabChatUnderline }}; cursor:pointer;">Chat</button>
+        <button type="button" onClick="{{ tabOutline }}" style="border:0; background:none; padding:7px 12px 10px; font-family:inherit; font-size:13px; font-weight:500; color: {{ tabOutlineColor }}; box-shadow: {{ tabOutlineUnderline }}; cursor:pointer;">Outline</button>
+        <button type="button" onClick="{{ tabOrbit }}" style="border:0; background:none; padding:7px 12px 10px; font-family:inherit; font-size:13px; font-weight:500; color: {{ tabOrbitColor }}; box-shadow: {{ tabOrbitUnderline }}; cursor:pointer;">Orbit</button>
+        <button type="button" onClick="{{ tabPriors }}" style="border:0; background:none; padding:7px 12px 10px; font-family:inherit; font-size:13px; font-weight:500; color: {{ tabPriorsColor }}; box-shadow: {{ tabPriorsUnderline }}; cursor:pointer;">Priors</button>
+        <button type="button" onClick="{{ tabGlassBox }}" style="border:0; background:none; padding:7px 12px 10px; font-family:inherit; font-size:13px; font-weight:500; color: {{ tabGlassBoxColor }}; box-shadow: {{ tabGlassBoxUnderline }}; cursor:pointer;">Glass box</button>
+        <div style="margin-left:auto; display:flex; align-items:center; gap:6px;">
+          <label style="display:flex; align-items:center; gap:4px; font-family:'IBM Plex Mono', monospace; font-size:10px; color:#8C877C; cursor:pointer; user-select:none;">
+            <input type="checkbox" checked="{{ webSearch }}" onChange="{{ toggleWebSearch }}" style="accent-color:#1F5A4C; width:12px; height:12px; cursor:pointer;" />
+            Web
+          </label>
+          <label style="display:flex; align-items:center; gap:4px; font-family:'IBM Plex Mono', monospace; font-size:10px; color:#8C877C; cursor:pointer; user-select:none;">
+            <input type="checkbox" checked="{{ grounded }}" onChange="{{ toggleGrounded }}" style="accent-color:#1F5A4C; width:12px; height:12px; cursor:pointer;" />
+            Grounded
+          </label>
+          <span style="width:1px; height:14px; background:#EBE6DC; margin:0 2px;"></span>
+          <sc-if value="{{ proxyDead }}">
+            <button type="button" onClick="{{ retryProxy }}" style="border:1px solid #c0341a; border-radius:5px; background:none; color:#c0341a; font-family:'IBM Plex Mono', monospace; font-size:9px; padding:2px 7px; cursor:pointer;">retry</button>
+          </sc-if>
+          <button type="button" onClick="{{ goToApp }}" style="border:1px solid #E0DACE; border-radius:5px; background:#FFFDFA; color:#4A463E; font-family:'IBM Plex Mono', monospace; font-size:9px; padding:2px 7px; cursor:pointer;">← app</button>
+        </div>
+      </div>
+
+      <sc-if value="{{ isChat }}">
+      <div style="flex:1; padding:22px 24px; display:flex; flex-direction:column; gap:20px; overflow:hidden;">
+        <div ref="{{ chatScrollRef }}" style="flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:20px;" class="eo-scrollbar">
+          <sc-if value="{{ showSeedIntro }}">
+          <div style="align-self:flex-end; max-width:74%; background:#F1EEE7; border:1px solid #E7E2D8; border-radius:12px 12px 4px 12px; padding:9px 13px;">
+            <span style="font-size:13.5px; line-height:1.5; color:#26241F;">How does Victor first react to bringing the creature to life?</span>
+          </div>
+          <div style="max-width:88%; display:flex; flex-direction:column; gap:10px;">
+            <span style="font-size:14px; color:#1B1A17; line-height:1.72; text-wrap:pretty;"><span onClick="{{ selectVictor }}" style="cursor:pointer; border-bottom:1px dotted #1F5A4C;">Victor</span> is overcome with horror and disgust the instant <span onClick="{{ selectCreature }}" style="cursor:pointer; border-bottom:1px dotted #1F5A4C;">the creature</span> opens its eyes, and he flees the room rather than face what he's made<span style="display:inline-block; font-family:'IBM Plex Mono', monospace; font-size:10.5px; color:#1F5A4C; background:#E5EDE9; border-radius:4px; padding:1px 5px; margin:0 3px; vertical-align:2px; cursor:default;">1</span>, returning only to find <span onClick="{{ selectCreature }}" style="cursor:pointer; border-bottom:1px dotted #1F5A4C;">the creature</span> has already wandered off<span style="display:inline-block; font-family:'IBM Plex Mono', monospace; font-size:10.5px; color:#1F5A4C; background:#E5EDE9; border-radius:4px; padding:1px 5px; margin:0 3px; vertical-align:2px; cursor:default;">2</span>.</span>
+            <div style="display:flex; flex-wrap:wrap; gap:6px;">
+              <span style="display:flex; align-items:center; gap:7px; font-size:11.5px; color:#4A463E; border:1px solid #E4DFD5; background:#FAF8F4; border-radius:6px; padding:4px 8px; cursor:default;"><span style="font-family:'IBM Plex Mono', monospace; font-size:10.5px; color:#1F5A4C;">1</span>Frankenstein · Ch. 5</span>
+              <span style="display:flex; align-items:center; gap:7px; font-size:11.5px; color:#4A463E; border:1px solid #E4DFD5; background:#FAF8F4; border-radius:6px; padding:4px 8px; cursor:default;"><span style="font-family:'IBM Plex Mono', monospace; font-size:10.5px; color:#1F5A4C;">2</span>Frankenstein · Ch. 5</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:12px; padding-top:2px;">
+              <button type="button" aria-label="Copy" onClick="{{ copySeedTurn }}" style="display:flex; align-items:center; gap:5px; border:0; background:none; font-family:'IBM Plex Mono', monospace; font-size:10.5px; color:#8C877C; cursor:pointer; padding:0;"><i class="ph ph-copy"></i>copy</button>
+              <button type="button" aria-label="Provenance" onClick="{{ toggleSeedProvenance }}" style="display:flex; align-items:center; gap:5px; border:0; background:none; font-family:'IBM Plex Mono', monospace; font-size:10.5px; color:#8C877C; cursor:pointer; padding:0;"><i class="ph ph-eye"></i>provenance<i class="{{ seedProvenanceChevronClass }}"></i></button>
+              <button type="button" aria-label="Fork" onClick="{{ forkFromSeed }}" style="display:flex; align-items:center; gap:5px; border:0; background:none; font-family:'IBM Plex Mono', monospace; font-size:10.5px; color:#8C877C; cursor:pointer; padding:0;"><i class="ph ph-git-fork"></i>fork</button>
+            </div>
+            <sc-if value="{{ seedProvenanceOpen }}">
+            <div style="background:#FAF8F4; border:1px solid #EBE6DC; border-radius:9px; padding:11px 12px; display:flex; flex-direction:column; gap:9px;">
+              <div style="display:flex; flex-direction:column; gap:3px;">
+                <span style="font-family:'IBM Plex Mono', monospace; font-size:10px; letter-spacing:.06em; text-transform:uppercase; color:#A39D91;">surfaced by retrieval</span>
+                <span style="font-size:12px; color:#3A372F; line-height:1.6; font-style:italic;">Frankenstein, Chapter 5 — the creature's first waking and Victor's flight from his own creation.</span>
+              </div>
+              <div style="display:flex; flex-direction:column; gap:3px;">
+                <span style="font-family:'IBM Plex Mono', monospace; font-size:10px; letter-spacing:.06em; text-transform:uppercase; color:#A39D91;">prompted to model</span>
+                <span style="font-family:'IBM Plex Mono', monospace; font-size:11px; color:#4A463E; line-height:1.6; white-space:pre-wrap;">Answer only from the attached sources, with inline citations.
+
+SOURCE: Frankenstein (Mary Shelley), Chapter 5
+QUESTION: How does Victor first react to bringing the creature to life?</span>
+              </div>
+            </div>
+            </sc-if>
+          </div>
+          </sc-if>
+
+          <sc-if value="{{ showEmptyChat }}">
+            <span style="font-size:13px; color:#A39D91;">No messages yet — attach sources and ask a question.</span>
+          </sc-if>
+
+          <sc-if value="{{ streamingLoading }}">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span class="eo-pulse" style="font-family:'IBM Plex Mono', monospace; font-size:12px; color:#1F5A4C;">⊨</span>
+              <span style="font-size:13px; color:#8C877C;">Reading across {{ sourceCount }} sources</span>
+            </div>
+          </sc-if>
+
+          <sc-for list="{{ turns }}" as="turn">
+            <div style="display:flex; flex-direction:column; gap:8px;">
+              <div style="align-self:flex-end; max-width:74%; display:flex; flex-direction:column; align-items:flex-end; gap:6px;">
+                <sc-if value="{{ turn.hasAttachments }}">
+                  <div style="display:flex; flex-wrap:wrap; gap:5px; justify-content:flex-end;">
+                    <sc-for list="{{ turn.attachments }}" as="att">
+                      <span style="font-size:11px; color:#4A463E; border:1px solid #E4DFD5; background:#FAF8F4; border-radius:6px; padding:3px 7px;">{{ att.name }}</span>
+                    </sc-for>
+                  </div>
+                </sc-if>
+                <div style="background:#F1EEE7; border:1px solid #E7E2D8; border-radius:12px 12px 4px 12px; padding:9px 13px;">
+                  <span style="font-size:13.5px; line-height:1.5; color:#26241F;">{{ turn.q }}</span>
+                </div>
+              </div>
+              <sc-if value="{{ turn.retrieval }}">
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <span style="font-family:'IBM Plex Mono', monospace; font-size:12px; color:#1F5A4C;">↦</span>
+                  <span style="font-size:13px; color:#8C877C;">Retrieved a passage from {{ turn.retrieval.source }} — see Sources</span>
+                </div>
+              </sc-if>
+              <sc-if value="{{ turn.streaming }}">
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <span class="eo-pulse" style="font-family:'IBM Plex Mono', monospace; font-size:12px; color:#1F5A4C;">⊨</span>
+                  <span style="font-size:13px; color:#8C877C;">{{ turn.streamingText }}</span>
+                </div>
+              </sc-if>
+              <sc-if value="{{ turn.a }}">
+                <div style="max-width:88%; display:flex; flex-direction:column; gap:8px;">
+                  <span style="font-size:14px; color:#1B1A17; line-height:1.72; text-wrap:pretty;">{{ turn.a }}</span>
+                  <sc-if value="{{ turn.citations }}">
+                    <div style="display:flex; flex-wrap:wrap; gap:6px;">
+                      <sc-for list="{{ turn.citations }}" as="cit">
+                        <span style="display:flex; align-items:center; gap:7px; font-size:11.5px; color:#4A463E; border:1px solid #E4DFD5; background:#FAF8F4; border-radius:6px; padding:4px 8px; cursor:default;"><span style="font-family:'IBM Plex Mono', monospace; font-size:10.5px; color:#1F5A4C;">{{ cit.num }}</span>{{ cit.source }}</span>
+                      </sc-for>
+                    </div>
+                  </sc-if>
+                  <div style="display:flex; align-items:center; gap:12px; padding-top:2px;">
+                    <button type="button" aria-label="Copy" onClick="{{ turn.copy }}" style="display:flex; align-items:center; gap:5px; border:0; background:none; font-family:'IBM Plex Mono', monospace; font-size:10.5px; color:#8C877C; cursor:pointer; padding:0;"><i class="ph ph-copy"></i>copy</button>
+                    <button type="button" aria-label="Provenance" onClick="{{ turn.toggleProvenance }}" style="display:flex; align-items:center; gap:5px; border:0; background:none; font-family:'IBM Plex Mono', monospace; font-size:10.5px; color:#8C877C; cursor:pointer; padding:0;"><i class="ph ph-eye"></i>provenance<i class="{{ turn.provenanceChevronClass }}"></i></button>
+                    <button type="button" aria-label="Fork" onClick="{{ turn.fork }}" style="display:flex; align-items:center; gap:5px; border:0; background:none; font-family:'IBM Plex Mono', monospace; font-size:10.5px; color:#8C877C; cursor:pointer; padding:0;"><i class="ph ph-git-fork"></i>fork</button>
+                  </div>
+                  <sc-if value="{{ turn.provenanceOpen }}">
+                  <div style="background:#FAF8F4; border:1px solid #EBE6DC; border-radius:9px; padding:11px 12px; display:flex; flex-direction:column; gap:9px;">
+                    <div style="display:flex; flex-direction:column; gap:3px;">
+                      <span style="font-family:'IBM Plex Mono', monospace; font-size:10px; letter-spacing:.06em; text-transform:uppercase; color:#A39D91;">surfaced by retrieval</span>
+                      <span style="font-size:12px; color:#3A372F; line-height:1.6; font-style:italic;">{{ turn.provenanceSurfaced }}</span>
+                    </div>
+                    <div style="display:flex; flex-direction:column; gap:3px;">
+                      <span style="font-family:'IBM Plex Mono', monospace; font-size:10px; letter-spacing:.06em; text-transform:uppercase; color:#A39D91;">prompted to model</span>
+                      <span style="font-family:'IBM Plex Mono', monospace; font-size:11px; color:#4A463E; line-height:1.6; white-space:pre-wrap;">{{ turn.prompt }}</span>
+                    </div>
+                  </div>
+                  </sc-if>
+                </div>
+              </sc-if>
+            </div>
           </sc-for>
-          <sc-if value="{{ noEntities }}">
-            <span style="font-size:12px;color:#A39D91;padding:6px 4px;">Entities appear as you chat.</span>
+          <sc-if value="{{ streamingAnswer }}">
+            <div style="max-width:88%; display:flex; flex-direction:column; gap:8px;">
+              <span style="font-size:14px; color:#1B1A17; line-height:1.72; text-wrap:pretty;">{{ streamingAnswer }}</span>
+              <sc-if value="{{ streamingCitations }}">
+                <div style="display:flex; flex-wrap:wrap; gap:6px;">
+                  <sc-for list="{{ streamingCitations }}" as="cit">
+                    <span style="display:flex; align-items:center; gap:7px; font-size:11.5px; color:#4A463E; border:1px solid #E4DFD5; background:#FAF8F4; border-radius:6px; padding:4px 8px;"><span style="font-family:'IBM Plex Mono', monospace; font-size:10.5px; color:#1F5A4C;">{{ cit.num }}</span>{{ cit.source }}</span>
+                  </sc-for>
+                </div>
+              </sc-if>
+            </div>
           </sc-if>
         </div>
-        <div style="padding-top:10px;border-top:1px solid #EBE6DC;margin-top:6px;">
-          <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#6E6A60;">{{ entityCountLabel }}</span>
+      </div>
+
+      <div style="padding:14px 20px 18px; border-top:1px solid #EBE6DC; background:#FFFDFA; display:flex; flex-direction:column; gap:8px;">
+        <sc-if value="{{ hasDraftAttachments }}">
+          <div style="display:flex; flex-wrap:wrap; gap:6px;">
+            <sc-for list="{{ draftAttachments }}" as="att">
+              <span style="display:flex; align-items:center; gap:6px; font-size:11.5px; color:#4A463E; border:1px solid #E4DFD5; background:#FAF8F4; border-radius:6px; padding:3px 6px 3px 9px;">{{ att.name }}<button type="button" onClick="{{ att.remove }}" aria-label="Remove attachment" style="border:0; background:none; color:#A39D91; font-size:12px; cursor:pointer; padding:0; line-height:1;">×</button></span>
+            </sc-for>
+          </div>
+        </sc-if>
+        <sc-if value="{{ showSourcePills }}">
+        <div style="display:flex; flex-wrap:wrap; gap:4px; align-items:center;">
+          <span style="font-family:'IBM Plex Mono',monospace; font-size:9px; color:#A39D91; letter-spacing:.06em; text-transform:uppercase;">Source:</span>
+          <sc-for list="{{ sourcePills }}" as="pill">
+            <button type="button" onClick="{{ pill.select }}" style="border:1px solid {{ pill.border }}; background:{{ pill.bg }}; color:{{ pill.color }}; font-family:'IBM Plex Mono',monospace; font-size:10px; border-radius:5px; padding:2px 8px; cursor:pointer;">{{ pill.name }}</button>
+          </sc-for>
+          <sc-if value="{{ sourceSelected }}">
+            <button type="button" onClick="{{ clearSourceFilter }}" style="border:0; background:none; color:#8C877C; font-size:12px; cursor:pointer; padding:0 2px;">×</button>
+          </sc-if>
+        </div>
+        </sc-if>
+        <div style="display:flex; gap:8px; align-items:center; border:1px solid #E0DACE; border-radius:11px; padding:6px 6px 6px 8px; background:#FFFDFA;">
+          <button type="button" aria-label="Attach file" onClick="{{ openFileDialog }}" style="width:28px; height:28px; flex:none; display:flex; align-items:center; justify-content:center; border:0; border-radius:7px; background:none; color:#8C877C; cursor:pointer;"><i class="ph ph-paperclip" style="font-size:15px;"></i></button>
+          <input type="file" multiple="{{ true }}" ref="{{ setFileInput }}" onChange="{{ onFilesSelected }}" style="display:none;" />
+          <input type="text" placeholder="Ask across your sources" value="{{ draft }}" onChange="{{ onDraft }}" onKeyDown="{{ onKey }}" style="flex:1; min-width:0; border:0; outline:none; background:none; font-family:inherit; font-size:13.5px; color:#1B1A17; padding:6px 0;" />
+          <button type="button" aria-label="Send" onClick="{{ send }}" style="width:32px; height:32px; flex:none; display:flex; align-items:center; justify-content:center; border:0; border-radius:8px; background:{{ sendBg }}; color:#FFFDFA; font-size:14px; line-height:1; cursor:pointer;"><i class="ph ph-arrow-right" style="font-size:14px;"></i></button>
+        </div>
+        <span style="font-size:11px; color:#A39D91;">Answers cite only what your sources say.</span>
+      </div>
+      </sc-if>
+
+      <sc-if value="{{ isOutline }}">
+      <div style="flex:1; padding:22px 24px; display:flex; flex-direction:column; gap:2px;" class="eo-scrollbar">
+        <span style="font-size:12px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:#6E6A60; margin-bottom:12px;">Outline</span>
+        <sc-if value="{{ outlineEmpty }}">
+          <span style="font-size:12px; color:#A39D91;">Outline available once sources are ingested.</span>
+        </sc-if>
+        <sc-for list="{{ outlineItems }}" as="item">
+          <div style="display:flex; gap:12px; padding:9px 0; border-bottom:1px solid #F0ECE4;">
+            <span style="font-family:'IBM Plex Mono', monospace; font-size:11px; color:#A39D91; width:22px;">{{ item.num }}</span>
+            <span style="font-size:13.5px; color:#26241F;">{{ item.label }}</span>
+          </div>
+        </sc-for>
+      </div>
+      </sc-if>
+
+      <sc-if value="{{ isOrbit }}">
+      <div style="flex:1; padding:22px 24px; display:flex; flex-direction:column; gap:10px; min-height:0;">
+        <div style="display:flex; align-items:baseline; justify-content:space-between;">
+          <span style="font-size:12px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:#6E6A60;">Orbit</span>
+          <span style="font-family:'IBM Plex Mono', monospace; font-size:10.5px; color:#A39D91;">{{ orbitHint }}</span>
+        </div>
+        <div style="flex:1; border:1px solid #EBE6DC; border-radius:12px; background:#FAF8F4; min-height:280px; position:relative; overflow:hidden;">
+          <canvas ref="{{ setCanvas }}" onClick="{{ onOrbitClick }}" style="width:100%; height:100%; display:block; cursor:pointer;"></canvas>
+        </div>
+        <div style="font-size:12px; color:#6E6A60; line-height:1.5;">
+          <span style="font-weight:500; color:#26241F;">Focused on {{ orbitFocusLabel }}</span>
+          <span style="color:#A39D91;">{{ orbitStatus }}</span>
         </div>
       </div>
-    </sc-if>
+      </sc-if>
+
+      <sc-if value="{{ isGlassBox }}">
+      <div style="flex:1; padding:22px 24px; min-height:0; overflow:hidden;">
+        <div style="height:100%; display:flex; flex-direction:column; gap:10px; min-height:0; background:#17211D; border-radius:11px; padding:14px; overflow:hidden;">
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+            <span style="font-family:'IBM Plex Mono', monospace; font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:#8FE3C0;">glass box · ledger</span>
+            <div style="display:flex; align-items:center; gap:10px;">
+              <span style="font-family:'IBM Plex Mono', monospace; font-size:10px; color:#5F7A70;">{{ filteredLogCount }} events</span>
+              <button type="button" onClick="{{ exportLog }}" style="display:flex; align-items:center; gap:5px; border:1px solid #2A3733; background:#1F332C; color:#8FE3C0; font-family:'IBM Plex Mono', monospace; font-size:10px; letter-spacing:.04em; border-radius:5px; padding:3px 8px; cursor:pointer;"><i class="ph ph-download-simple"></i>export csv</button>
+            </div>
+          </div>
+          <div style="display:flex; gap:6px; flex-wrap:wrap;">
+            <sc-for list="{{ categoryChips }}" as="chip">
+              <button type="button" onClick="{{ chip.select }}" style="border:1px solid {{ chip.border }}; background: {{ chip.bg }}; color: {{ chip.color }}; font-family:'IBM Plex Mono', monospace; font-size:10px; letter-spacing:.04em; border-radius:5px; padding:3px 8px; cursor:pointer;">{{ chip.label }}</button>
+            </sc-for>
+          </div>
+          <input type="text" placeholder="filter events…" value="{{ glassBoxSearch }}" onChange="{{ onGlassBoxSearch }}" style="background:#0F1613; border:1px solid #2A3733; border-radius:6px; padding:6px 9px; font-family:'IBM Plex Mono', monospace; font-size:11.5px; color:#DCE8E3; outline:none;" />
+          <div style="display:flex; gap:9px; align-items:baseline; padding:2px 0 4px; border-bottom:1px solid #2A3733;">
+            <button type="button" onClick="{{ sortBySeq }}" style="width:38px; flex:none; text-align:left; border:0; background:none; cursor:pointer; font-family:'IBM Plex Mono', monospace; font-size:9.5px; letter-spacing:.06em; text-transform:uppercase; color:#6B857D; padding:0;">#{{ sortSeqArrow }}</button>
+            <span style="width:12px; flex:none;"></span>
+            <button type="button" onClick="{{ sortByTime }}" style="width:60px; flex:none; text-align:left; border:0; background:none; cursor:pointer; font-family:'IBM Plex Mono', monospace; font-size:9.5px; letter-spacing:.06em; text-transform:uppercase; color:#6B857D; padding:0;">time{{ sortTimeArrow }}</button>
+            <button type="button" onClick="{{ sortByCategory }}" style="text-align:left; border:0; background:none; cursor:pointer; font-family:'IBM Plex Mono', monospace; font-size:9.5px; letter-spacing:.06em; text-transform:uppercase; color:#6B857D; padding:0;">event{{ sortCategoryArrow }}</button>
+          </div>
+          <div style="flex:1; overflow-y:auto; display:flex; flex-direction:column;" class="eo-scrollbar">
+            <sc-for list="{{ filteredLog }}" as="entry">
+              <div style="display:flex; gap:9px; align-items:baseline; padding:5px 0; border-bottom:1px solid #223028;">
+                <span style="font-family:'IBM Plex Mono', monospace; font-size:10px; color:#4E655D; width:38px; flex:none;">{{ entry.seq }}</span>
+                <span style="font-family:'IBM Plex Mono', monospace; font-size:11px; color:#8FE3C0; width:12px; flex:none;">{{ entry.glyph }}</span>
+                <span style="font-family:'IBM Plex Mono', monospace; font-size:10px; color:#5F7A70; width:60px; flex:none;">{{ entry.time }}</span>
+                <span style="font-family:'IBM Plex Mono', monospace; font-size:11.5px; color:#E7E4DC; line-height:1.5;">{{ entry.text }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+      </sc-if>
+
+      <sc-if value="{{ isPriors }}">
+      <div style="flex:1; padding:22px 24px; display:flex; flex-direction:column; gap:10px; min-height:0; overflow:hidden;">
+        <span style="font-size:12px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:#6E6A60;">Priors</span>
+        <span style="font-size:12px; color:#8C877C; line-height:1.5;">Corpuses of assumption grouped by genre — descend into one to see what's surprising, and open the source in Explorer.</span>
+        <div style="flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:6px; max-width:560px;" class="eo-scrollbar">
+          <sc-for list="{{ priorGenres }}" as="genre">
+            <div style="border:1px solid #E4DFD5; border-radius:9px; background:#FAF8F4; overflow:hidden;">
+              <button type="button" onClick="{{ genre.toggle }}" style="width:100%; display:flex; align-items:center; justify-content:space-between; border:0; background:none; padding:10px 12px; cursor:pointer; font-family:inherit; text-align:left;">
+                <span style="display:flex; align-items:center; gap:9px;">
+                  <i class="{{ genre.chevronClass }}" style="font-size:11px; color:#A39D91;"></i>
+                  <span style="font-size:13px; font-weight:500; color:#26241F;">{{ genre.name }}</span>
+                </span>
+                <span style="font-family:'IBM Plex Mono', monospace; font-size:10.5px; color:#A39D91;">{{ genre.count }}</span>
+              </button>
+              <sc-if value="{{ genre.expanded }}">
+                <div style="display:flex; flex-direction:column; gap:6px; padding:0 12px 12px;">
+                  <sc-for list="{{ genre.items }}" as="item">
+                    <div style="border:1px solid #E7E2D8; border-radius:8px; padding:9px 10px; display:flex; flex-direction:column; gap:6px; background:#FFFDFA;">
+                      <span style="font-size:12.5px; color:#26241F; line-height:1.5;">{{ item.prior }}</span>
+                      <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
+                        <sc-if value="{{ item.surprising }}">
+                          <span style="font-family:'IBM Plex Mono', monospace; font-size:10px; letter-spacing:.04em; color:#8A5A22; background:#F3E7D3; border-radius:5px; padding:2px 7px;">surprising · contradicted</span>
+                        </sc-if>
+                        <sc-if value="{{ item.notSurprising }}">
+                          <span></span>
+                        </sc-if>
+                        <button type="button" onClick="{{ item.openInExplorer }}" style="border:0; background:none; font-family:'IBM Plex Mono', monospace; font-size:10.5px; color:#1F5A4C; cursor:pointer; padding:0;">{{ item.name }} → Explorer</button>
+                      </div>
+                    </div>
+                  </sc-for>
+                </div>
+              </sc-if>
+            </div>
+          </sc-for>
+          <sc-if value="{{ noPriors }}">
+            <span style="font-size:12px; color:#A39D91;">No prior snapshots loaded.</span>
+          </sc-if>
+        </div>
+      </div>
+      </sc-if>
+      </sc-if>
+    </div>
+
+    <div style="background:#FAF8F4; border-left:1px solid #EBE6DC; padding:18px 16px; display:flex; flex-direction:column; gap:14px; min-width:0;">
+
+      <sc-if value="{{ hasSelectedEntity }}">
+        <button type="button" onClick="{{ clearSelectedEntity }}" style="display:flex; align-items:center; gap:6px; border:0; background:none; padding:0; cursor:pointer; font-family:'IBM Plex Mono', monospace; font-size:10.5px; color:#8C877C;"><i class="ph ph-arrow-left"></i>entities</button>
+        <span style="font-size:15px; font-weight:500; color:#26241F;">{{ selectedEntityName }}</span>
+        <span style="font-family:'IBM Plex Mono', monospace; font-size:10.5px; color:#A39D91; text-transform:uppercase; letter-spacing:.06em; margin-top:-8px;">mentioned {{ selectedEntityMentions }}×</span>
+        <div style="display:flex; flex-direction:column; gap:8px; padding-top:8px; border-top:1px solid #EBE6DC;">
+          <span style="font-family:'IBM Plex Mono', monospace; font-size:10.5px; letter-spacing:.1em; text-transform:uppercase; color:#A39D91;">Relations</span>
+          <sc-for list="{{ selectedEntityRelations }}" as="rel">
+            <div style="display:flex; gap:8px; align-items:flex-start;">
+              <sc-if value="{{ showGlyphs }}"><span style="font-family:'IBM Plex Mono', monospace; font-size:11px; color:#1F5A4C; line-height:1.5;">{{ rel.glyph }}</span></sc-if>
+              <span style="font-size:11.5px; color:#4A463E; line-height:1.55;">{{ rel.text }}</span>
+            </div>
+          </sc-for>
+          <sc-if value="{{ selectedEntityNoRelations }}">
+            <span style="font-size:11.5px; color:#A39D91;">No recorded relations yet.</span>
+          </sc-if>
+        </div>
+        <span style="margin-top:auto; font-size:11px; color:#A39D91; padding-top:12px; border-top:1px solid #EBE6DC;">profile grows as you read</span>
+      </sc-if>
+
+      <sc-if value="{{ showEntityIndex }}">
+      <span style="font-size:12px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:#6E6A60;">Entities</span>
+      <div style="display:flex; flex-direction:column; gap:2px;">
+        <sc-for list="{{ entityRows }}" as="ent">
+          <button type="button" onClick="{{ ent.select }}" style="display:flex; align-items:center; gap:9px; border:0; background:none; padding:6px 4px; cursor:pointer; font-family:inherit; text-align:left; border-radius:6px;">
+            <span style="font-size:12.5px; color:#26241F; flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ ent.name }}</span>
+            <span style="width: {{ ent.barWidth }}; height:3px; border-radius:2px; background: {{ ent.color }}; flex:none;"></span>
+          </button>
+        </sc-for>
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:8px; padding-top:6px;">
+        <span style="font-family:'IBM Plex Mono', monospace; font-size:10.5px; letter-spacing:.1em; text-transform:uppercase; color:#A39D91;">Relations</span>
+        <sc-for list="{{ relationRows }}" as="rel">
+          <div style="display:flex; gap:8px; align-items:flex-start;">
+            <sc-if value="{{ showGlyphs }}"><span style="font-family:'IBM Plex Mono', monospace; font-size:11px; color:#1F5A4C; line-height:1.5;">{{ rel.glyph }}</span></sc-if>
+            <span style="font-size:11.5px; color:#4A463E; line-height:1.55;">{{ rel.text }}</span>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="margin-top:auto; padding-top:12px; border-top:1px solid #EBE6DC; display:flex; flex-direction:column; gap:3px;">
+        <span style="font-family:'IBM Plex Mono', monospace; font-size:11px; color:#6E6A60;">{{ entityCountLabel }}</span>
+        <span style="font-size:11px; color:#A39D91;">grows as you read · click a name for its profile</span>
+      </div>
+      </sc-if>
+    </div>
+
   </div>
 </div>
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props='{"proxyUrl":{"editor":"string","default":"http://localhost:11435","section":"Backend"},"sessionId":{"editor":"string","default":"eochat","section":"Backend"}}'>
+<script type="text/x-dc" data-dc-script data-props="{&quot;showGlyphs&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Layout&quot;},&quot;proxyUrl&quot;:{&quot;editor&quot;:&quot;string&quot;,&quot;default&quot;:&quot;http://localhost:11435&quot;,&quot;section&quot;:&quot;Backend&quot;},&quot;sessionId&quot;:{&quot;editor&quot;:&quot;string&quot;,&quot;default&quot;:&quot;eochat&quot;,&quot;section&quot;:&quot;Backend&quot;}}">
 class Component extends DCLogic {
   state = {
-    draft: '', draftAttachments: [], uploadError: null,
-    spacesOpen: false, activeSpaceId: 'default',
-    expandedProvenance: {}, expandedSourceRow: null, sourceContent: {},
+    tab: 'chat', draft: '',
+    grounded: true, webSearch: true, sourceFilter: null,
+    spacesOpen: false, activeSpaceId: 'default', leftCollapsed: false, selectedEntity: null,
+    readerOpen: false, readerSourceName: null,
+    readerViewMode: 'scroll', readerSectionIndex: 0,
+    glassBoxSearch: '', glassBoxCategory: 'all', expandedGenres: {}, expandedSource: null,
+    glassBoxSort: { key: 'seq', dir: 'desc' },
+    seedProvenanceOpen: false, expandedProvenance: {},
+    orbitFocus: 'room',
     proxyAlive: new Date(0),
     spaces: [],
     turns: [],
     retrievals: [],
     sources: [],
-    streamingAnswer: null, streamingCitations: null
+    streamingAnswer: null, streamingCitations: null, streamingTurnId: null, streamingLoading: false,
+    log: [],
+    draftAttachments: [],
+    readerContent: {},
+    orbitBodies: {},
+    orbitEdges: []
   };
 
   proxyUrl() { return this.props.proxyUrl || 'http://localhost:11435'; }
   sessionId() { return this.props.sessionId || 'eochat'; }
 
   componentDidMount() {
+    this.tick = this.tick.bind(this);
     this.checkHealth();
     this.loadSession();
+    this.fetchSources();
   }
-
   componentWillUnmount() {
+    if (this.raf) cancelAnimationFrame(this.raf);
     if (this._healthTimer) clearInterval(this._healthTimer);
   }
-
   componentDidUpdate() {
+    this.manageOrbitLoop();
     this.scrollToBottom();
   }
 
@@ -288,10 +595,30 @@ class Component extends DCLogic {
         const res = await fetch(this.proxyUrl() + '/health', { signal: AbortSignal.timeout(3000) });
         if (res.ok) this.setState({ proxyAlive: new Date() });
       } catch {}
+      this.fetchSources();
     }, 15000);
   }
-
   proxyLive() { return (Date.now() - this.state.proxyAlive.getTime()) < 20000; }
+
+  async fetchSources() {
+    try {
+      const res = await fetch(this.proxyUrl() + '/api/sources', { signal: AbortSignal.timeout(5000) });
+      if (res.ok) {
+        const list = await res.json();
+        this.setState({ _proxySources: list });
+      }
+    } catch {}
+  }
+
+  selectSource(name) {
+    this.setState({ sourceFilter: this.state.sourceFilter === name ? null : name });
+    this.logAdd('○', `Source filter: ${this.state.sourceFilter === name ? 'none' : name}`, 'sources');
+  }
+
+  clearSourceFilter() {
+    this.setState({ sourceFilter: null });
+    this.logAdd('○', 'Source filter cleared', 'sources');
+  }
 
   async loadSession() {
     let spaces = this._loadLocal('eochat.spaces');
@@ -299,40 +626,11 @@ class Component extends DCLogic {
       spaces = [{ id: 'default', name: 'Reading Room', turns: [], retrievals: [], sources: [] }];
     }
     this.setState({ spaces });
-
-    try {
-      const res = await fetch(this.proxyUrl() + '/api/discourse?session=' + this.sessionId(), { signal: AbortSignal.timeout(3000) });
-      if (res.ok) {
-        const data = await res.json();
-        if (data.messages && data.messages.length) {
-          this.setState(s => {
-            const turns = this._discourseToTurns(data.messages);
-            return { spaces: s.spaces.map(sp => sp.id === 'default' ? { ...sp, turns } : sp) };
-          });
-        }
-      }
-    } catch {}
-  }
-
-  _discourseToTurns(messages) {
-    const turns = [];
-    let current = null;
-    for (const m of messages) {
-      if (m.role === 'user') {
-        current = { id: 'msg-' + Date.now() + '-' + turns.length, q: m.content, a: null, citations: null, hasAttachments: false, attachments: [] };
-        turns.push(current);
-      } else if (m.role === 'assistant' && current) {
-        current.a = m.content;
-        current.citations = this.parseCitations(m.content).citations;
-      }
-    }
-    return turns;
   }
 
   _loadLocal(key) {
     try { return JSON.parse(localStorage.getItem(key)); } catch { return null; }
   }
-
   _saveLocal(key, val) {
     try { localStorage.setItem(key, JSON.stringify(val)); } catch {}
   }
@@ -343,51 +641,70 @@ class Component extends DCLogic {
 
   inferType(name) {
     const n = name.toLowerCase();
+    if (n.match(/\.(mp4|mov|webm)$/)) return 'video';
     if (n.match(/\.(wav|mp3|m4a|ogg)$/)) return 'audio';
     if (n.match(/\.(pdf|docx|doc|txt|md)$/)) return 'pdf';
-    if (n.includes('article') || n.startsWith('http')) return 'link';
+    if (n.startsWith('http')) return 'link';
     return 'binary';
   }
 
-  async sendToProxy(q, attachments) {
+  buildEntityMatcher() {
+    const aliasMap = {};
+    const aliases = [];
+    const active = this.activeSpace();
+    const text = active.turns.map(t => t.q + ' ' + (t.a || '')).join(' ');
+    const raw = text.match(/\b[A-Z][a-z]+(?:\s[A-Z][a-z]+)*\b/g) || [];
+    const stopwords = new Set(['The','This','That','These','Those','What','When','Where','Why','How','Who','Which','I','You','He','She','It','We','They','My','Your','His','Her','Its','Our','Their','A','An','And','But','Or','For','Nor','Not','Yet','So','Chapter','Page','Source','Answer','Room','Reading','Companion','Gutenberg']);
+    const count = {};
+    raw.forEach(w => { if (!stopwords.has(w) && w.length > 1) count[w] = (count[w] || 0) + 1; });
+    const top = Object.entries(count).sort((a, b) => b[1] - a[1]).slice(0, 20);
+    top.forEach(([name]) => { aliasMap[name.toLowerCase()] = name; aliases.push(name); });
+    aliases.sort((a, b) => b.length - a.length);
+    const esc = aliases.map(a => a.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+    return { regex: new RegExp('(' + esc.join('|') + ')', 'g'), aliasMap, entities: top };
+  }
+
+  renderEntityText(text, keyPrefix, onSelect) {
+    if (!text) return text;
+    const { regex, aliasMap } = this.buildEntityMatcher();
+    const parts = text.split(regex);
+    return React.createElement('span', { key: keyPrefix }, ...parts.map((part, i) => {
+      const canonical = aliasMap[part.toLowerCase()];
+      if (canonical) {
+        return React.createElement('span', {
+          key: keyPrefix + '-' + i, onClick: () => onSelect(canonical),
+          style: { color: '#1F5A4C', cursor: 'pointer', borderBottom: '1px dotted #1F5A4C' }
+        }, part);
+      }
+      return part;
+    }));
+  }
+
+  async sendToProxy(q) {
     const active = this.activeSpace();
     const enabledSources = active.sources.filter(s => s.enabled !== false);
-    const sysMsg = 'You are a helpful reading companion. Answer only from the attached sources, with inline citations in the format [1], [2], etc. Always cite the specific source and chapter/section for each claim. If the sources do not contain enough information to answer, say so clearly.';
-
+    const sysMsg = 'You are a helpful reading companion. Answer only from the attached sources, with inline citations in the format [1], [2], etc. Always cite the specific source for each claim. If the sources do not contain enough information to answer, say so clearly.';
     let userMsg = q;
     if (enabledSources.length) {
       userMsg = `I have these sources available:\n${enabledSources.map((s, i) => `[${i + 1}] ${s.name}`).join('\n')}\n\nQuestion: ${q}`;
     }
-
-    const body = {
-      messages: [
-        { role: 'system', content: sysMsg },
-        { role: 'user', content: userMsg }
-      ],
-      session: this.sessionId(),
-      grounded: true,
-      groundBudget: 800,
-      groundMaxUnits: 6,
-      groundLimit: 12,
-      stream: true
-    };
-
     const res = await fetch(this.proxyUrl() + '/api/chat/tools', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
+      body: JSON.stringify({
+        messages: [{ role: 'system', content: sysMsg }, { role: 'user', content: userMsg }],
+        session: this.sessionId(),
+        grounded: this.state.grounded, webSearch: this.state.webSearch,
+        groundBudget: 800, groundMaxUnits: 6, groundLimit: 12, stream: true,
+        groundSource: this.state.sourceFilter,
+      })
     });
-
     if (!res.ok) throw new Error('Proxy returned ' + res.status);
-
     const reader = res.body.getReader();
     const decoder = new TextDecoder();
-    let buffer = '';
-    let fullAnswer = '';
+    let buffer = '', fullAnswer = '';
     const citations = [];
-
     this.setState({ streamingAnswer: '', streamingCitations: [] });
-
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
@@ -400,44 +717,26 @@ class Component extends DCLogic {
           const data = JSON.parse(line.slice(6));
           if (data.type === 'content' && data.content) {
             fullAnswer += data.content;
-            const parsed = this.parseCitations(fullAnswer);
+            const parsed = this._parseCitations(fullAnswer);
             this.setState({ streamingAnswer: parsed.text, streamingCitations: parsed.citations });
           }
-          if (data.type === 'citation') {
-            citations.push(data);
-          }
-          if (data.type === 'done' || data.type === 'error') {
-            break;
-          }
+          if (data.type === 'citation') citations.push(data);
+          if (data.type === 'done' || data.type === 'error') break;
         } catch {}
       }
     }
-
     return { answer: fullAnswer, citations };
   }
 
-  parseCitations(text) {
+  _parseCitations(text) {
     const citationRegex = /\[(\d+)\]/g;
     const seen = new Set();
     const citations = [];
     let match;
     while ((match = citationRegex.exec(text)) !== null) {
-      if (!seen.has(match[1])) {
-        seen.add(match[1]);
-        citations.push({ num: match[1], source: 'Source ' + match[1] });
-      }
+      if (!seen.has(match[1])) { seen.add(match[1]); citations.push({ num: match[1], source: 'Source ' + match[1] }); }
     }
     return { text, citations };
-  }
-
-  extractEntities(text) {
-    const words = text.match(/\b[A-Z][a-z]+(?:\s[A-Z][a-z]+)*\b/g) || [];
-    const stopwords = new Set(['The', 'This', 'That', 'These', 'Those', 'What', 'When', 'Where', 'Why', 'How', 'Who', 'Which', 'I', 'You', 'He', 'She', 'It', 'We', 'They', 'My', 'Your', 'His', 'Her', 'Its', 'Our', 'Their', 'A', 'An', 'And', 'But', 'Or', 'For', 'Nor', 'Not', 'Yet', 'So', 'Chapter', 'Page', 'Source', 'Answer']);
-    const count = {};
-    words.forEach(w => {
-      if (!stopwords.has(w) && w.length > 1) count[w] = (count[w] || 0) + 1;
-    });
-    return Object.entries(count).sort((a, b) => b[1] - a[1]).slice(0, 30);
   }
 
   async send() {
@@ -446,36 +745,28 @@ class Component extends DCLogic {
     const attachments = this.state.draftAttachments;
     const active = this.activeSpace();
     const id = 'turn-' + Date.now();
-
+    this.logAdd('⊨', `Asked: "${q.slice(0, 44)}${q.length > 44 ? '…' : ''}"`, 'chat');
     this.setState(s => ({
       draft: '', draftAttachments: [],
-      turns: s.turns.concat([{
-        id, q, attachments, hasAttachments: !!attachments.length,
-        a: null, citations: null, streaming: false
-      }]),
-      streamingLoading: true, streamingAnswer: null, streamingCitations: null
+      turns: s.turns.concat([{ id, q, attachments, hasAttachments: !!attachments.length, retrieval: null, prompt: '', a: null, citations: null, streaming: false }]),
+      streamingLoading: true, streamingAnswer: null, streamingCitations: null, streamingTurnId: id
     }));
-
     try {
-      const result = await this.sendToProxy(q, attachments);
-
+      const result = await this.sendToProxy(q);
+      const retrieval = result.citations.length ? { source: result.citations.map(c => c.source || '').join(', '), quote: result.answer.slice(0, 200) } : null;
       this.setState(s => ({
         streamingLoading: false,
-        turns: s.turns.map(t => t.id === id ? {
-          ...t,
-          a: result.answer,
-          citations: result.citations,
-          prompt: 'Answer only from the attached sources, with inline citations.\n\nQUESTION: ' + q
-        } : t)
+        turns: s.turns.map(t => t.id === id ? { ...t, retrieval, a: result.answer, citations: result.citations, prompt: 'Answer only from the attached sources, with inline citations.\n\n' + (retrieval ? `SOURCE: ${retrieval.source}\n` : '') + `QUESTION: ${q}` } : t)
       }));
-
       this._saveLocal('eochat.turns.' + this.state.activeSpaceId, this.state.turns);
+      if (retrieval) {
+        this.setState(s => ({ retrievals: s.retrievals.concat([retrieval]) }));
+        this.logAdd('⋈', `Quoted passage retrieved`, 'sources');
+      }
     } catch (err) {
       this.setState(s => ({
         streamingLoading: false,
-        turns: s.turns.map(t => t.id === id ? {
-          ...t, a: '(Proxy unavailable — ' + err.message + ')', citations: []
-        } : t)
+        turns: s.turns.map(t => t.id === id ? { ...t, a: '(Proxy unavailable — ' + err.message + ')', citations: [], retrieval: null } : t)
       }));
     }
   }
@@ -484,12 +775,9 @@ class Component extends DCLogic {
     const name = window.prompt('Paste a URL to ingest');
     if (!name) return;
     const src = { name, glyph: '○', color: '#A39D91', enabled: true };
-    this.setState(s => ({
-      spaces: s.spaces.map(sp => sp.id === s.activeSpaceId
-        ? { ...sp, sources: sp.sources.concat([src]) } : sp)
-    }));
+    this.setState(s => ({ spaces: s.spaces.map(sp => sp.id === s.activeSpaceId ? { ...sp, sources: sp.sources.concat([src]) } : sp) }));
+    this.logAdd('●', `Source "${name}" added`, 'sources');
     this._saveLocal('eochat.spaces', this.state.spaces);
-
     try {
       const res = await fetch(this.proxyUrl() + '/api/ingest', {
         method: 'POST',
@@ -498,10 +786,8 @@ class Component extends DCLogic {
       });
       if (res.ok) {
         const result = await res.json();
-        this.setState(s => ({
-          spaces: s.spaces.map(sp => sp.id === s.activeSpaceId
-            ? { ...sp, sources: sp.sources.map(x => x.name === name ? { ...x, glyph: '●', color: '#1F5A4C', ingested: true, chunks: result.chunks || 0 } : x) } : sp)
-        }));
+        this.setState(s => ({ spaces: s.spaces.map(sp => sp.id === s.activeSpaceId ? { ...sp, sources: sp.sources.map(x => x.name === name ? { ...x, glyph: '●', color: '#1F5A4C', ingested: true, chunks: result.chunks || 0 } : x) } : sp) }));
+        this.logAdd('⋈', `Ingested "${name}" (${result.chunks || 0} chunks)`, 'sources');
       }
     } catch {}
   }
@@ -509,18 +795,14 @@ class Component extends DCLogic {
   async searchWeb() {
     const q = window.prompt('Search the web');
     if (!q) return;
+    this.logAdd('○', `Searching the web for "${q}"`, 'sources');
     try {
       const res = await fetch(this.proxyUrl() + '/api/verbatim?q=' + encodeURIComponent(q) + '&limit=5', { signal: AbortSignal.timeout(15000) });
       if (res.ok) {
         const data = await res.json();
         if (data.passages && data.passages.length) {
-          this.setState(s => ({
-            spaces: s.spaces.map(sp => sp.id === s.activeSpaceId
-              ? { ...sp, sources: sp.sources.concat(data.passages.map((p, i) => ({
-                  name: p.source || ('Result ' + (i + 1)),
-                  glyph: '●', color: '#1F5A4C', enabled: true, ingested: true
-                }))) } : sp)
-          }));
+          this.setState(s => ({ spaces: s.spaces.map(sp => sp.id === s.activeSpaceId ? { ...sp, sources: sp.sources.concat(data.passages.map((p, i) => ({ name: p.source || ('Result ' + (i + 1)), glyph: '●', color: '#1F5A4C', enabled: true, ingested: true }))) } : sp) }));
+          data.passages.forEach(p => this.logAdd('⋈', `Found passage from ${p.source || 'web'}`, 'sources'));
           return;
         }
       }
@@ -529,212 +811,418 @@ class Component extends DCLogic {
       const urls = [];
       if (data2.AbstractURL) urls.push(data2.AbstractURL);
       (data2.RelatedTopics || []).forEach(t => { if (urls.length < 4 && t.FirstURL) urls.push(t.FirstURL); });
-      if (urls.length) {
-        this.setState(s => ({
-          spaces: s.spaces.map(sp => sp.id === s.activeSpaceId
-            ? { ...sp, sources: sp.sources.concat(urls.map(u => ({ name: u, glyph: '○', color: '#A39D91', enabled: true }))) } : sp)
-        }));
-      }
-    } catch {}
+      if (!urls.length) { this.logAdd('○', `No web results found for "${q}"`, 'sources'); return; }
+      this.setState(s => ({ spaces: s.spaces.map(sp => sp.id === s.activeSpaceId ? { ...sp, sources: sp.sources.concat(urls.map(u => ({ name: u, glyph: '○', color: '#A39D91', enabled: true }))) } : sp) }));
+      urls.forEach(u => this.logAdd('⋈', `Found "${u}" from web search`, 'sources'));
+    } catch (err) { this.logAdd('○', `Web search unavailable — ${err.message}`, 'sources'); }
   }
 
   toggleSource(name) {
-    this.setState(s => ({
-      spaces: s.spaces.map(sp => sp.id === s.activeSpaceId
-        ? { ...sp, sources: sp.sources.map(src => src.name === name ? { ...src, enabled: !src.enabled } : src) }
-        : sp)
-    }));
+    this.setState(s => ({ spaces: s.spaces.map(sp => sp.id === s.activeSpaceId ? { ...sp, sources: sp.sources.map(src => src.name === name ? { ...src, enabled: !src.enabled } : src) } : sp) }));
+    this.logAdd('○', `Source "${name}" toggled`, 'sources');
     this._saveLocal('eochat.spaces', this.state.spaces);
   }
 
   async fetchSourceContent(name) {
-    if (this.state.sourceContent[name]) return;
+    if (this.state.readerContent[name]) return;
     try {
       const res = await fetch(this.proxyUrl() + '/api/attachments/content?session=' + this.sessionId() + '&name=' + encodeURIComponent(name), { signal: AbortSignal.timeout(5000) });
-      if (res.ok) {
-        const text = await res.text();
-        this.setState(s => ({ sourceContent: { ...s.sourceContent, [name]: text } }));
-      } else {
-        const res2 = await fetch(this.proxyUrl() + '/api/verbatim/read?session=' + this.sessionId() + '&name=' + encodeURIComponent(name), { signal: AbortSignal.timeout(5000) });
-        if (res2.ok) {
-          const text = await res2.text();
-          this.setState(s => ({ sourceContent: { ...s.sourceContent, [name]: text } }));
-        }
-      }
+      if (res.ok) { const text = await res.text(); this.setState(s => ({ readerContent: { ...s.readerContent, [name]: text } })); return; }
     } catch {}
+    this.setState(s => ({ readerContent: { ...s.readerContent, [name]: '(Content not available from proxy)' } }));
   }
 
   addSpace() {
     const name = window.prompt('Name this space');
     if (!name) return;
     const id = 'sp-' + Date.now();
-    this.setState(s => ({
-      spaces: s.spaces.concat([{ id, name, turns: [], retrievals: [], sources: [] }]),
-      activeSpaceId: id, spacesOpen: false
-    }));
+    this.setState(s => ({ spaces: s.spaces.concat([{ id, name, turns: [], retrievals: [], sources: [] }]), activeSpaceId: id, spacesOpen: false, tab: 'chat' }));
+    this.logAdd('●', `Space "${name}" created`, 'spaces');
     this._saveLocal('eochat.spaces', this.state.spaces);
   }
 
   forkSpace(upToTurnIndex) {
     const active = this.activeSpace();
     const turnsCopy = active.turns.slice(0, upToTurnIndex + 1);
+    const retrievedCount = turnsCopy.filter(t => t.retrieval).length;
     const id = 'sp-' + Date.now();
     const name = active.name + ' (fork)';
-    this.setState(s => ({
-      spaces: s.spaces.concat([{ id, name, turns: turnsCopy, retrievals: active.retrievals.slice(), sources: active.sources.slice() }]),
-      activeSpaceId: id
-    }));
+    this.setState(s => ({ spaces: s.spaces.concat([{ id, name, turns: turnsCopy, retrievals: active.retrievals.slice(0, retrievedCount), sources: active.sources.slice() }]), activeSpaceId: id, tab: 'chat' }));
+    this.logAdd('△', `Forked "${active.name}" into "${name}" at turn ${upToTurnIndex + 1}`, 'spaces');
     this._saveLocal('eochat.spaces', this.state.spaces);
   }
 
-  async onFilesSelected(e) {
+  onFilesSelected(e) {
     const fileList = Array.from(e.target.files || []);
     if (!fileList.length) return;
-
     const files = fileList.map((f, i) => ({ id: Date.now() + '-' + i, name: f.name, file: f }));
     this.setState(s => ({ draftAttachments: s.draftAttachments.concat(files) }));
-
+    this.logAdd('●', `Attached ${files.length} file(s)`, 'sources');
     for (const f of files) {
-      try {
-        const text = await f.file.text();
-        const payload = { content: text.slice(0, 500000), name: f.name, session: this.sessionId() };
+      f.file.text().then(text => {
         fetch(this.proxyUrl() + '/api/ingest', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ content: text.slice(0, 500000), name: f.name, session: this.sessionId() })
         }).catch(() => {});
-      } catch {}
+      }).catch(() => {});
     }
   }
 
-  goToApp() {
-    window.location.href = './index.html';
+  openReader(name) {
+    this.setState({ readerOpen: true, readerSourceName: name, readerViewMode: 'scroll', readerSectionIndex: 0 });
+    this.logAdd('◱', `Opened "${name}" in reader`, 'reader');
+    if (!this.state.readerContent[name]) this.fetchSourceContent(name);
+  }
+  closeReader() { this.setState({ readerOpen: false }); }
+
+  logAdd(glyph, text, category) {
+    this.setState(s => {
+      const seq = '#' + String(s.log.length + 1).padStart(4, '0');
+      const time = new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+      return { log: s.log.concat([{ seq, time, glyph, text, category }]) };
+    });
   }
 
-  retryProxy() {
-    this.checkHealth();
+  exportLog(rows) {
+    const header = 'seq,time,glyph,category,text';
+    const esc = v => '"' + String(v).replace(/"/g, '""') + '"';
+    const csv = [header].concat(rows.map(r => [r.seq, r.time, r.glyph, r.category, r.text].map(esc).join(','))).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = 'glass-box-log.csv';
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  goToApp() { window.location.href = './index.html'; }
+  retryProxy() { this.checkHealth(); }
+
+  manageOrbitLoop() {
+    const running = this.state.tab === 'orbit' && this.canvasEl && Object.keys(this.state.orbitBodies).length;
+    if (running && !this.raf) { this.lastT = performance.now(); this.raf = requestAnimationFrame(this.tick); }
+    else if (!running && this.raf) { cancelAnimationFrame(this.raf); this.raf = null; }
+  }
+
+  getPos(id, t, cache) {
+    if (cache[id]) return cache[id];
+    const n = this.state.orbitBodies[id];
+    if (!n) return { x: 0, y: 0 };
+    if (!n.parent) { cache[id] = { x: 0, y: 0 }; return cache[id]; }
+    const p = this.getPos(n.parent, t, cache);
+    const ang = n.phase + t * n.omega;
+    cache[id] = { x: p.x + n.r * Math.cos(ang), y: p.y + n.r * Math.sin(ang) };
+    return cache[id];
+  }
+
+  tick(t) {
+    this.t = ((t - (this.t0 || (this.t0 = t))) / 1000);
+    this.draw();
+    this.raf = requestAnimationFrame(this.tick);
+  }
+
+  draw() {
+    const canvas = this.canvasEl;
+    if (!canvas) return;
+    const w = canvas.clientWidth, h = canvas.clientHeight;
+    const dpr = window.devicePixelRatio || 1;
+    if (canvas.width !== w * dpr || canvas.height !== h * dpr) { canvas.width = w * dpr; canvas.height = h * dpr; }
+    const ctx = canvas.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, w, h);
+    const cx = w / 2, cy = h / 2, scale = Math.min(w, h) / 300;
+    const cache = {}, ids = Object.keys(this.state.orbitBodies);
+    if (!ids.length) {
+      ctx.fillStyle = '#D5DFD9'; ctx.font = '14px "Instrument Sans", sans-serif';
+      ctx.textAlign = 'center'; ctx.fillText('Entities appear as you chat', w / 2, h / 2);
+      return;
+    }
+    const positions = {};
+    ids.forEach(id => { positions[id] = this.getPos(id, this.t || 0, cache); });
+    const focus = positions[this.state.orbitFocus] || { x: 0, y: 0 };
+    const screen = {};
+    ids.forEach(id => { screen[id] = { x: cx + (positions[id].x - focus.x) * scale, y: cy + (positions[id].y - focus.y) * scale }; });
+    this.nodeScreen = screen;
+    ctx.strokeStyle = '#E4DFD5'; ctx.lineWidth = 1;
+    this.state.orbitEdges.forEach(([a, b]) => {
+      ctx.beginPath(); ctx.moveTo(screen[a].x, screen[a].y); ctx.lineTo(screen[b].x, screen[b].y); ctx.stroke();
+    });
+    ids.forEach(id => {
+      const n = this.state.orbitBodies[id], p = screen[id], focused = id === this.state.orbitFocus;
+      if (focused) {
+        ctx.strokeStyle = '#1F5A4C'; ctx.setLineDash([2, 3]); ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.arc(p.x, p.y, (n.size + 8) * scale, 0, Math.PI * 2); ctx.stroke();
+        ctx.setLineDash([]);
+      }
+      ctx.fillStyle = focused ? '#1F5A4C' : (n.parent ? '#7FA396' : '#1F5A4C');
+      ctx.beginPath(); ctx.arc(p.x, p.y, n.size * scale, 0, Math.PI * 2); ctx.fill();
+      ctx.font = `${11 * scale}px 'Instrument Sans', sans-serif`;
+      ctx.fillStyle = '#26241F'; ctx.textAlign = 'center';
+      ctx.fillText(n.label, p.x, p.y - (n.size + 8) * scale);
+    });
+  }
+
+  onOrbitClick(e) {
+    const canvas = this.canvasEl;
+    if (!canvas || !this.nodeScreen) return;
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left, y = e.clientY - rect.top;
+    let best = null, bestD = 26;
+    Object.keys(this.nodeScreen).forEach(id => {
+      const p = this.nodeScreen[id], d = Math.hypot(p.x - x, p.y - y);
+      if (d < bestD) { bestD = d; best = id; }
+    });
+    if (best && this.state.orbitBodies[best]) {
+      this.setState({ orbitFocus: best });
+      this.logAdd('△', `Orbit refocused on "${this.state.orbitBodies[best].label}"`, 'reader');
+    }
+  }
+
+  computeOrbit() {
+    const active = this.activeSpace();
+    const { entities } = this.buildEntityMatcher();
+    const bodies = { room: { parent: null, r: 0, omega: 0, phase: 0, size: 18, label: active.name || 'Room' } };
+    const edges = [];
+    const n = Math.min(entities.length, 8);
+    const angleStep = (Math.PI * 2) / Math.max(n, 1);
+    const periods = [24, 28, 20, 26, 22, 30, 18, 32];
+    entities.slice(0, n).forEach(([name], i) => {
+      const key = 'e' + i;
+      bodies[key] = { parent: 'room', r: 85 + (i % 3) * 15, omega: 2 * Math.PI / periods[i % periods.length], phase: angleStep * i + 0.3, size: Math.max(5, 14 - i), label: name };
+      edges.push(['room', key]);
+    });
+    return { orbitBodies: bodies, orbitEdges: edges };
   }
 
   renderVals() {
     const S = this.state;
+    const t = S.tab;
+    const tabStyle = (name) => ({ color: t === name ? '#1B1A17' : '#8C877C', underline: t === name ? 'inset 0 -2px 0 0 #1F5A4C' : 'none' });
+    const c = tabStyle('chat'), o = tabStyle('outline'), r = tabStyle('orbit'), g = tabStyle('glassbox'), pr = tabStyle('priors');
     const active = this.activeSpace();
     const live = this.proxyLive();
+    const selectEntity = (name) => this.setState({ selectedEntity: name });
 
     const draftAttachments = S.draftAttachments.map(att => ({
       name: att.name,
       remove: () => this.setState(s => ({ draftAttachments: s.draftAttachments.filter(x => x.id !== att.id) }))
     }));
-
     const spaces = S.spaces.map(sp => ({
-      name: sp.name,
-      marker: sp.id === S.activeSpaceId ? '●' : '○',
+      name: sp.name, marker: sp.id === S.activeSpaceId ? '●' : '○',
       bg: sp.id === S.activeSpaceId ? '#F2EFE8' : 'transparent',
-      select: () => this.setState({ activeSpaceId: sp.id, spacesOpen: false })
+      select: () => this.setState({ activeSpaceId: sp.id, spacesOpen: false, tab: 'chat' })
     }));
-
+    const previewByType = { pdf: 'A text document — bonded to this room and citable.', video: 'Structure found by segmenting raw container bytes — no frame decoded.', audio: 'Transcribed locally by an on-device model.', link: 'A web source bonded and citable.', binary: 'Preview not available — stored as an opaque binary.' };
     const activeSources = active.sources.map(s => {
-      const expanded = S.expandedSourceRow === s.name;
-      const showingContent = !!S.sourceContent[s.name];
-      const contentPreview = s.ingested
-        ? 'Ingested and bonded to this room — citable.'
-        : 'Pending ingestion.';
+      const type = this.inferType(s.name);
+      const expanded = S.expandedSource === s.name;
+      const content = S.readerContent[s.name];
+      const preview = content ? content.replace(/\s+/g, ' ').slice(0, 200).trim() + (content.length > 200 ? '…' : '') : (previewByType[type] || previewByType.binary);
       return {
-        name: s.name,
-        color: s.color,
-        glyph: s.glyph,
-        enabled: s.enabled,
+        ...s, open: () => this.openReader(s.name),
+        toggle: () => {
+          const isOpening = this.state.expandedSource !== s.name;
+          this.setState(st => ({ expandedSource: isOpening ? s.name : null }));
+          if (isOpening && !this.state.readerContent[s.name]) this.fetchSourceContent(s.name);
+        },
+        toggleEnabled: () => this.toggleSource(s.name),
         rowOpacity: s.enabled === false ? 0.45 : 1,
         switchBg: s.enabled === false ? '#E0DACE' : '#1F5A4C',
         knobLeft: s.enabled === false ? '2px' : '13px',
-        expanded,
-        chevronClass: expanded ? 'ph ph-caret-down' : 'ph ph-caret-right',
-        preview: contentPreview,
-        showingContent,
-        content: S.sourceContent[s.name] || '',
-        toggle: () => this.setState(st => ({ expandedSourceRow: st.expandedSourceRow === s.name ? null : s.name })),
-        toggleEnabled: () => this.toggleSource(s.name),
-        fetchContent: () => this.fetchSourceContent(s.name)
+        expanded, chevronClass: expanded ? 'ph ph-caret-down' : 'ph ph-caret-right',
+        preview
       };
     });
 
-    const allText = active.turns.map(t => t.q + ' ' + (t.a || '')).join(' ');
-    const entityMap = this.extractEntities(allText);
-    const maxCount = entityMap.length ? entityMap[0][1] : 1;
-    const colors = ['#1F5A4C', '#3D7A6A', '#5FA08E', '#8CBBB0', '#B5D3CA', '#D5E3DE', '#EBE6DC'];
-    const entityRows = entityMap.map(([name, count], i) => ({
-      name, mentions: count,
-      color: colors[i % colors.length],
-      barWidth: Math.max(4, Math.round((count / maxCount) * 30)) + 'px',
-      select: () => this.setState({ selectedEntity: name })
-    }));
+    const { entities: entityTuples } = this.buildEntityMatcher();
+    const maxCount = entityTuples.length ? entityTuples[0][1] : 1;
+    const entityColors = ['#1F5A4C', '#3D7A6A', '#5FA08E', '#8CBBB0', '#B5D3CA', '#D5E3DE', '#EBE6DC'];
+    const entityList = entityTuples.map(([name, count], i) => ({ name, bar: Math.max(4, Math.round((count / maxCount) * 28)), mentions: count, color: entityColors[i % entityColors.length] }));
+    const entityRows = entityList.map(e => ({ name: e.name, color: e.color, barWidth: e.bar + 'px', select: () => this.setState({ selectedEntity: e.name }) }));
 
-    const selectedEntityName = S.selectedEntity || '';
-    const selectedEntityTurns = selectedEntityName
-      ? active.turns.filter(t =>
-          (t.q && t.q.includes(selectedEntityName)) ||
-          (t.a && t.a.includes(selectedEntityName))
-        ).map(t => ({ text: (t.q || '').slice(0, 80) + ((t.q || '').length > 80 ? '…' : '') })).slice(0, 10)
-      : [];
-    const selectedEntityMentions = entityMap.find(([n]) => n === selectedEntityName)?.[1] || 0;
+    const { orbitBodies, orbitEdges } = this.computeOrbit();
+    const orbitNode = orbitBodies[S.orbitFocus];
+    const orbitKids = Object.keys(orbitBodies).filter(k => orbitBodies[k].parent === S.orbitFocus);
+
+    const readerType = S.readerSourceName ? this.inferType(S.readerSourceName) : null;
+    const readerGlyph = { pdf: '●', video: '●', audio: '○', link: '○', binary: '◱' }[readerType] || '●';
+    const readerTypeLabel = { pdf: 'Text', video: 'Video', audio: 'Audio', link: 'Article', binary: 'File' }[readerType] || '';
+    const readerPipelineLabel = { video: 'binary segmentation · no CV', audio: 'local transcription · on-device' }[readerType] || null;
+    const contentText = S.readerSourceName ? (S.readerContent[S.readerSourceName] || 'Loading content…') : '';
+    const contentLines = contentText.split('\n').filter(l => l.trim());
+    const readerSections = contentLines.length ? [{ heading: 'Content', body: contentText }] : [{ heading: 'No content', body: 'Source content not yet loaded.' }];
+    const readerSectionIndex = Math.min(S.readerSectionIndex, Math.max(0, readerSections.length - 1));
+    const docOutline = readerSections.length > 1 ? readerSections.map((sec, i) => ({
+      label: sec.heading, bg: i === (S.readerViewMode === 'paginated' ? readerSectionIndex : -1) ? '#F2EFE8' : 'transparent', color: '#26241F',
+      jump: () => this.setState({ readerViewMode: 'paginated', readerSectionIndex: i })
+    })) : [];
+
+    const catList = ['all', 'sources', 'chat', 'spaces', 'reader', 'perception'];
+    const categoryChips = catList.map(cat => ({
+      label: cat === 'all' ? 'All' : cat[0].toUpperCase() + cat.slice(1),
+      select: () => this.setState({ glassBoxCategory: cat }),
+      border: S.glassBoxCategory === cat ? '#8FE3C0' : '#2A3733',
+      bg: S.glassBoxCategory === cat ? '#1F332C' : 'transparent',
+      color: S.glassBoxCategory === cat ? '#8FE3C0' : '#6B857D'
+    }));
+    const search = S.glassBoxSearch.toLowerCase();
+    const { key: sortKey, dir: sortDir } = S.glassBoxSort;
+    const filteredLog = S.log.filter(e => (S.glassBoxCategory === 'all' || e.category === S.glassBoxCategory) && (!search || e.text.toLowerCase().includes(search)))
+      .slice().sort((x, y) => { const av = x[sortKey], bv = y[sortKey]; return (sortDir === 'asc' ? 1 : -1) * (av < bv ? -1 : av > bv ? 1 : 0); });
 
     return {
+      showGlyphs: this.props.showGlyphs ?? true,
+      isChat: t === 'chat', isOutline: t === 'outline', isOrbit: t === 'orbit', isGlassBox: t === 'glassbox', isPriors: t === 'priors',
+      grounded: S.grounded, webSearch: S.webSearch,
+      toggleGrounded: () => this.setState(s => ({ grounded: !s.grounded })),
+      toggleWebSearch: () => this.setState(s => ({ webSearch: !s.webSearch })),
       proxyLive: live, proxyDead: !live,
-      proxyStatusText: live ? ('proxy · ' + Math.round((Date.now() - S.proxyAlive.getTime()) / 1000) + 's') : '',
-      retryProxy: () => this.retryProxy(),
-      goToApp: () => this.goToApp(),
-      draft: S.draft,
-      sendBg: S.draft.trim().length ? '#1F5A4C' : '#8C877C',
-      turns: active.turns.map((turn, i) => {
-        const open = !!S.expandedProvenance[turn.id];
+      proxyStatusText: live ? ('proxy · live · ' + Math.round((Date.now() - S.proxyAlive.getTime()) / 1000) + 's ago') : '',
+      retryProxy: () => this.retryProxy(), goToApp: () => this.goToApp(),
+      tabChat: () => this.setState({ tab: 'chat' }), tabOutline: () => this.setState({ tab: 'outline' }),
+      tabOrbit: () => this.setState({ tab: 'orbit' }), tabGlassBox: () => this.setState({ tab: 'glassbox' }),
+      tabPriors: () => this.setState({ tab: 'priors' }),
+      tabChatColor: c.color, tabChatUnderline: c.underline,
+      tabOutlineColor: o.color, tabOutlineUnderline: o.underline,
+      tabOrbitColor: r.color, tabOrbitUnderline: r.underline,
+      tabGlassBoxColor: g.color, tabGlassBoxUnderline: g.underline,
+      tabPriorsColor: pr.color, tabPriorsUnderline: pr.underline,
+      draft: S.draft, sendBg: S.draft.trim().length ? '#1F5A4C' : '#8C877C',
+      showSourcePills: S._proxySources && S._proxySources.length > 0,
+      sourceSelected: S.sourceFilter,
+      clearSourceFilter: () => this.clearSourceFilter(),
+      sourcePills: (S._proxySources || []).map(src => {
+        const active = S.sourceFilter === src.name;
         return {
-          ...turn,
-          provenanceOpen: open,
-          provenanceChevronClass: open ? 'ph ph-caret-down' : 'ph ph-caret-right',
-          provenanceSurfaced: turn.citations?.length
-            ? turn.citations.map(c => c.source).join(', ') + ' — cited in response'
-            : 'No retrieval fired for this turn.',
-          copy: () => navigator.clipboard.writeText(
-            `Q: ${turn.q}${turn.a ? `\n\nA: ${turn.a}` : ''}`
-          ),
-          toggleProvenance: () => this.setState(s => ({
-            expandedProvenance: { ...s.expandedProvenance, [turn.id]: !s.expandedProvenance[turn.id] }
-          })),
-          fork: () => this.forkSpace(i)
+          name: src.name,
+          border: active ? '#1F5A4C' : '#E0DACE',
+          bg: active ? '#1F5A4C' : 'transparent',
+          color: active ? '#FFF' : '#4A463E',
+          select: () => this.selectSource(src.name),
         };
       }),
-      streamingAnswer: S.streamingAnswer,
-      streamingCitations: S.streamingCitations,
-      streamingLoading: S.streamingLoading,
-      showEmptyChat: active.turns.length === 0,
+      turns: active.turns.map((turn, i) => {
+        const open = !!S.expandedProvenance[turn.id];
+        return { ...turn, provenanceOpen: open, provenanceChevronClass: open ? 'ph ph-caret-down' : 'ph ph-caret-right',
+          provenanceSurfaced: turn.retrieval ? `${turn.retrieval.source} — "${(turn.retrieval.quote || '').slice(0, 90)}${(turn.retrieval.quote || '').length > 90 ? '…' : ''}"` : 'No retrieval fired for this turn.',
+          copy: () => navigator.clipboard.writeText(`Q: ${turn.q}${turn.a ? `\n\nA: ${turn.a}` : ''}${turn.retrieval ? `\n\nRetrieved from ${turn.retrieval.source}` : ''}`),
+          toggleProvenance: () => this.setState(s => ({ expandedProvenance: { ...s.expandedProvenance, [turn.id]: !s.expandedProvenance[turn.id] } })),
+          fork: () => this.forkSpace(i) };
+      }),
+      streamingAnswer: S.streamingAnswer, streamingCitations: S.streamingCitations, streamingLoading: S.streamingLoading,
+      showSeedIntro: active.turns.length === 0,
+      showEmptyChat: false,
+      forkFromSeed: () => this.forkSpace(-1),
+      copySeedTurn: () => navigator.clipboard.writeText("Q: How does Victor first react to bringing the creature to life?\n\nA: Victor is overcome with horror and disgust the instant the creature opens its eyes, and he flees the room rather than face what he's made [Frankenstein, Ch. 5], returning only to find the creature has already wandered off [Frankenstein, Ch. 5]."),
+      seedProvenanceOpen: S.seedProvenanceOpen,
+      seedProvenanceChevronClass: S.seedProvenanceOpen ? 'ph ph-caret-down' : 'ph ph-caret-right',
+      toggleSeedProvenance: () => this.setState(s => ({ seedProvenanceOpen: !s.seedProvenanceOpen })),
       onDraft: (e) => this.setState({ draft: e.target.value }),
-      onKey: (e) => { if (e.key === 'Enter') this.send(); },
-      send: () => this.send(),
-      activeSpaceName: active.name,
-      spacesOpen: S.spacesOpen,
+      onKey: (e) => { if (e.key === 'Enter') this.send(); }, send: () => this.send(),
+      activeSpaceName: active.name, spacesOpen: S.spacesOpen,
       toggleSpaces: () => this.setState(s => ({ spacesOpen: !s.spacesOpen })),
-      spaces,
-      addSpace: () => this.addSpace(),
-      activeSources,
-      noSources: active.sources.length === 0,
-      sourceCount: active.sources.length,
-      addSource: () => this.addSource(),
-      searchWeb: () => this.searchWeb(),
-      draftAttachments,
-      hasDraftAttachments: draftAttachments.length > 0,
-      uploadError: S.uploadError,
+      spaces, addSpace: () => this.addSpace(),
+      selectVictor: () => this.setState({ selectedEntity: 'Victor Frankenstein' }),
+      selectCreature: () => this.setState({ selectedEntity: 'The Creature' }),
+      activeSources, noSources: active.sources.length === 0, sourceCount: active.sources.length,
+      leftCollapsed: S.leftCollapsed, leftExpanded: !S.leftCollapsed,
+      leftPadding: S.leftCollapsed ? '18px 8px' : '18px 16px',
+      leftAlign: S.leftCollapsed ? 'center' : 'stretch',
+      leftColWidth: S.leftCollapsed ? '52px' : '232px',
+      toggleLeftCollapsed: () => this.setState(s => ({ leftCollapsed: !s.leftCollapsed })),
+      addSource: () => this.addSource(), searchWeb: () => this.searchWeb(),
+      retrievals: S.retrievals.map(r => ({ quote: (r.quote || '').slice(0, 200), source: r.source || '' })),
+      hasRetrievals: S.retrievals.length > 0,
+      draftAttachments, hasDraftAttachments: draftAttachments.length > 0,
       setFileInput: (el) => { this.fileInputEl = el; },
       openFileDialog: () => this.fileInputEl && this.fileInputEl.click(),
       onFilesSelected: (e) => this.onFilesSelected(e),
       chatScrollRef: (el) => { this.chatScrollEl = el; this.scrollToBottom(); },
+      setCanvas: (el) => { this.canvasEl = el; this.manageOrbitLoop(); if (el) this.draw(); },
+      onOrbitClick: (e) => this.onOrbitClick(e),
+      orbitFocusLabel: orbitNode ? orbitNode.label : '',
+      orbitHint: orbitKids.length ? 'click a node — swap universes to it' : 'entities appear as you chat',
+      orbitStatus: orbitKids.length ? ` · ${orbitKids.map(k => orbitBodies[k].label).join(', ')} orbit${orbitKids.length > 1 ? '' : 's'} it` : ' · entities from chat will appear here',
+      readerOpen: S.readerOpen, showTabs: !S.readerOpen,
+      readerName: S.readerSourceName, readerGlyph, readerTypeLabel, readerPipelineLabel,
+      showReaderPipeline: !!readerPipelineLabel, showSectionChips: docOutline.length > 1,
+      readerIsVideo: readerType === 'video', readerIsAudioType: readerType === 'audio',
+      readerVideoSrc: readerType === 'video' && S.readerSourceName ? S.readerSourceName : '',
+      readerShowModeToggle: readerType !== 'video' && readerType !== 'binary',
+      closeReader: () => this.closeReader(),
+      waveformBars: Array.from({ length: 40 }, (_, i) => ({ h: 8 + Math.round(Math.abs(Math.sin(i * 1.7)) * 40) })),
+      docOutline,
+      readerModeScroll: readerType !== 'video' && readerType !== 'binary' && S.readerViewMode !== 'paginated',
+      readerModePaginated: readerType !== 'video' && S.readerViewMode === 'paginated',
+      setReaderScroll: () => this.setState({ readerViewMode: 'scroll' }),
+      setReaderPaginated: () => this.setState({ readerViewMode: 'paginated' }),
+      readerScrollColor: S.readerViewMode !== 'paginated' ? '#1F5A4C' : '#8C877C',
+      readerScrollBg: S.readerViewMode !== 'paginated' ? '#E5EDE9' : 'transparent',
+      readerPaginateColor: S.readerViewMode === 'paginated' ? '#1F5A4C' : '#8C877C',
+      readerPaginateBg: S.readerViewMode === 'paginated' ? '#E5EDE9' : 'transparent',
+      readerSections: readerSections.map((s, i) => ({ heading: s.heading, body: s.body, bodyNodes: this.renderEntityText(s.body, 'rs' + i, selectEntity) })),
+      readerCurrentHeading: (readerSections[readerSectionIndex] || {}).heading || '',
+      readerCurrentBody: (readerSections[readerSectionIndex] || {}).body || '',
+      readerCurrentBodyNodes: this.renderEntityText((readerSections[readerSectionIndex] || {}).body || '', 'rc', selectEntity),
+      readerSectionPos: `${readerSectionIndex + 1} of ${readerSections.length || 1}`,
+      readerSectionPrev: () => this.setState(s => ({ readerSectionIndex: Math.max(0, s.readerSectionIndex - 1) })),
+      readerSectionNext: () => this.setState(s => ({ readerSectionIndex: Math.min(readerSections.length - 1, s.readerSectionIndex + 1) })),
       entityRows,
-      noEntities: entityRows.length === 0,
-      hasSelectedEntity: !!S.selectedEntity,
-      showEntityIndex: !S.selectedEntity,
-      selectedEntityName,
-      selectedEntityMentions,
-      selectedEntityTurns,
+      relationRows: (() => {
+        const pairCount = {};
+        const allQa = active.turns.map(t => (t.q || '') + ' ' + (t.a || ''));
+        allQa.forEach(text => {
+          const found = entityTuples.filter(([name]) => text.toLowerCase().includes(name.toLowerCase()));
+          for (let i = 0; i < found.length; i++) {
+            for (let j = i + 1; j < found.length; j++) {
+              const key = [found[i][0], found[j][0]].sort().join('|');
+              pairCount[key] = (pairCount[key] || 0) + 1;
+            }
+          }
+        });
+        return Object.entries(pairCount).sort((a, b) => b[1] - a[1]).slice(0, 12).map(([key, count]) => {
+          const parts = key.split('|');
+          return { glyph: '↔', text: `${parts[0]} ↔ ${parts[1]}` };
+        });
+      })(),
+      hasSelectedEntity: !!S.selectedEntity, showEntityIndex: !S.selectedEntity,
+      selectedEntityName: S.selectedEntity || '',
+      selectedEntityMentions: (entityList.find(e => e.name === S.selectedEntity) || {}).mentions || 0,
+      selectedEntityRelations: (() => {
+        if (!S.selectedEntity) return [];
+        const selName = S.selectedEntity;
+        const pairCount = {};
+        const allQa = active.turns.map(t => (t.q || '') + ' ' + (t.a || ''));
+        allQa.forEach(text => {
+          if (!text.toLowerCase().includes(selName.toLowerCase())) return;
+          const found = entityTuples.filter(([name]) => name !== selName && text.toLowerCase().includes(name.toLowerCase()));
+          found.forEach(([name]) => { pairCount[name] = (pairCount[name] || 0) + 1; });
+        });
+        return Object.entries(pairCount).sort((a, b) => b[1] - a[1]).slice(0, 8).map(([name, count]) => ({ glyph: '↔', text: `${selName} ↔ ${name}` }));
+      })(),
+      selectedEntityNoRelations: !!S.selectedEntity,
       clearSelectedEntity: () => this.setState({ selectedEntity: null }),
-      entityCountLabel: entityRows.length + ' entities'
+      entityCountLabel: entityList.length + ' entities',
+      priorGenres: [],
+      noPriors: true,
+      outlineItems: (() => {
+        const allContent = Object.values(S.readerContent).join('\n\n');
+        if (!allContent.trim()) return [];
+        const lines = allContent.split('\n').map(l => l.trim()).filter(l => l.length > 5 && l.length < 120 && l === l.toUpperCase().trim());
+        const unique = [...new Set(lines)].slice(0, 30);
+        return unique.length ? unique.map((l, i) => ({ num: String(i + 1).padStart(2, '0'), label: l })) : [{ num: '01', label: 'Document loaded — no sections detected' }];
+      })(),
+      outlineEmpty: !Object.keys(S.readerContent).length,
+      log: S.log, filteredLog, filteredLogCount: filteredLog.length,
+      categoryChips,
+      glassBoxSearch: S.glassBoxSearch,
+      onGlassBoxSearch: (e) => this.setState({ glassBoxSearch: e.target.value }),
+      sortBySeq: () => this.setState(s => ({ glassBoxSort: { key: 'seq', dir: s.glassBoxSort.key === 'seq' && s.glassBoxSort.dir === 'desc' ? 'asc' : 'desc' } })),
+      sortByTime: () => this.setState(s => ({ glassBoxSort: { key: 'time', dir: s.glassBoxSort.key === 'time' && s.glassBoxSort.dir === 'desc' ? 'asc' : 'desc' } })),
+      sortByCategory: () => this.setState(s => ({ glassBoxSort: { key: 'category', dir: s.glassBoxSort.key === 'category' && s.glassBoxSort.dir === 'desc' ? 'asc' : 'desc' } })),
+      sortSeqArrow: sortKey === 'seq' ? (sortDir === 'asc' ? ' ↑' : ' ↓') : '',
+      sortTimeArrow: sortKey === 'time' ? (sortDir === 'asc' ? ' ↑' : ' ↓') : '',
+      sortCategoryArrow: sortKey === 'category' ? (sortDir === 'asc' ? ' ↑' : ' ↓') : '',
+      exportLog: () => this.exportLog(filteredLog)
     };
   }
 }
