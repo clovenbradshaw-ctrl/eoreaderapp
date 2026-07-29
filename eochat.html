@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<title>EOChat</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.0.3/src/regular/style.css" />
+<style>
+  body { margin: 0; background: #F4F2ED; -webkit-font-smoothing: antialiased; }
+  a { color: #1F5A4C; text-decoration: none; }
+  a:hover { color: #143B31; text-decoration: underline; }
+  ::placeholder { color: #A39D91; }
+  @keyframes eoPulse { 0%,100% { opacity: .25 } 50% { opacity: .9 } }
+  @keyframes eoSpin { 0% { transform: rotate(0deg) } 100% { transform: rotate(360deg) } }
+  .eo-spin { animation: eoSpin .8s linear infinite; display: inline-block; }
+  .eo-pulse { animation: eoPulse 1.4s ease-in-out infinite; }
+  .eo-scrollbar { scrollbar-width: thin; scrollbar-color: #E0DACE transparent; }
+  .eo-scrollbar::-webkit-scrollbar { width: 4px; }
+  .eo-scrollbar::-webkit-scrollbar-thumb { background: #E0DACE; border-radius: 4px; }
+  .eo-fade-in { animation: eoFadeIn .2s ease-out; }
+  @keyframes eoFadeIn { from { opacity: 0; transform: translateY(4px) } to { opacity: 1; transform: translateY(0) } }
+</style>
+</helmet>
+
+<div style="min-height:100vh;box-sizing:border-box;font-family:'Instrument Sans',system-ui,sans-serif;color:#1B1A17;display:flex;flex-direction:column;">
+<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid #E4DFD5;background:#FAF8F4;">
+  <div style="display:flex;align-items:center;gap:10px;">
+    <span onClick="{{ goToApp }}" style="font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#1F5A4C;cursor:pointer">eochat</span>
+    <button type="button" onClick="{{ toggleSpaces }}" style="display:flex;align-items:center;gap:6px;border:1px solid #E0DACE;background:#FFFDFA;border-radius:8px;padding:5px 10px 5px 12px;cursor:pointer;font-family:inherit;">
+      <span style="font-size:13px;color:#26241F;">{{ activeSpaceName }}</span>
+      <span style="font-size:9px;color:#A39D91;">▾</span>
+    </button>
+    <sc-if value="{{ spacesOpen }}">
+    <div style="position:absolute;top:52px;left:100px;width:240px;background:#FFFDFA;border:1px solid #E4DFD5;border-radius:10px;box-shadow:0 12px 28px -14px rgba(28,26,23,.35);padding:6px;z-index:20;display:flex;flex-direction:column;gap:1px;">
+      <sc-for list="{{ spaces }}" as="sp">
+        <button type="button" onClick="{{ sp.select }}" style="display:flex;align-items:center;gap:8px;text-align:left;border:0;background:{{ sp.bg }};border-radius:7px;padding:8px 9px;cursor:pointer;font-family:inherit;font-size:12.5px;color:#26241F;">
+          <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#1F5A4C;width:10px;">{{ sp.marker }}</span>
+          <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ sp.name }}</span>
+        </button>
+      </sc-for>
+      <div style="height:1px;background:#EBE6DC;margin:5px 3px;"></div>
+      <button type="button" onClick="{{ addSpace }}" style="display:flex;align-items:center;gap:8px;border:0;background:none;border-radius:7px;padding:8px 9px;cursor:pointer;font-family:inherit;font-size:12.5px;color:#1F5A4C;">
+        <span style="font-size:13px;">+</span><span>New space</span>
+      </button>
+    </div>
+    </sc-if>
+  </div>
+  <div style="display:flex;align-items:center;gap:12px;">
+    <sc-if value="{{ proxyLive }}">
+      <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#A39D91;letter-spacing:.04em;">{{ proxyStatusText }}</span>
+    </sc-if>
+    <sc-if value="{{ proxyDead }}">
+      <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#c0341a;letter-spacing:.04em;">proxy off</span>
+    </sc-if>
+  </div>
+</div>
+
+<div style="flex:1;min-height:0;display:flex;">
+  <div style="width:232px;flex:none;background:#FAF8F4;border-right:1px solid #EBE6DC;display:flex;flex-direction:column;min-width:0;">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 13px 10px;">
+      <span style="font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#6E6A60;">Sources</span>
+      <div style="display:flex;gap:6px;">
+        <button type="button" aria-label="Search the web" onClick="{{ searchWeb }}" style="width:24px;height:24px;display:flex;align-items:center;justify-content:center;border:1px solid #E0DACE;border-radius:7px;background:#FFFDFA;color:#4A463E;cursor:pointer;padding:0;"><i class="ph ph-magnifying-glass" style="font-size:13px;"></i></button>
+        <button type="button" aria-label="Add source" onClick="{{ addSource }}" style="width:24px;height:24px;display:flex;align-items:center;justify-content:center;border:1px solid #E0DACE;border-radius:7px;background:#FFFDFA;color:#4A463E;cursor:pointer;padding:0;"><i class="ph ph-plus" style="font-size:13px;"></i></button>
+      </div>
+    </div>
+    <div style="flex:1;overflow-y:auto;padding:0 8px 8px;" class="eo-scrollbar">
+      <div style="display:flex;flex-direction:column;gap:1px;">
+        <sc-for list="{{ activeSources }}" as="src">
+          <div style="border-radius:8px;overflow:hidden;opacity:{{ src.rowOpacity }};">
+            <div style="display:flex;align-items:center;gap:4px;">
+              <button type="button" onClick="{{ src.toggle }}" style="flex:1;min-width:0;display:flex;align-items:center;gap:8px;text-align:left;border:0;background:none;padding:8px 9px;cursor:pointer;font-family:inherit;">
+                <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:{{ src.color }};width:12px;flex:none;">{{ src.glyph }}</span>
+                <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12.5px;color:#26241F;">{{ src.name }}</span>
+                <i class="{{ src.chevronClass }}" style="font-size:11px;color:#A39D91;"></i>
+              </button>
+              <button type="button" aria-label="Toggle source" onClick="{{ src.toggleEnabled }}" style="width:26px;height:15px;flex:none;border:0;border-radius:8px;background:{{ src.switchBg }};position:relative;cursor:pointer;padding:0;margin-right:7px;">
+                <span style="position:absolute;top:2px;left:{{ src.knobLeft }};width:11px;height:11px;border-radius:50%;background:#FFFDFA;transition:left .15s;"></span>
+              </button>
+            </div>
+            <sc-if value="{{ src.expanded }}">
+              <div style="padding:2px 10px 12px 30px;">
+                <span style="font-family:Georgia,'Times New Roman',serif;font-size:12.5px;line-height:1.65;color:#3A372F;text-wrap:pretty;">{{ src.preview }}</span>
+                <button type="button" onClick="{{ src.fetchContent }}" style="display:flex;align-items:center;gap:5px;margin-top:8px;border:0;background:none;font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#1F5A4C;cursor:pointer;padding:0;"><i class="ph ph-eye"></i>Show content</button>
+                <sc-if value="{{ src.showingContent }}">
+                  <div style="font-family:Georgia,'Times New Roman',serif;font-size:12.5px;line-height:1.65;color:#3A372F;text-wrap:pretty;margin-top:6px;padding:8px;background:#F1EEE7;border-radius:6px;">{{ src.content }}</div>
+                </sc-if>
+              </div>
+            </sc-if>
+          </div>
+        </sc-for>
+        <sc-if value="{{ noSources }}">
+          <span style="font-size:12px;color:#A39D91;padding:12px 9px;">No sources yet — paste a URL or search the web.</span>
+        </sc-if>
+      </div>
+    </div>
+    <div style="padding:10px 13px 12px;border-top:1px solid #EBE6DC;">
+      <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#6E6A60;">{{ sourceCount }} sources</span>
+      <span style="display:block;font-size:11px;color:#A39D91;">enabled sources feed every query</span>
+    </div>
+  </div>
+
+  <div style="flex:1;min-width:0;display:flex;flex-direction:column;background:#FFFDFA;">
+    <div style="flex:1;padding:22px 24px;display:flex;flex-direction:column;gap:20px;overflow:hidden;">
+      <div ref="{{ chatScrollRef }}" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:20px;" class="eo-scrollbar">
+        <sc-if value="{{ showEmptyChat }}">
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:60px 20px;">
+            <span style="font-family:'IBM Plex Mono',monospace;font-size:28px;color:#E0DACE;">⊨</span>
+            <span style="font-size:15px;color:#A39D91;text-align:center;">No messages yet — add sources to the left, then ask a question.</span>
+          </div>
+        </sc-if>
+
+        <sc-for list="{{ turns }}" as="turn">
+          <div class="eo-fade-in" style="display:flex;flex-direction:column;gap:8px;">
+            <div style="align-self:flex-end;max-width:74%;display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
+              <sc-if value="{{ turn.hasAttachments }}">
+                <div style="display:flex;flex-wrap:wrap;gap:5px;justify-content:flex-end;">
+                  <sc-for list="{{ turn.attachments }}" as="att">
+                    <span style="font-size:11px;color:#4A463E;border:1px solid #E4DFD5;background:#FAF8F4;border-radius:6px;padding:3px 7px;">{{ att.name }}</span>
+                  </sc-for>
+                </div>
+              </sc-if>
+              <div style="background:#F1EEE7;border:1px solid #E7E2D8;border-radius:12px 12px 4px 12px;padding:9px 13px;">
+                <span style="font-size:13.5px;line-height:1.5;color:#26241F;">{{ turn.q }}</span>
+              </div>
+            </div>
+            <sc-if value="{{ turn.streaming }}">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span class="eo-pulse" style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#1F5A4C;">⊨</span>
+                <span style="font-size:13px;color:#8C877C;">{{ turn.streamingText }}</span>
+              </div>
+            </sc-if>
+            <sc-if value="{{ turn.a }}">
+              <div style="max-width:88%;display:flex;flex-direction:column;gap:8px;">
+                <span style="font-size:14px;color:#1B1A17;line-height:1.72;text-wrap:pretty;">{{ turn.a }}</span>
+                <sc-if value="{{ turn.citations }}">
+                  <div style="display:flex;flex-wrap:wrap;gap:6px;">
+                    <sc-for list="{{ turn.citations }}" as="cit">
+                      <span style="display:flex;align-items:center;gap:7px;font-size:11.5px;color:#4A463E;border:1px solid #E4DFD5;background:#FAF8F4;border-radius:6px;padding:4px 8px;cursor:default;"><span style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#1F5A4C;">{{ cit.num }}</span>{{ cit.source }}</span>
+                    </sc-for>
+                  </div>
+                </sc-if>
+                <div style="display:flex;align-items:center;gap:12px;padding-top:2px;">
+                  <button type="button" aria-label="Copy" onClick="{{ turn.copy }}" style="display:flex;align-items:center;gap:5px;border:0;background:none;font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#8C877C;cursor:pointer;padding:0;"><i class="ph ph-copy"></i>copy</button>
+                  <button type="button" aria-label="Provenance" onClick="{{ turn.toggleProvenance }}" style="display:flex;align-items:center;gap:5px;border:0;background:none;font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#8C877C;cursor:pointer;padding:0;"><i class="ph ph-eye"></i>provenance<i class="{{ turn.provenanceChevronClass }}"></i></button>
+                  <button type="button" aria-label="Fork" onClick="{{ turn.fork }}" style="display:flex;align-items:center;gap:5px;border:0;background:none;font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#8C877C;cursor:pointer;padding:0;"><i class="ph ph-git-fork"></i>fork</button>
+                </div>
+                <sc-if value="{{ turn.provenanceOpen }}">
+                <div style="background:#FAF8F4;border:1px solid #EBE6DC;border-radius:9px;padding:11px 12px;display:flex;flex-direction:column;gap:9px;">
+                  <div style="display:flex;flex-direction:column;gap:3px;">
+                    <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#A39D91;">surfaced by retrieval</span>
+                    <span style="font-size:12px;color:#3A372F;line-height:1.6;font-style:italic;">{{ turn.provenanceSurfaced }}</span>
+                  </div>
+                  <div style="display:flex;flex-direction:column;gap:3px;">
+                    <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#A39D91;">prompted to model</span>
+                    <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#4A463E;line-height:1.6;white-space:pre-wrap;">{{ turn.prompt }}</span>
+                  </div>
+                </div>
+                </sc-if>
+              </div>
+            </sc-if>
+          </div>
+        </sc-for>
+        <sc-if value="{{ streamingAnswer }}">
+          <div class="eo-fade-in" style="max-width:88%;display:flex;flex-direction:column;gap:8px;">
+            <span style="font-size:14px;color:#1B1A17;line-height:1.72;text-wrap:pretty;">{{ streamingAnswer }}</span>
+            <sc-if value="{{ streamingCitations }}">
+              <div style="display:flex;flex-wrap:wrap;gap:6px;">
+                <sc-for list="{{ streamingCitations }}" as="cit">
+                  <span style="display:flex;align-items:center;gap:7px;font-size:11.5px;color:#4A463E;border:1px solid #E4DFD5;background:#FAF8F4;border-radius:6px;padding:4px 8px;"><span style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#1F5A4C;">{{ cit.num }}</span>{{ cit.source }}</span>
+                </sc-for>
+              </div>
+            </sc-if>
+          </div>
+        </sc-if>
+      </div>
+    </div>
+
+    <div style="padding:14px 20px 18px;border-top:1px solid #EBE6DC;background:#FFFDFA;display:flex;flex-direction:column;gap:8px;">
+      <sc-if value="{{ uploadError }}">
+        <div style="font-size:11px;color:#c0341a;">{{ uploadError }}</div>
+      </sc-if>
+      <sc-if value="{{ hasDraftAttachments }}">
+        <div style="display:flex;flex-wrap:wrap;gap:6px;">
+          <sc-for list="{{ draftAttachments }}" as="att">
+            <span style="display:flex;align-items:center;gap:6px;font-size:11.5px;color:#4A463E;border:1px solid #E4DFD5;background:#FAF8F4;border-radius:6px;padding:3px 6px 3px 9px;">{{ att.name }}<button type="button" onClick="{{ att.remove }}" aria-label="Remove attachment" style="border:0;background:none;color:#A39D91;font-size:12px;cursor:pointer;padding:0;line-height:1;">×</button></span>
+          </sc-for>
+        </div>
+      </sc-if>
+      <div style="display:flex;gap:8px;align-items:center;border:1px solid #E0DACE;border-radius:11px;padding:6px 6px 6px 8px;background:#FFFDFA;">
+        <button type="button" aria-label="Attach file" onClick="{{ openFileDialog }}" style="width:28px;height:28px;flex:none;display:flex;align-items:center;justify-content:center;border:0;border-radius:7px;background:none;color:#8C877C;cursor:pointer;"><i class="ph ph-paperclip" style="font-size:15px;"></i></button>
+        <input type="file" multiple="{{ true }}" ref="{{ setFileInput }}" onChange="{{ onFilesSelected }}" style="display:none;" />
+        <input type="text" placeholder="Ask across your sources" value="{{ draft }}" onChange="{{ onDraft }}" onKeyDown="{{ onKey }}" style="flex:1;min-width:0;border:0;outline:none;background:none;font-family:inherit;font-size:13.5px;color:#1B1A17;padding:6px 0;" />
+        <button type="button" aria-label="Send" onClick="{{ send }}" style="width:32px;height:32px;flex:none;display:flex;align-items:center;justify-content:center;border:0;border-radius:8px;background:{{ sendBg }};color:#FFFDFA;font-size:14px;line-height:1;cursor:pointer;"><i class="ph ph-arrow-right" style="font-size:14px;"></i></button>
+      </div>
+      <span style="font-size:11px;color:#A39D91;">Answers cite only what your sources say.</span>
+    </div>
+  </div>
+
+  <div style="width:220px;flex:none;background:#FAF8F4;border-left:1px solid #EBE6DC;display:flex;flex-direction:column;min-width:0;">
+    <sc-if value="{{ hasSelectedEntity }}">
+      <div style="padding:16px;">
+        <button type="button" onClick="{{ clearSelectedEntity }}" style="display:flex;align-items:center;gap:6px;border:0;background:none;padding:0 0 8px;cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#8C877C;"><i class="ph ph-arrow-left"></i>all entities</button>
+        <span style="font-size:15px;font-weight:500;color:#26241F;">{{ selectedEntityName }}</span>
+        <span style="display:block;font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#A39D91;text-transform:uppercase;letter-spacing:.06em;margin-top:4px;">mentioned {{ selectedEntityMentions }}×</span>
+        <div style="display:flex;flex-direction:column;gap:8px;padding-top:10px;border-top:1px solid #EBE6DC;margin-top:10px;">
+          <span style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:#A39D91;">appears in</span>
+          <sc-for list="{{ selectedEntityTurns }}" as="et">
+            <div style="font-size:11.5px;color:#4A463E;line-height:1.55;padding:3px 0;border-bottom:1px solid #F0ECE4;">"{{ et.text }}"</div>
+          </sc-for>
+        </div>
+      </div>
+    </sc-if>
+    <sc-if value="{{ showEntityIndex }}">
+      <div style="padding:16px;flex:1;display:flex;flex-direction:column;">
+        <span style="font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#6E6A60;margin-bottom:10px;">Entities</span>
+        <div style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:2px;" class="eo-scrollbar">
+          <sc-for list="{{ entityRows }}" as="ent">
+            <button type="button" onClick="{{ ent.select }}" style="display:flex;align-items:center;gap:9px;border:0;background:none;padding:5px 4px;cursor:pointer;font-family:inherit;text-align:left;border-radius:6px;">
+              <span style="font-size:12.5px;color:#26241F;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ ent.name }}</span>
+              <span style="width:{{ ent.barWidth }};height:3px;border-radius:2px;background:{{ ent.color }};flex:none;"></span>
+            </button>
+          </sc-for>
+          <sc-if value="{{ noEntities }}">
+            <span style="font-size:12px;color:#A39D91;padding:6px 4px;">Entities appear as you chat.</span>
+          </sc-if>
+        </div>
+        <div style="padding-top:10px;border-top:1px solid #EBE6DC;margin-top:6px;">
+          <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#6E6A60;">{{ entityCountLabel }}</span>
+        </div>
+      </div>
+    </sc-if>
+  </div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"proxyUrl":{"editor":"string","default":"http://localhost:11435","section":"Backend"},"sessionId":{"editor":"string","default":"eochat","section":"Backend"}}'>
+class Component extends DCLogic {
+  state = {
+    draft: '', draftAttachments: [], uploadError: null,
+    spacesOpen: false, activeSpaceId: 'default',
+    expandedProvenance: {}, expandedSourceRow: null, sourceContent: {},
+    proxyAlive: new Date(0),
+    spaces: [],
+    turns: [],
+    retrievals: [],
+    sources: [],
+    streamingAnswer: null, streamingCitations: null
+  };
+
+  proxyUrl() { return this.props.proxyUrl || 'http://localhost:11435'; }
+  sessionId() { return this.props.sessionId || 'eochat'; }
+
+  componentDidMount() {
+    this.checkHealth();
+    this.loadSession();
+  }
+
+  componentWillUnmount() {
+    if (this._healthTimer) clearInterval(this._healthTimer);
+  }
+
+  componentDidUpdate() {
+    this.scrollToBottom();
+  }
+
+  scrollToBottom() {
+    const el = this.chatScrollEl;
+    if (!el) return;
+    requestAnimationFrame(() => { el.scrollTop = el.scrollHeight; });
+  }
+
+  async checkHealth() {
+    try {
+      const res = await fetch(this.proxyUrl() + '/health', { signal: AbortSignal.timeout(3000) });
+      if (res.ok) this.setState({ proxyAlive: new Date() });
+    } catch {}
+    this._healthTimer = setInterval(async () => {
+      try {
+        const res = await fetch(this.proxyUrl() + '/health', { signal: AbortSignal.timeout(3000) });
+        if (res.ok) this.setState({ proxyAlive: new Date() });
+      } catch {}
+    }, 15000);
+  }
+
+  proxyLive() { return (Date.now() - this.state.proxyAlive.getTime()) < 20000; }
+
+  async loadSession() {
+    let spaces = this._loadLocal('eochat.spaces');
+    if (!Array.isArray(spaces) || !spaces.length) {
+      spaces = [{ id: 'default', name: 'Reading Room', turns: [], retrievals: [], sources: [] }];
+    }
+    this.setState({ spaces });
+
+    try {
+      const res = await fetch(this.proxyUrl() + '/api/discourse?session=' + this.sessionId(), { signal: AbortSignal.timeout(3000) });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.messages && data.messages.length) {
+          this.setState(s => {
+            const turns = this._discourseToTurns(data.messages);
+            return { spaces: s.spaces.map(sp => sp.id === 'default' ? { ...sp, turns } : sp) };
+          });
+        }
+      }
+    } catch {}
+  }
+
+  _discourseToTurns(messages) {
+    const turns = [];
+    let current = null;
+    for (const m of messages) {
+      if (m.role === 'user') {
+        current = { id: 'msg-' + Date.now() + '-' + turns.length, q: m.content, a: null, citations: null, hasAttachments: false, attachments: [] };
+        turns.push(current);
+      } else if (m.role === 'assistant' && current) {
+        current.a = m.content;
+        current.citations = this.parseCitations(m.content).citations;
+      }
+    }
+    return turns;
+  }
+
+  _loadLocal(key) {
+    try { return JSON.parse(localStorage.getItem(key)); } catch { return null; }
+  }
+
+  _saveLocal(key, val) {
+    try { localStorage.setItem(key, JSON.stringify(val)); } catch {}
+  }
+
+  activeSpace() {
+    return this.state.spaces.find(s => s.id === this.state.activeSpaceId) || this.state.spaces[0] || { id: 'default', name: 'Room', turns: [], retrievals: [], sources: [] };
+  }
+
+  inferType(name) {
+    const n = name.toLowerCase();
+    if (n.match(/\.(wav|mp3|m4a|ogg)$/)) return 'audio';
+    if (n.match(/\.(pdf|docx|doc|txt|md)$/)) return 'pdf';
+    if (n.includes('article') || n.startsWith('http')) return 'link';
+    return 'binary';
+  }
+
+  async sendToProxy(q, attachments) {
+    const active = this.activeSpace();
+    const enabledSources = active.sources.filter(s => s.enabled !== false);
+    const sysMsg = 'You are a helpful reading companion. Answer only from the attached sources, with inline citations in the format [1], [2], etc. Always cite the specific source and chapter/section for each claim. If the sources do not contain enough information to answer, say so clearly.';
+
+    let userMsg = q;
+    if (enabledSources.length) {
+      userMsg = `I have these sources available:\n${enabledSources.map((s, i) => `[${i + 1}] ${s.name}`).join('\n')}\n\nQuestion: ${q}`;
+    }
+
+    const body = {
+      messages: [
+        { role: 'system', content: sysMsg },
+        { role: 'user', content: userMsg }
+      ],
+      session: this.sessionId(),
+      grounded: true,
+      groundBudget: 800,
+      groundMaxUnits: 6,
+      groundLimit: 12,
+      stream: true
+    };
+
+    const res = await fetch(this.proxyUrl() + '/api/chat/tools', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+
+    if (!res.ok) throw new Error('Proxy returned ' + res.status);
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    let fullAnswer = '';
+    const citations = [];
+
+    this.setState({ streamingAnswer: '', streamingCitations: [] });
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop() || '';
+      for (const line of lines) {
+        if (!line.trim() || !line.startsWith('data: ')) continue;
+        try {
+          const data = JSON.parse(line.slice(6));
+          if (data.type === 'content' && data.content) {
+            fullAnswer += data.content;
+            const parsed = this.parseCitations(fullAnswer);
+            this.setState({ streamingAnswer: parsed.text, streamingCitations: parsed.citations });
+          }
+          if (data.type === 'citation') {
+            citations.push(data);
+          }
+          if (data.type === 'done' || data.type === 'error') {
+            break;
+          }
+        } catch {}
+      }
+    }
+
+    return { answer: fullAnswer, citations };
+  }
+
+  parseCitations(text) {
+    const citationRegex = /\[(\d+)\]/g;
+    const seen = new Set();
+    const citations = [];
+    let match;
+    while ((match = citationRegex.exec(text)) !== null) {
+      if (!seen.has(match[1])) {
+        seen.add(match[1]);
+        citations.push({ num: match[1], source: 'Source ' + match[1] });
+      }
+    }
+    return { text, citations };
+  }
+
+  extractEntities(text) {
+    const words = text.match(/\b[A-Z][a-z]+(?:\s[A-Z][a-z]+)*\b/g) || [];
+    const stopwords = new Set(['The', 'This', 'That', 'These', 'Those', 'What', 'When', 'Where', 'Why', 'How', 'Who', 'Which', 'I', 'You', 'He', 'She', 'It', 'We', 'They', 'My', 'Your', 'His', 'Her', 'Its', 'Our', 'Their', 'A', 'An', 'And', 'But', 'Or', 'For', 'Nor', 'Not', 'Yet', 'So', 'Chapter', 'Page', 'Source', 'Answer']);
+    const count = {};
+    words.forEach(w => {
+      if (!stopwords.has(w) && w.length > 1) count[w] = (count[w] || 0) + 1;
+    });
+    return Object.entries(count).sort((a, b) => b[1] - a[1]).slice(0, 30);
+  }
+
+  async send() {
+    const q = this.state.draft.trim();
+    if (!q && !this.state.draftAttachments.length) return;
+    const attachments = this.state.draftAttachments;
+    const active = this.activeSpace();
+    const id = 'turn-' + Date.now();
+
+    this.setState(s => ({
+      draft: '', draftAttachments: [],
+      turns: s.turns.concat([{
+        id, q, attachments, hasAttachments: !!attachments.length,
+        a: null, citations: null, streaming: false
+      }]),
+      streamingLoading: true, streamingAnswer: null, streamingCitations: null
+    }));
+
+    try {
+      const result = await this.sendToProxy(q, attachments);
+
+      this.setState(s => ({
+        streamingLoading: false,
+        turns: s.turns.map(t => t.id === id ? {
+          ...t,
+          a: result.answer,
+          citations: result.citations,
+          prompt: 'Answer only from the attached sources, with inline citations.\n\nQUESTION: ' + q
+        } : t)
+      }));
+
+      this._saveLocal('eochat.turns.' + this.state.activeSpaceId, this.state.turns);
+    } catch (err) {
+      this.setState(s => ({
+        streamingLoading: false,
+        turns: s.turns.map(t => t.id === id ? {
+          ...t, a: '(Proxy unavailable — ' + err.message + ')', citations: []
+        } : t)
+      }));
+    }
+  }
+
+  async addSource() {
+    const name = window.prompt('Paste a URL to ingest');
+    if (!name) return;
+    const src = { name, glyph: '○', color: '#A39D91', enabled: true };
+    this.setState(s => ({
+      spaces: s.spaces.map(sp => sp.id === s.activeSpaceId
+        ? { ...sp, sources: sp.sources.concat([src]) } : sp)
+    }));
+    this._saveLocal('eochat.spaces', this.state.spaces);
+
+    try {
+      const res = await fetch(this.proxyUrl() + '/api/ingest', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ path: name, session: this.sessionId() })
+      });
+      if (res.ok) {
+        const result = await res.json();
+        this.setState(s => ({
+          spaces: s.spaces.map(sp => sp.id === s.activeSpaceId
+            ? { ...sp, sources: sp.sources.map(x => x.name === name ? { ...x, glyph: '●', color: '#1F5A4C', ingested: true, chunks: result.chunks || 0 } : x) } : sp)
+        }));
+      }
+    } catch {}
+  }
+
+  async searchWeb() {
+    const q = window.prompt('Search the web');
+    if (!q) return;
+    try {
+      const res = await fetch(this.proxyUrl() + '/api/verbatim?q=' + encodeURIComponent(q) + '&limit=5', { signal: AbortSignal.timeout(15000) });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.passages && data.passages.length) {
+          this.setState(s => ({
+            spaces: s.spaces.map(sp => sp.id === s.activeSpaceId
+              ? { ...sp, sources: sp.sources.concat(data.passages.map((p, i) => ({
+                  name: p.source || ('Result ' + (i + 1)),
+                  glyph: '●', color: '#1F5A4C', enabled: true, ingested: true
+                }))) } : sp)
+          }));
+          return;
+        }
+      }
+      const res2 = await fetch(`https://api.duckduckgo.com/?q=${encodeURIComponent(q)}&format=json&no_html=1&skip_disambig=1`);
+      const data2 = await res2.json();
+      const urls = [];
+      if (data2.AbstractURL) urls.push(data2.AbstractURL);
+      (data2.RelatedTopics || []).forEach(t => { if (urls.length < 4 && t.FirstURL) urls.push(t.FirstURL); });
+      if (urls.length) {
+        this.setState(s => ({
+          spaces: s.spaces.map(sp => sp.id === s.activeSpaceId
+            ? { ...sp, sources: sp.sources.concat(urls.map(u => ({ name: u, glyph: '○', color: '#A39D91', enabled: true }))) } : sp)
+        }));
+      }
+    } catch {}
+  }
+
+  toggleSource(name) {
+    this.setState(s => ({
+      spaces: s.spaces.map(sp => sp.id === s.activeSpaceId
+        ? { ...sp, sources: sp.sources.map(src => src.name === name ? { ...src, enabled: !src.enabled } : src) }
+        : sp)
+    }));
+    this._saveLocal('eochat.spaces', this.state.spaces);
+  }
+
+  async fetchSourceContent(name) {
+    if (this.state.sourceContent[name]) return;
+    try {
+      const res = await fetch(this.proxyUrl() + '/api/attachments/content?session=' + this.sessionId() + '&name=' + encodeURIComponent(name), { signal: AbortSignal.timeout(5000) });
+      if (res.ok) {
+        const text = await res.text();
+        this.setState(s => ({ sourceContent: { ...s.sourceContent, [name]: text } }));
+      } else {
+        const res2 = await fetch(this.proxyUrl() + '/api/verbatim/read?session=' + this.sessionId() + '&name=' + encodeURIComponent(name), { signal: AbortSignal.timeout(5000) });
+        if (res2.ok) {
+          const text = await res2.text();
+          this.setState(s => ({ sourceContent: { ...s.sourceContent, [name]: text } }));
+        }
+      }
+    } catch {}
+  }
+
+  addSpace() {
+    const name = window.prompt('Name this space');
+    if (!name) return;
+    const id = 'sp-' + Date.now();
+    this.setState(s => ({
+      spaces: s.spaces.concat([{ id, name, turns: [], retrievals: [], sources: [] }]),
+      activeSpaceId: id, spacesOpen: false
+    }));
+    this._saveLocal('eochat.spaces', this.state.spaces);
+  }
+
+  forkSpace(upToTurnIndex) {
+    const active = this.activeSpace();
+    const turnsCopy = active.turns.slice(0, upToTurnIndex + 1);
+    const id = 'sp-' + Date.now();
+    const name = active.name + ' (fork)';
+    this.setState(s => ({
+      spaces: s.spaces.concat([{ id, name, turns: turnsCopy, retrievals: active.retrievals.slice(), sources: active.sources.slice() }]),
+      activeSpaceId: id
+    }));
+    this._saveLocal('eochat.spaces', this.state.spaces);
+  }
+
+  async onFilesSelected(e) {
+    const fileList = Array.from(e.target.files || []);
+    if (!fileList.length) return;
+
+    const files = fileList.map((f, i) => ({ id: Date.now() + '-' + i, name: f.name, file: f }));
+    this.setState(s => ({ draftAttachments: s.draftAttachments.concat(files) }));
+
+    for (const f of files) {
+      try {
+        const text = await f.file.text();
+        const payload = { content: text.slice(0, 500000), name: f.name, session: this.sessionId() };
+        fetch(this.proxyUrl() + '/api/ingest', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        }).catch(() => {});
+      } catch {}
+    }
+  }
+
+  goToApp() {
+    window.location.href = './index.html';
+  }
+
+  retryProxy() {
+    this.checkHealth();
+  }
+
+  renderVals() {
+    const S = this.state;
+    const active = this.activeSpace();
+    const live = this.proxyLive();
+
+    const draftAttachments = S.draftAttachments.map(att => ({
+      name: att.name,
+      remove: () => this.setState(s => ({ draftAttachments: s.draftAttachments.filter(x => x.id !== att.id) }))
+    }));
+
+    const spaces = S.spaces.map(sp => ({
+      name: sp.name,
+      marker: sp.id === S.activeSpaceId ? '●' : '○',
+      bg: sp.id === S.activeSpaceId ? '#F2EFE8' : 'transparent',
+      select: () => this.setState({ activeSpaceId: sp.id, spacesOpen: false })
+    }));
+
+    const activeSources = active.sources.map(s => {
+      const expanded = S.expandedSourceRow === s.name;
+      const showingContent = !!S.sourceContent[s.name];
+      const contentPreview = s.ingested
+        ? 'Ingested and bonded to this room — citable.'
+        : 'Pending ingestion.';
+      return {
+        name: s.name,
+        color: s.color,
+        glyph: s.glyph,
+        enabled: s.enabled,
+        rowOpacity: s.enabled === false ? 0.45 : 1,
+        switchBg: s.enabled === false ? '#E0DACE' : '#1F5A4C',
+        knobLeft: s.enabled === false ? '2px' : '13px',
+        expanded,
+        chevronClass: expanded ? 'ph ph-caret-down' : 'ph ph-caret-right',
+        preview: contentPreview,
+        showingContent,
+        content: S.sourceContent[s.name] || '',
+        toggle: () => this.setState(st => ({ expandedSourceRow: st.expandedSourceRow === s.name ? null : s.name })),
+        toggleEnabled: () => this.toggleSource(s.name),
+        fetchContent: () => this.fetchSourceContent(s.name)
+      };
+    });
+
+    const allText = active.turns.map(t => t.q + ' ' + (t.a || '')).join(' ');
+    const entityMap = this.extractEntities(allText);
+    const maxCount = entityMap.length ? entityMap[0][1] : 1;
+    const colors = ['#1F5A4C', '#3D7A6A', '#5FA08E', '#8CBBB0', '#B5D3CA', '#D5E3DE', '#EBE6DC'];
+    const entityRows = entityMap.map(([name, count], i) => ({
+      name, mentions: count,
+      color: colors[i % colors.length],
+      barWidth: Math.max(4, Math.round((count / maxCount) * 30)) + 'px',
+      select: () => this.setState({ selectedEntity: name })
+    }));
+
+    const selectedEntityName = S.selectedEntity || '';
+    const selectedEntityTurns = selectedEntityName
+      ? active.turns.filter(t =>
+          (t.q && t.q.includes(selectedEntityName)) ||
+          (t.a && t.a.includes(selectedEntityName))
+        ).map(t => ({ text: (t.q || '').slice(0, 80) + ((t.q || '').length > 80 ? '…' : '') })).slice(0, 10)
+      : [];
+    const selectedEntityMentions = entityMap.find(([n]) => n === selectedEntityName)?.[1] || 0;
+
+    return {
+      proxyLive: live, proxyDead: !live,
+      proxyStatusText: live ? ('proxy · ' + Math.round((Date.now() - S.proxyAlive.getTime()) / 1000) + 's') : '',
+      retryProxy: () => this.retryProxy(),
+      goToApp: () => this.goToApp(),
+      draft: S.draft,
+      sendBg: S.draft.trim().length ? '#1F5A4C' : '#8C877C',
+      turns: active.turns.map((turn, i) => {
+        const open = !!S.expandedProvenance[turn.id];
+        return {
+          ...turn,
+          provenanceOpen: open,
+          provenanceChevronClass: open ? 'ph ph-caret-down' : 'ph ph-caret-right',
+          provenanceSurfaced: turn.citations?.length
+            ? turn.citations.map(c => c.source).join(', ') + ' — cited in response'
+            : 'No retrieval fired for this turn.',
+          copy: () => navigator.clipboard.writeText(
+            `Q: ${turn.q}${turn.a ? `\n\nA: ${turn.a}` : ''}`
+          ),
+          toggleProvenance: () => this.setState(s => ({
+            expandedProvenance: { ...s.expandedProvenance, [turn.id]: !s.expandedProvenance[turn.id] }
+          })),
+          fork: () => this.forkSpace(i)
+        };
+      }),
+      streamingAnswer: S.streamingAnswer,
+      streamingCitations: S.streamingCitations,
+      streamingLoading: S.streamingLoading,
+      showEmptyChat: active.turns.length === 0,
+      onDraft: (e) => this.setState({ draft: e.target.value }),
+      onKey: (e) => { if (e.key === 'Enter') this.send(); },
+      send: () => this.send(),
+      activeSpaceName: active.name,
+      spacesOpen: S.spacesOpen,
+      toggleSpaces: () => this.setState(s => ({ spacesOpen: !s.spacesOpen })),
+      spaces,
+      addSpace: () => this.addSpace(),
+      activeSources,
+      noSources: active.sources.length === 0,
+      sourceCount: active.sources.length,
+      addSource: () => this.addSource(),
+      searchWeb: () => this.searchWeb(),
+      draftAttachments,
+      hasDraftAttachments: draftAttachments.length > 0,
+      uploadError: S.uploadError,
+      setFileInput: (el) => { this.fileInputEl = el; },
+      openFileDialog: () => this.fileInputEl && this.fileInputEl.click(),
+      onFilesSelected: (e) => this.onFilesSelected(e),
+      chatScrollRef: (el) => { this.chatScrollEl = el; this.scrollToBottom(); },
+      entityRows,
+      noEntities: entityRows.length === 0,
+      hasSelectedEntity: !!S.selectedEntity,
+      showEntityIndex: !S.selectedEntity,
+      selectedEntityName,
+      selectedEntityMentions,
+      selectedEntityTurns,
+      clearSelectedEntity: () => this.setState({ selectedEntity: null }),
+      entityCountLabel: entityRows.length + ' entities'
+    };
+  }
+}
+</script>
+</body>
+</html>
