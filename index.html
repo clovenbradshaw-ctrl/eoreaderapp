@@ -3,6 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- support.js (dc-runtime) resolves window.React/window.ReactDOM at call time and
+     throws "window.React is not available yet" if they are absent, so these must
+     load first. Standalone index.html has no component host to supply them. -->
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script src="./support.js"></script>
 </head>
 <body>
@@ -829,9 +834,9 @@
             </sc-for>
           </div>
         </sc-if>
-        <sc-if value="{{ hasMeaningMap }}">
-          <div style="font:600 10px system-ui;letter-spacing:.05em;text-transform:uppercase;color:{{ t.mut }};margin:16px 0 6px">Scope · {{ mapScopeLabel }} · Map</div>
-          <div ref="{{ solarRef }}" style="height:220px;border-radius:14px;overflow:hidden;background:{{ t.bar }};border:1px solid {{ t.border }}"></div>
+        <sc-if value="{{ hasEntityGraph }}">
+          <div style="font:600 10px system-ui;letter-spacing:.05em;text-transform:uppercase;color:{{ t.mut }};margin:16px 0 6px">Relationships · typed by kind</div>
+          <div ref="{{ entityGraphRef }}" style="height:220px;border-radius:14px;overflow:hidden;background:{{ t.bar }};border:1px solid {{ t.border }}"></div>
         </sc-if>
         <sc-if value="{{ hasNote }}">
           <div style="margin-top:13px;background:rgba(208,71,46,.08);border:1px solid rgba(208,71,46,.28);border-radius:11px;padding:10px 12px;font:500 12.5px/1.45 system-ui;color:{{ t.t2 }}"><span style="color:#c0341a;font-weight:700">Noteworthy · </span>{{ sel.note }}</div>
@@ -1443,12 +1448,13 @@ function mountEOSolar(root, opts){
   opts = opts || {};
   var W = opts.width || 300, H = opts.height || 200;
   var cx = W / 2, cy = H / 2;
-  var SUN = '__doc__';
+  var SUN = opts.sunId || '__doc__';
   var textColor = opts.textColor || '#15181e';
   var mutedColor = opts.mutedColor || '#8A8A95';
   var edgeColor = opts.edgeColor || '#d9d5c8';
   var bgColor = opts.bgColor || '#fff';
   var sunColor = opts.sunColor || mutedColor;
+  var edgeLabels = opts.edgeLabels || {};
 
   var nodes = (opts.nodes || []).map(function(n){ return Object.assign({}, n); });
   var byId = {}; byId[SUN] = { id: SUN, label: opts.sunLabel || 'This document', kind: 'sun' };
@@ -1509,10 +1515,20 @@ function mountEOSolar(root, opts){
   universe.appendChild(focusRing);
 
   var edgeEls = {};
+  var edgeLabelEls = {};
   nodes.forEach(function(n){
     var line = sv('line', { stroke: edgeColor, 'stroke-opacity': 0.5, 'stroke-width': 0.75 });
     universe.appendChild(line);
     edgeEls[n.id] = line;
+    if (edgeLabels[n.id]) {
+      var t = sv('text', {
+        'text-anchor': 'middle', 'font-size': 6.5, fill: mutedColor,
+        style: 'paint-order:stroke;stroke:' + bgColor + ';stroke-width:2px;pointer-events:none;font-family:\'IBM Plex Mono\',monospace;letter-spacing:.02em'
+      });
+      t.textContent = edgeLabels[n.id];
+      universe.appendChild(t);
+      edgeLabelEls[n.id] = t;
+    }
   });
 
   var bodyEls = {}, labelEls = {};
@@ -1573,6 +1589,12 @@ function mountEOSolar(root, opts){
         edge.setAttribute('x1', parentPos.x.toFixed(1)); edge.setAttribute('y1', parentPos.y.toFixed(1));
         edge.setAttribute('x2', p.x.toFixed(1)); edge.setAttribute('y2', p.y.toFixed(1));
       }
+      var el = edgeLabelEls[id];
+      if (el) {
+        var pp = pos[n.parent] || { x: 0, y: 0 };
+        el.setAttribute('x', ((pp.x + p.x) / 2).toFixed(1));
+        el.setAttribute('y', ((pp.y + p.y) / 2).toFixed(1));
+      }
     });
     focusRing.setAttribute('r', sizeOf(focus) + 8);
     raf = requestAnimationFrame(frame);
@@ -1632,7 +1654,7 @@ function mountEOSolar(root, opts){
   raf = requestAnimationFrame(frame);
 
   return {
-    destroy: function(){ stopped = true; if (raf) cancelAnimationFrame(raf); if (controls.parentNode) controls.parentNode.removeChild(controls); if (svg.parentNode) svg.parentNode.removeChild(svg); },
+    destroy: function(){ stopped = true; if (raf) cancelAnimationFrame(raf); if (controls.parentNode) controls.parentNode.removeChild(controls); if (svg.parentNode) svg.parentNode.removeChild(svg); Object.keys(edgeLabelEls).forEach(function(k){ var t=edgeLabelEls[k]; if(t.parentNode) t.parentNode.removeChild(t); }); },
     focus: function(id){ if (byId[id]) { focus = id; recenter(); } },
     recenter: recenter,
     zoomIn: function(){ setZoom(zoom * 1.2); },
@@ -2542,6 +2564,7 @@ class Component extends DCLogic {
       },{passive:true});
     };
     this.solarRef=(el)=>this.mountSolar(el);
+    this.entityGraphRef=(el)=>this.mountEntityGraph(el);
     this.overviewDashRef=(el)=>this.mountOverviewDash(el);
     this._sid=1;
     this._prevSel=this.state.sel; this._prevDoc=this.state.doc; this._prevView=this.state.view; this._prevLayers=this.state.layers;
@@ -3038,6 +3061,61 @@ class Component extends DCLogic {
     if(r0.width>0) mount(); else requestAnimationFrame(mount);
   }
 
+  // Entity-centered relationship graph: a small orbital view showing the
+  // selected entity's direct connections, with typed edge labels from the
+  // co-occurrence relation verb (deriveRelVerb / CON typing).
+  mountEntityGraph(el){
+    this._entitySolarInstances = this._entitySolarInstances || new Set();
+    if(!el){
+      for(const e of [...this._entitySolarInstances]){
+        if(!e.isConnected){ if(e.__eosolar) e.__eosolar.destroy(); e.__eosolar=null; this._entitySolarInstances.delete(e); }
+      }
+      return;
+    }
+    if(el.__eosolar) return;
+    const g = this.entityOrbitGraph();
+    if(!g||!g.nodes.length) return;
+    const t = this.theme();
+    const mount = () => {
+      if(!el.isConnected || el.__eosolar) return;
+      const r = el.getBoundingClientRect();
+      const W = Math.max(200, Math.round(r.width||el.clientWidth||300));
+      const H = Math.max(160, Math.round(r.height||el.clientHeight||200));
+      el.__eosolar = mountEOSolar(el, {
+        nodes: g.nodes, sunLabel: g.sunLabel, focusId: g.focusId, sunId: g.focusId,
+        edgeLabels: g.edgeLabels,
+        width: W, height: H,
+        timeScale: 0.12,
+        textColor: t.text, mutedColor: t.mut, edgeColor: t.border, bgColor: t.bar, sunColor: t.accent,
+        onPivot: (id)=>{ if(id) this.pick(id); },
+      });
+      this._entitySolarInstances.add(el);
+    };
+    const r0 = el.getBoundingClientRect();
+    if(r0.width > 0) mount(); else requestAnimationFrame(mount);
+  }
+
+  entityOrbitGraph(){
+    const d = this.state.doc, a = d && d.analysis;
+    const list = (a && a.list) || [];
+    const sel = this.state.sel ? this.entMap()[this.state.sel] : null;
+    if(!sel || !sel.conns || !sel.conns.length) return null;
+    const conns = sel.conns.slice(0, 12);
+    const sunId = sel.id;
+    const nodes = conns.map(c => ({
+      id: c.id || (c.t || c.name),
+      label: c.t || c.name,
+      color: c.c || c.color,
+      count: c.count || 0,
+      kind: 'entity',
+      salience: (c.count || 0) + 1,
+      parent: sunId,
+    }));
+    const edgeLabels = {};
+    conns.forEach(c => { edgeLabels[c.id || c.t || c.name] = c.v || c.verb; });
+    return { nodes, sunLabel: sel.name, focusId: sunId, edgeLabels };
+  }
+
   // Adapter: build the OVERVIEW fold from the live reading. Where an engine
   // signal isn't wired yet (novelty/strain compute, register, coverage), this
   // computes an app-side proxy from the analysis the reader already has; where
@@ -3143,11 +3221,21 @@ class Component extends DCLogic {
     if(this._solars && prevSel!==this.state.sel && this.state.sel){
       for(const e of this._solars){ if(e.isConnected && e.__solar) e.__solar.focus(this.state.sel); }
     }
+    if(this._entitySolarInstances && prevSel!==this.state.sel){
+      const live=[...this._entitySolarInstances].filter(e=>e.isConnected);
+      for(const e of [...this._entitySolarInstances]){ if(e.__eosolar) e.__eosolar.destroy(); e.__eosolar=null; this._entitySolarInstances.delete(e); }
+      for(const e of live) this.mountEntityGraph(e);
+    }
     // A new document invalidates every mounted map; rebuild them from the new graph.
     if(this._solars && prevDoc!==this.state.doc){
       const live=[...this._solars].filter(e=>e.isConnected);
       for(const e of [...this._solars]){ if(e.__solar) e.__solar.destroy(); e.__solar=null; this._solars.delete(e); }
       for(const e of live) this.mountSolar(e);
+    }
+    if(this._entitySolarInstances && prevDoc!==this.state.doc){
+      const live=[...this._entitySolarInstances].filter(e=>e.isConnected);
+      for(const e of [...this._entitySolarInstances]){ if(e.__eosolar) e.__eosolar.destroy(); e.__eosolar=null; this._entitySolarInstances.delete(e); }
+      for(const e of live) this.mountEntityGraph(e);
     }
     if(this._webFrameDoc && prevDoc===this.state.doc &&
        (prevView!==this.state.view || prevLayers!==this.state.layers)){
@@ -5712,7 +5800,9 @@ class Component extends DCLogic {
       isEntSel:!!sel, isLinkSel:!!linkSel,
       showHalf:!!sel&&(lvl==='half'||lvl==='full'), showFull:!!sel&&lvl==='full', backdrop:(!!sel&&lvl==='full')||explOpen,
       hasConns:!!(sel&&sel.conns&&sel.conns.length), hasNote:!!(sel&&sel.note&&L.nw),
+      hasEntityGraph:!!(sel&&sel.conns&&sel.conns.length),
       solarRef:this.solarRef,
+      entityGraphRef:this.entityGraphRef,
       relatedChips:sel?(sel.related||[]).map(r=>({n:r.n,c:r.c,pick:r.id?(()=>this.pick(r.id)):null})):[],
       linksOpen:!!S.linksOpen,
       linksCaret:S.linksOpen?'▾':'▸',
