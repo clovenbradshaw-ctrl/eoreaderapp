@@ -647,7 +647,7 @@
     </sc-if>
     <sc-if value="{{ isChat }}">
     <div style="position:absolute;inset:0;background:#F4F2ED;z-index:50;overflow:hidden;">
-      <iframe src="./eochat.html" style="width:100%;height:100%;border:0;display:block;"></iframe>
+      <iframe src="../eochat/ui/index.html" style="width:100%;height:100%;border:0;display:block;"></iframe>
     </div>
     </sc-if>
         <sc-if value="{{ isOverview }}">
@@ -1475,15 +1475,15 @@ function mountEOSolar(root, opts){
 
   var kidsOf = {};
   nodes.forEach(function(n){ (kidsOf[n.parent] = kidsOf[n.parent] || []).push(n); });
-  var ORBIT = {}; ORBIT[SUN] = { parent: null, r: 0, omega: 0, phase: 0 };
+  var ORBIT = {}; ORBIT[SUN] = { parent: null, rx: 0, ry: 0, omega: 0, phase: 0 };
   Object.keys(kidsOf).forEach(function(pid){
     var arr = kidsOf[pid], onSun = (pid === SUN);
     arr.forEach(function(n, k){
       var ring = k % 3;
-      var r = onSun ? (70 + ring * 34) : (22 + ring * 9);
+      var rx = onSun ? (70 + ring * 34) : (22 + ring * 9);
       var period = onSun ? (20 + ring * 7 + (k % 5) * 3) : (5 + ring * 1.6 + (k % 4) * 0.8);
       ORBIT[n.id] = {
-        parent: pid, r: r,
+        parent: pid, rx: rx, ry: Math.round(rx * (onSun ? 0.62 : 0.7)),
         phase: (k / Math.max(1, arr.length)) * Math.PI * 2 + ring * 0.8,
         omega: (Math.PI * 2) / period,
       };
@@ -1497,7 +1497,7 @@ function mountEOSolar(root, opts){
     cache[id] = { x: 0, y: 0 };
     var p = truePos(o.parent, t, cache);
     var ang = o.phase + t * o.omega;
-    var pos = { x: p.x + o.r * Math.cos(ang), y: p.y + o.r * Math.sin(ang) };
+    var pos = { x: p.x + o.rx * Math.cos(ang), y: p.y + o.ry * Math.sin(ang) };
     cache[id] = pos; return pos;
   }
 
@@ -1513,6 +1513,21 @@ function mountEOSolar(root, opts){
   svg.appendChild(universe);
   var focusRing = sv('circle', { cx: 0, cy: 0, r: 30, fill: 'none', stroke: mutedColor, 'stroke-opacity': 0.4, 'stroke-width': 1, 'stroke-dasharray': '2 3' });
   universe.appendChild(focusRing);
+
+  // Orbit-path guides (the dashed rings) for the sun's direct children. They
+  // live in the sun's own frame, so they are only drawn while the sun is the
+  // focus — once the camera re-anchors onto a planet a static ellipse would be
+  // stale — exactly the older GEO solar view's convention. Moons get none:
+  // their planet moves, so a moon guide would be stale decoration; the bond
+  // lines already read the structure.
+  var guideEls = {};
+  nodes.forEach(function(n){
+    if (n.parent !== SUN) return;
+    var o = ORBIT[n.id]; if (!o || !o.rx) return;
+    var e = sv('ellipse', { cx: 0, cy: 0, rx: o.rx, ry: o.ry, fill: 'none', stroke: edgeColor, 'stroke-opacity': 0.5, 'stroke-width': 0.75, 'stroke-dasharray': '2 5', 'data-guide': '1' });
+    universe.insertBefore(e, universe.firstChild);
+    guideEls[n.id] = e;
+  });
 
   var edgeEls = {};
   var edgeLabelEls = {};
@@ -1531,10 +1546,35 @@ function mountEOSolar(root, opts){
     }
   });
 
+  // Kind is read as colour + glyph, never a number — the same convention the
+  // canvas Orbit tab's individuation palette uses: a paradigm is a held figure
+  // (solid holon-green), a plain entity is ambient (teal). An explicit
+  // node.color (already carried by some entities) still wins; this only
+  // supplies the fallback the flat mutedColor used to.
+  var KIND_FILL = { paradigm: '#1F5A4C', entity: '#7FA396' };
+  var KIND_GLYPH = { paradigm: '●', entity: '◐' };
   var bodyEls = {}, labelEls = {};
   function mkBody(id, r, fill, label, fontSize){
     var g = sv('g', { style: 'cursor:pointer', 'data-body': id });
+    var node = byId[id] || {};
+    if (id === SUN) {
+      // The sun wears a soft halo so it reads as the root of the system, not
+      // just a bigger dot (mirrors the GEO view's glow around the centred body).
+      g.appendChild(sv('circle', { r: r + 9, fill: fill, 'fill-opacity': 0.18 }));
+    } else if (node.kind === 'paradigm') {
+      // A paradigm is a held figure — it wears a faint corroboration halo, the
+      // way a firming claim carried one in the older solar view.
+      g.appendChild(sv('circle', { r: r + 3, fill: 'none', stroke: fill, 'stroke-opacity': 0.5, 'stroke-width': 1 }));
+    }
     g.appendChild(sv('circle', { r: r, fill: fill, stroke: 'rgba(0,0,0,.22)', 'stroke-width': 1 }));
+    var glyph = id === SUN ? '☉' : KIND_GLYPH[node.kind];
+    if (glyph) {
+      g.appendChild(sv('text', {
+        x: 0, y: 0, 'text-anchor': 'middle', 'dominant-baseline': 'central',
+        'font-size': Math.max(7, r * 0.9), fill: '#FAF8F4',
+        style: 'pointer-events:none;font-family:\'IBM Plex Mono\',monospace'
+      })).textContent = glyph;
+    }
     universe.appendChild(g);
     var t = sv('text', {
       'text-anchor': 'middle', 'font-size': fontSize, fill: textColor,
@@ -1545,7 +1585,7 @@ function mountEOSolar(root, opts){
     bodyEls[id] = g; labelEls[id] = t;
   }
   mkBody(SUN, sizeOf(SUN), sunColor, byId[SUN].label, 10);
-  nodes.forEach(function(n){ mkBody(n.id, sizeOf(n.id), n.color || mutedColor, n.label, n.kind === 'paradigm' ? 10 : 8.5); });
+  nodes.forEach(function(n){ mkBody(n.id, sizeOf(n.id), n.color || KIND_FILL[n.kind] || mutedColor, n.label, n.kind === 'paradigm' ? 10 : 8.5); });
 
   var focus = (opts.focusId && byId[opts.focusId]) ? opts.focusId : SUN;
   var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -1577,6 +1617,11 @@ function mountEOSolar(root, opts){
     ids.forEach(function(id){ pos[id] = truePos(id, t, cache); });
     var target = pos[focus] || { x: 0, y: 0 };
     universe.setAttribute('transform', 'translate(' + (cx + panX).toFixed(1) + ',' + (cy + panY).toFixed(1) + ') scale(' + zoom.toFixed(3) + ') translate(' + (-target.x).toFixed(1) + ',' + (-target.y).toFixed(1) + ')');
+    // Orbit guides are honest only while the sun itself is centred; once the
+    // camera re-anchors onto a planet they'd be stale geometry, so they lapse.
+    Object.keys(guideEls).forEach(function(id){
+      guideEls[id].setAttribute('display', focus === SUN ? '' : 'none');
+    });
     ids.forEach(function(id){
       var p = pos[id], n = byId[id], r = sizeOf(id);
       bodyEls[id].setAttribute('transform', 'translate(' + p.x.toFixed(1) + ',' + p.y.toFixed(1) + ')');
@@ -1597,6 +1642,10 @@ function mountEOSolar(root, opts){
       }
     });
     focusRing.setAttribute('r', sizeOf(focus) + 8);
+    // The ring itself is tinted by what's centred, the same "kind as colour"
+    // read the bodies get, rather than one flat neutral dash regardless of focus.
+    var focusNode = byId[focus] || {};
+    focusRing.setAttribute('stroke', focus === SUN ? sunColor : (KIND_FILL[focusNode.kind] || mutedColor));
     raf = requestAnimationFrame(frame);
   }
 

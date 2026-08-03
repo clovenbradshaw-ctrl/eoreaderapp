@@ -1,4 +1,4 @@
-// Headless harness for eochat.html.
+// Headless harness for eochat/ui/index.html.
 //
 // The DC runtime is browser-only, so this executes the <script type="text/x-dc">
 // logic block against a minimal DCLogic stub. Two things are checked:
@@ -9,13 +9,13 @@
 //
 // Run: node eoreaderapp/verify-eochat.mjs   (exits non-zero on any failure)
 
-// Executes eochat.html's logic block against a minimal DCLogic stub so
+// Executes index.html's logic block against a minimal DCLogic stub so
 // renderVals() can be exercised without a browser.
 import { readFileSync } from 'node:fs';
 
 const target = process.argv[2]
   ? new URL(process.argv[2], `file://${process.cwd()}/`)
-  : new URL('./eochat.html', import.meta.url);
+  : new URL('../eochat/ui/index.html', import.meta.url);
 const html = readFileSync(target, 'utf8');
 const tpl = html.slice(0, html.indexOf('<script type="text/x-dc"'));
 const logic = html.match(/<script type="text\/x-dc"[^>]*>([\s\S]*?)<\/script>/)[1];
